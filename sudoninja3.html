@@ -1,0 +1,2027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Bounty Hunting Methodology & Tools</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #1a1f3a;
+            --bg-tertiary: #252a47;
+            --accent-primary: #00ff88;
+            --accent-secondary: #0099ff;
+            --text-primary: #e0e6ed;
+            --text-secondary: #a0a8b5;
+            --border-color: #2d3454;
+            --code-bg: #151925;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, #0f1428 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid var(--accent-primary);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .phase-nav {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .phase-btn {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .phase-btn:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+        }
+
+        .phase-btn.active {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: var(--bg-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .search-box {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 3rem 1rem 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .phase-section {
+            display: none;
+        }
+
+        .phase-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tool-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .tool-card:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 8px 24px rgba(0, 255, 136, 0.2);
+            transform: translateY(-4px);
+        }
+
+        .tool-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            cursor: pointer;
+        }
+
+        .tool-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tool-badge {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: var(--bg-primary);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .expand-icon {
+            color: var(--accent-secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .tool-card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .tool-description {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .command-list {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .tool-card.expanded .command-list {
+            display: block;
+        }
+
+        .command-item {
+            background: var(--code-bg);
+            border-left: 4px solid var(--accent-secondary);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 6px;
+            position: relative;
+        }
+
+        .command-label {
+            color: var(--accent-primary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .command-code {
+            font-family: 'Courier New', monospace;
+            color: #fff;
+            display: block;
+            overflow-x: auto;
+            white-space: pre;
+            padding-right: 3rem;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--bg-tertiary);
+            color: var(--accent-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .copy-btn.copied {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: var(--accent-primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid var(--border-color);
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, rgba(0, 153, 255, 0.1), rgba(0, 255, 136, 0.1));
+            border-left: 4px solid var(--accent-secondary);
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 6px;
+        }
+
+        .info-box-title {
+            color: var(--accent-secondary);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+            border-top: 2px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .phase-nav {
+                flex-direction: column;
+            }
+
+            .phase-btn {
+                width: 100%;
+            }
+
+            .tool-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+    
+        /* =========================
+           Hacker Theme Overrides
+           ========================= */
+
+        :root{
+            --bg-primary:#050805;
+            --bg-secondary:#070c07;
+            --bg-tertiary:#0a120a;
+            --accent-primary:#39ff14;
+            --accent-secondary:#00d1ff;
+            --text-primary:#e7ffe3;
+            --text-secondary:#9adf9a;
+            --border-color:rgba(57,255,20,.25);
+            --code-bg:#050905;
+            --shadow: 0 10px 40px rgba(0,0,0,.65);
+        }
+
+        body{
+            font-family: "Share Tech Mono","Courier New",monospace;
+            background: radial-gradient(1200px 600px at 20% 0%, rgba(57,255,20,.12), transparent 60%),
+                        radial-gradient(900px 500px at 80% 10%, rgba(0,209,255,.10), transparent 55%),
+                        linear-gradient(180deg, #020402 0%, var(--bg-primary) 60%, #020402 100%);
+            letter-spacing: .2px;
+        }
+
+        /* Matrix rain canvas */
+        #matrix{
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: .35;
+            filter: contrast(120%) brightness(110%);
+        }
+
+        /* Scanlines + vignette */
+        body::before{
+            content:"";
+            position: fixed;
+            inset:0;
+            pointer-events:none;
+            z-index:1;
+            background:
+              repeating-linear-gradient(
+                to bottom,
+                rgba(255,255,255,.04) 0px,
+                rgba(255,255,255,.04) 1px,
+                rgba(0,0,0,0) 3px,
+                rgba(0,0,0,0) 6px
+              );
+            mix-blend-mode: overlay;
+            opacity:.22;
+        }
+        body::after{
+            content:"";
+            position: fixed;
+            inset:-2px;
+            pointer-events:none;
+            z-index:1;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, rgba(0,0,0,.55) 100%);
+        }
+
+        /* Subtle CRT flicker */
+        @keyframes crtFlicker{
+            0%,100%{ opacity:1; }
+            50%{ opacity:.97; }
+            60%{ opacity:.99; }
+        }
+        .container, .header, .footer{
+            position: relative;
+            z-index: 2;
+            animation: crtFlicker 6s infinite;
+        }
+
+        .header{
+            background: linear-gradient(135deg, rgba(10,18,10,.92) 0%, rgba(5,8,5,.92) 100%);
+            border-bottom: 2px solid rgba(57,255,20,.55);
+            backdrop-filter: blur(8px);
+        }
+        .header .sub{
+            color: var(--text-secondary);
+        }
+
+        /* Glitch title */
+        .glitch{
+            position: relative;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 12px rgba(57,255,20,.35);
+            -webkit-text-fill-color: unset;
+            background: none !important;
+            color: var(--accent-primary) !important;
+        }
+        .glitch::before,
+        .glitch::after{
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            overflow: hidden;
+            clip: rect(0, 900px, 0, 0);
+            opacity:.85;
+        }
+        .glitch::before{
+            transform: translate(-1px, 0);
+            text-shadow: -2px 0 rgba(0,209,255,.9);
+            animation: glitchTop 2.4s infinite linear alternate-reverse;
+        }
+        .glitch::after{
+            transform: translate(1px, 0);
+            text-shadow: 2px 0 rgba(57,255,20,.9);
+            animation: glitchBot 2.1s infinite linear alternate-reverse;
+        }
+        @keyframes glitchTop{
+            0%{ clip: rect(0,9999px,0,0); }
+            10%{ clip: rect(0,9999px,14px,0); }
+            20%{ clip: rect(0,9999px,4px,0); }
+            30%{ clip: rect(0,9999px,22px,0); }
+            40%{ clip: rect(0,9999px,9px,0); }
+            50%{ clip: rect(0,9999px,30px,0); }
+            60%{ clip: rect(0,9999px,18px,0); }
+            70%{ clip: rect(0,9999px,8px,0); }
+            80%{ clip: rect(0,9999px,26px,0); }
+            90%{ clip: rect(0,9999px,12px,0); }
+            100%{ clip: rect(0,9999px,20px,0); }
+        }
+        @keyframes glitchBot{
+            0%{ clip: rect(0,9999px,0,0); }
+            10%{ clip: rect(18px,9999px,40px,0); }
+            20%{ clip: rect(10px,9999px,26px,0); }
+            30%{ clip: rect(28px,9999px,55px,0); }
+            40%{ clip: rect(22px,9999px,42px,0); }
+            50%{ clip: rect(35px,9999px,62px,0); }
+            60%{ clip: rect(16px,9999px,38px,0); }
+            70%{ clip: rect(26px,9999px,52px,0); }
+            80%{ clip: rect(12px,9999px,34px,0); }
+            90%{ clip: rect(30px,9999px,58px,0); }
+            100%{ clip: rect(20px,9999px,46px,0); }
+        }
+
+        /* Phase buttons -> terminal tabs */
+        .phase-btn{
+            border-radius: 10px;
+            background: rgba(7,12,7,.8);
+            border: 1px solid rgba(57,255,20,.35);
+            box-shadow: 0 0 0 rgba(57,255,20,0);
+        }
+        .phase-btn:hover{
+            box-shadow: 0 0 22px rgba(57,255,20,.15);
+        }
+        .phase-btn.active{
+            background: linear-gradient(135deg, rgba(57,255,20,.95), rgba(0,209,255,.55));
+            color: #041004;
+            border-color: rgba(57,255,20,.9);
+        }
+
+        /* Search box */
+        .search-input{
+            background: rgba(7,12,7,.85);
+            border: 1px solid rgba(57,255,20,.35);
+            border-radius: 14px;
+        }
+        .search-input:focus{
+            box-shadow: 0 0 0 3px rgba(57,255,20,.12), 0 0 20px rgba(0,209,255,.08);
+        }
+
+        /* Cards -> terminal windows */
+        .tool-card{
+            background: rgba(7,12,7,.78);
+            border: 1px solid rgba(57,255,20,.25);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        .tool-card::before{
+            content:"";
+            position:absolute;
+            inset:0;
+            background:
+              linear-gradient(90deg, rgba(57,255,20,.08), transparent 25%, transparent 75%, rgba(0,209,255,.06));
+            opacity:.55;
+            pointer-events:none;
+        }
+        .tool-card:hover{
+            transform: translateY(-4px);
+            border-color: rgba(57,255,20,.65);
+            box-shadow: 0 12px 34px rgba(0,0,0,.7), 0 0 18px rgba(57,255,20,.12);
+        }
+
+        .tool-name{
+            color: var(--accent-primary);
+            text-shadow: 0 0 12px rgba(57,255,20,.25);
+        }
+        .tool-badge{
+            background: rgba(57,255,20,.14);
+            color: var(--accent-primary);
+            border: 1px solid rgba(57,255,20,.35);
+        }
+
+        .command-item{
+            background: rgba(5,9,5,.9);
+            border-left: 3px solid rgba(0,209,255,.9);
+        }
+        .command-code{
+            color: var(--text-primary);
+        }
+
+        .copy-btn{
+            background: rgba(10,18,10,.9);
+            border: 1px solid rgba(57,255,20,.3);
+        }
+        .copy-btn:hover{
+            background: rgba(57,255,20,.9);
+            color: #041004;
+        }
+
+        .section-title{
+            border-bottom: 2px solid rgba(57,255,20,.25);
+            text-shadow: 0 0 10px rgba(57,255,20,.18);
+        }
+
+        .info-box{
+            background: linear-gradient(135deg, rgba(57,255,20,.06), rgba(0,209,255,.06));
+            border-left: 3px solid rgba(57,255,20,.6);
+        }
+
+        .footer{
+            background: rgba(7,12,7,.65);
+            border-top: 1px solid rgba(57,255,20,.22);
+        }
+
+        /* Reduce motion friendly */
+        @media (prefers-reduced-motion: reduce){
+            #matrix{ display:none; }
+            .container, .header, .footer{ animation:none; }
+            .phase-section.active{ animation:none; }
+            .glitch::before, .glitch::after{ animation:none; }
+        }
+
+    
+.made-by {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+}
+.made-by .handle {
+    color: var(--accent-primary);
+    text-shadow: 0 0 8px rgba(57,255,20,0.6);
+}
+.made-by .heart {
+    color: #39ff14;
+    text-shadow: 0 0 10px rgba(57,255,20,0.9);
+}
+
+</style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+</head>
+<body>
+    <canvas id="matrix" aria-hidden="true"></canvas>
+    <div class="header">
+        <h1 class="glitch" data-text="BUG BOUNTY // METHODOLOGY">BUG BOUNTY // METHODOLOGY</h1>
+        <p class="sub">Command Reference • TTPs • Cheatsheets • OPSEC</p>
+    </div>
+
+    <div class="container">
+        <div class="search-box">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search for tools, commands, or techniques...">
+            <span class="search-icon">🔍</span>
+        </div>
+
+        <div class="phase-nav">
+            <button class="phase-btn active" data-phase="phase1">Phase 1: Reconnaissance</button>
+            <button class="phase-btn" data-phase="phase2">Phase 2: Enumeration</button>
+            <button class="phase-btn" data-phase="phase3">Phase 3: Vulnerability Assessment</button>
+        </div>
+
+        <!-- Phase 1: Reconnaissance -->
+        <div class="phase-section active" id="phase1">
+            <h2 class="section-title">Phase 1: Reconnaissance & Information Gathering</h2>
+            
+            <div class="info-box">
+                <div class="info-box-title">🎯 Goal</div>
+                Gather information about the target without directly interacting with it. This phase focuses on passive reconnaissance to build a comprehensive picture of the attack surface.
+            </div>
+
+            <!-- Subdomain Enumeration -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Subfinder
+                            <span class="tool-badge">Subdomain Discovery</span>
+                        </span>
+                        <p class="tool-description">Fast subdomain discovery tool using passive sources</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic subdomain enumeration</span>
+                        <code class="command-code">subfinder -d target.com -o subdomains.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Use all sources for comprehensive results</span>
+                        <code class="command-code">subfinder -d target.com -all -o subdomains_all.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Recursive subdomain discovery</span>
+                        <code class="command-code">subfinder -d target.com -recursive -o subdomains_recursive.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Scan multiple domains from a file</span>
+                        <code class="command-code">subfinder -dL domains.txt -o subdomain_output.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assetfinder -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Assetfinder
+                            <span class="tool-badge">Asset Discovery</span>
+                        </span>
+                        <p class="tool-description">Find related domains and subdomains</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Find all assets related to domain</span>
+                        <code class="command-code">assetfinder target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Find only subdomains</span>
+                        <code class="command-code">assetfinder --subs-only target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Save results to file</span>
+                        <code class="command-code">assetfinder target.com | tee assetfinder_output.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amass -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Amass
+                            <span class="tool-badge">Comprehensive OSINT</span>
+                        </span>
+                        <p class="tool-description">In-depth attack surface mapping and asset discovery</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic enumeration</span>
+                        <code class="command-code">amass enum -d target.com -o amass_output.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Passive enumeration only</span>
+                        <code class="command-code">amass enum -passive -d target.com -o amass_passive.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Active enumeration with DNS queries</span>
+                        <code class="command-code">amass enum -active -d target.com -o amass_active.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Brute force with wordlist</span>
+                        <code class="command-code">amass enum -d target.com -brute -w wordlist.txt -o amass_brute.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Intelligence gathering with WHOIS</span>
+                        <code class="command-code">amass intel -d target.com -whois</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Certificate Transparency -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Certificate Transparency
+                            <span class="tool-badge">SSL/TLS Logs</span>
+                        </span>
+                        <p class="tool-description">Find subdomains from SSL/TLS certificates</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Query crt.sh via curl</span>
+                        <code class="command-code">curl -s "https://crt.sh/?q=%25.target.com&output=json" | jq -r '.[].name_value' | sort -u</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Using crt tool</span>
+                        <code class="command-code">crt -d target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Using certspotter</span>
+                        <code class="command-code">certspotter target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Google Dorking -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Google Dorking
+                            <span class="tool-badge">Search Engine OSINT</span>
+                        </span>
+                        <p class="tool-description">Advanced Google search queries for information disclosure</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Find all indexed pages</span>
+                        <code class="command-code">site:target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Find PDF documents</span>
+                        <code class="command-code">site:target.com filetype:pdf</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Find admin panels</span>
+                        <code class="command-code">site:target.com inurl:admin</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Find directory listings</span>
+                        <code class="command-code">site:target.com intitle:"index of"</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Find exposed git repositories</span>
+                        <code class="command-code">site:target.com inurl:.git</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Find API keys</span>
+                        <code class="command-code">site:target.com intext:"api_key"</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- theHarvester -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            theHarvester
+                            <span class="tool-badge">Email & Domain OSINT</span>
+                        </span>
+                        <p class="tool-description">Gather emails, names, subdomains, IPs, and URLs</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Search all data sources</span>
+                        <code class="command-code">theHarvester -d target.com -b all</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Search Google only</span>
+                        <code class="command-code">theHarvester -d target.com -b google</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Multiple sources with result limit</span>
+                        <code class="command-code">theHarvester -d target.com -b bing,linkedin -l 500</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Save results to file</span>
+                        <code class="command-code">theHarvester -d target.com -b all -f harvester_output</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Findomain -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Findomain
+                            <span class="tool-badge">Subdomain Discovery</span>
+                        </span>
+                        <p class="tool-description">Fast subdomain enumeration tool</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Find subdomains and save</span>
+                        <code class="command-code">findomain -t target.com -o</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Save to custom file</span>
+                        <code class="command-code">findomain -t target.com -u findomain_output.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Process multiple domains</span>
+                        <code class="command-code">findomain -f domains.txt -u output.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sublist3r -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Sublist3r
+                            <span class="tool-badge">Subdomain Discovery</span>
+                        </span>
+                        <p class="tool-description">Python-based subdomain enumeration</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic enumeration</span>
+                        <code class="command-code">sublist3r -d target.com -o sublist3r_output.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">With brute force</span>
+                        <code class="command-code">sublist3r -d target.com -b -o sublist3r_bruteforce.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Specific search engines</span>
+                        <code class="command-code">sublist3r -d target.com -e google,bing,yahoo</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chaos -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Chaos
+                            <span class="tool-badge">ProjectDiscovery Dataset</span>
+                        </span>
+                        <p class="tool-description">Access ProjectDiscovery's subdomain dataset</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Get subdomains from Chaos dataset</span>
+                        <code class="command-code">chaos -d target.com -o chaos_output.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Silent mode</span>
+                        <code class="command-code">chaos -d target.com -silent</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DNSenum -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            DNSenum
+                            <span class="tool-badge">DNS Enumeration</span>
+                        </span>
+                        <p class="tool-description">Multithreaded DNS information gathering</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic DNS enumeration</span>
+                        <code class="command-code">dnsenum target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Full enumeration with output</span>
+                        <code class="command-code">dnsenum --enum target.com -o dnsenum_output.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Use specific DNS server</span>
+                        <code class="command-code">dnsenum --dnsserver 8.8.8.8 target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Multi-threaded scan</span>
+                        <code class="command-code">dnsenum --threads 10 target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DNSrecon -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            DNSrecon
+                            <span class="tool-badge">DNS Reconnaissance</span>
+                        </span>
+                        <p class="tool-description">Advanced DNS enumeration script</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Standard enumeration</span>
+                        <code class="command-code">dnsrecon -d target.com -t std</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Zone transfer test</span>
+                        <code class="command-code">dnsrecon -d target.com -t axfr</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Brute force with wordlist</span>
+                        <code class="command-code">dnsrecon -d target.com -t brt -D wordlist.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Reverse lookup</span>
+                        <code class="command-code">dnsrecon -d target.com -t rvl -r 192.168.1.0/24</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fierce -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Fierce
+                            <span class="tool-badge">DNS Scanner</span>
+                        </span>
+                        <p class="tool-description">DNS reconnaissance tool</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic DNS scan</span>
+                        <code class="command-code">fierce --domain target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Scan specific subdomains</span>
+                        <code class="command-code">fierce --domain target.com --subdomains accounts,admin,api</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Use custom DNS server</span>
+                        <code class="command-code">fierce --domain target.com --dns-servers 8.8.8.8</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- h8mail -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            h8mail
+                            <span class="tool-badge">Email Breach Check</span>
+                        </span>
+                        <p class="tool-description">Email OSINT and breach hunting</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Check single email</span>
+                        <code class="command-code">h8mail -t target@target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">With configuration file</span>
+                        <code class="command-code">h8mail -t target@target.com -c h8mail_config.ini</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Check multiple emails from file</span>
+                        <code class="command-code">h8mail -t targets.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WhatWeb -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            WhatWeb
+                            <span class="tool-badge">Technology Detection</span>
+                        </span>
+                        <p class="tool-description">Web technology identifier</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic scan</span>
+                        <code class="command-code">whatweb target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Verbose output</span>
+                        <code class="command-code">whatweb -v target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Aggressive scan (level 3)</span>
+                        <code class="command-code">whatweb -a 3 target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Scan multiple URLs</span>
+                        <code class="command-code">whatweb -i urls.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Save as JSON</span>
+                        <code class="command-code">whatweb target.com --log-json=whatweb_output.json</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Webanalyze -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Webanalyze
+                            <span class="tool-badge">Tech Profiler</span>
+                        </span>
+                        <p class="tool-description">Technology stack detection</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Analyze single host</span>
+                        <code class="command-code">webanalyze -host target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Use custom apps database</span>
+                        <code class="command-code">webanalyze -host target.com -apps apps.json</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Analyze multiple hosts</span>
+                        <code class="command-code">webanalyze -hosts urls.txt -output json</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GoSpider -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            GoSpider
+                            <span class="tool-badge">Web Crawler</span>
+                        </span>
+                        <p class="tool-description">Fast web spider written in Go</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic crawl</span>
+                        <code class="command-code">gospider -s https://target.com -o output</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Crawl with depth and concurrency</span>
+                        <code class="command-code">gospider -s https://target.com -c 10 -d 3</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Include sitemap and robots.txt</span>
+                        <code class="command-code">gospider -s https://target.com --sitemap --robots</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Crawl multiple sites</span>
+                        <code class="command-code">gospider -S sites.txt -o output -c 10 -d 2</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hakrawler -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Hakrawler
+                            <span class="tool-badge">Web Crawler</span>
+                        </span>
+                        <p class="tool-description">Simple, fast web crawler</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic crawl</span>
+                        <code class="command-code">echo https://target.com | hakrawler</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Crawl with depth</span>
+                        <code class="command-code">hakrawler -url target.com -depth 3</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Include subdomains and unique URLs</span>
+                        <code class="command-code">echo https://target.com | hakrawler -subs -u -insecure</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Crawl multiple URLs</span>
+                        <code class="command-code">cat urls.txt | hakrawler -d 2</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gau -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Gau (Get All URLs)
+                            <span class="tool-badge">URL Collector</span>
+                        </span>
+                        <p class="tool-description">Fetch known URLs from multiple sources</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Get all URLs</span>
+                        <code class="command-code">gau target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Save to file</span>
+                        <code class="command-code">gau target.com --o gau_output.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Include subdomains</span>
+                        <code class="command-code">gau target.com --subs</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Blacklist file extensions</span>
+                        <code class="command-code">gau --blacklist png,jpg,gif target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Multi-threaded</span>
+                        <code class="command-code">echo target.com | gau --threads 5</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Waymore -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Waymore
+                            <span class="tool-badge">Archive Scraper</span>
+                        </span>
+                        <p class="tool-description">Enhanced Wayback Machine scraper</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Get URLs mode</span>
+                        <code class="command-code">waymore -i target.com -mode U</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Get responses mode</span>
+                        <code class="command-code">waymore -i target.com -mode R</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Save URLs to file</span>
+                        <code class="command-code">waymore -i target.com -oU urls.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 2: Enumeration -->
+        <div class="phase-section" id="phase2">
+            <h2 class="section-title">Phase 2: Enumeration & Attack Surface Mapping</h2>
+            
+            <div class="info-box">
+                <div class="info-box-title">🎯 Goal</div>
+                Actively probe discovered assets to identify live hosts, open ports, technologies, and potential entry points.
+            </div>
+
+            <!-- Httpx -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Httpx
+                            <span class="tool-badge">HTTP Probe</span>
+                        </span>
+                        <p class="tool-description">Fast HTTP toolkit for probing live hosts</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Probe live hosts from list</span>
+                        <code class="command-code">httpx -l subdomains.txt -o live_hosts.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Get status codes, titles, and tech stack</span>
+                        <code class="command-code">httpx -l subdomains.txt -status-code -title -tech-detect</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Filter by status codes</span>
+                        <code class="command-code">httpx -l subdomains.txt -mc 200,301,302</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Take screenshots of live hosts</span>
+                        <code class="command-code">httpx -l subdomains.txt -screenshot -srd screenshots/</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Probe specific ports</span>
+                        <code class="command-code">httpx -l subdomains.txt -probe -ports 80,443,8080,8443</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nmap -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Nmap
+                            <span class="tool-badge">Port Scanner</span>
+                        </span>
+                        <p class="tool-description">Network exploration and security auditing</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic scan</span>
+                        <code class="command-code">nmap target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Service version detection</span>
+                        <code class="command-code">nmap -sV target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Full port scan with scripts</span>
+                        <code class="command-code">nmap -sV -sC -p- target.com -oA nmap_full_scan</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Aggressive scan</span>
+                        <code class="command-code">nmap -A target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Vulnerability scan</span>
+                        <code class="command-code">nmap --script vuln target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Fast scan with timing template</span>
+                        <code class="command-code">nmap -T4 target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ffuf -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Ffuf
+                            <span class="tool-badge">Web Fuzzer</span>
+                        </span>
+                        <p class="tool-description">Fast web fuzzer for directory and file discovery</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic directory fuzzing</span>
+                        <code class="command-code">ffuf -w wordlist.txt -u https://target.com/FUZZ</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Filter by status codes</span>
+                        <code class="command-code">ffuf -w wordlist.txt -u https://target.com/FUZZ -mc 200,301,302,403</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Fuzz with file extensions</span>
+                        <code class="command-code">ffuf -w wordlist.txt -u https://target.com/FUZZ -e .php,.html,.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Recursive fuzzing</span>
+                        <code class="command-code">ffuf -w wordlist.txt -u https://target.com/FUZZ -recursion -recursion-depth 2</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Parameter fuzzing</span>
+                        <code class="command-code">ffuf -w params.txt -u https://target.com/page?FUZZ=value</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Katana -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Katana
+                            <span class="tool-badge">Web Crawler</span>
+                        </span>
+                        <p class="tool-description">Next-generation crawling framework</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic crawling</span>
+                        <code class="command-code">katana -u https://target.com -o endpoints.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Deep crawl with JavaScript rendering</span>
+                        <code class="command-code">katana -u https://target.com -d 5 -jc</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Extract query URLs only</span>
+                        <code class="command-code">katana -u https://target.com -f qurl</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Crawl with custom headers</span>
+                        <code class="command-code">katana -u https://target.com -H "Authorization: Bearer token"</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Waybackurls -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Waybackurls
+                            <span class="tool-badge">Archive Mining</span>
+                        </span>
+                        <p class="tool-description">Fetch URLs from Wayback Machine</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Get all archived URLs</span>
+                        <code class="command-code">waybackurls target.com > wayback.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Pipe to file with tee</span>
+                        <code class="command-code">echo target.com | waybackurls | tee wayback_output.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Process multiple domains</span>
+                        <code class="command-code">cat domains.txt | waybackurls > all_wayback.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ParamSpider -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            ParamSpider
+                            <span class="tool-badge">Parameter Discovery</span>
+                        </span>
+                        <p class="tool-description">Mine parameters from web archives</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Find parameters for domain</span>
+                        <code class="command-code">paramspider -d target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Save to output file</span>
+                        <code class="command-code">paramspider -d target.com -o paramspider_output.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Exclude file extensions</span>
+                        <code class="command-code">paramspider -d target.com --exclude woff,css,js,png,svg,jpg</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 3: Vulnerability Assessment -->
+        <div class="phase-section" id="phase3">
+            <h2 class="section-title">Phase 3: Vulnerability Assessment</h2>
+            
+            <div class="info-box">
+                <div class="info-box-title">🎯 Goal</div>
+                Identify and validate security vulnerabilities in the discovered assets using automated and manual testing techniques.
+            </div>
+
+            <!-- Nuclei -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Nuclei
+                            <span class="tool-badge">Vulnerability Scanner</span>
+                        </span>
+                        <p class="tool-description">Fast and customizable vulnerability scanner</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Scan single target</span>
+                        <code class="command-code">nuclei -u https://target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Scan multiple targets from file</span>
+                        <code class="command-code">nuclei -l live_hosts.txt -t nuclei-templates/ -o nuclei_results.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Scan for critical and high severity only</span>
+                        <code class="command-code">nuclei -l live_hosts.txt -severity critical,high</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Scan with specific tags</span>
+                        <code class="command-code">nuclei -l live_hosts.txt -tags cve,xss,sqli</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Scan for CVEs only</span>
+                        <code class="command-code">nuclei -u https://target.com -t nuclei-templates/cves/</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Rate-limited scan</span>
+                        <code class="command-code">nuclei -l urls.txt -rl 150 -c 25</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SQLMap -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            SQLMap
+                            <span class="tool-badge">SQL Injection</span>
+                        </span>
+                        <p class="tool-description">Automatic SQL injection and database takeover tool</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic SQL injection test</span>
+                        <code class="command-code">sqlmap -u "https://target.com/?id=1" --batch</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Enumerate databases</span>
+                        <code class="command-code">sqlmap -u "https://target.com/?id=1" --batch --dbs</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Dump specific table</span>
+                        <code class="command-code">sqlmap -u "https://target.com/?id=1" --batch -D database -T users --dump</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Aggressive testing (Level 5, Risk 3)</span>
+                        <code class="command-code">sqlmap -u "https://target.com/?id=1" --level=5 --risk=3</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Test from request file</span>
+                        <code class="command-code">sqlmap -r request.txt --batch</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Get OS shell</span>
+                        <code class="command-code">sqlmap -u "https://target.com/?id=1" --os-shell</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dalfox -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Dalfox
+                            <span class="tool-badge">XSS Scanner</span>
+                        </span>
+                        <p class="tool-description">Fast XSS scanning and parameter analysis</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Scan single URL</span>
+                        <code class="command-code">dalfox url https://target.com/?param=value</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Scan multiple URLs from file</span>
+                        <code class="command-code">dalfox file urls.txt -o dalfox_output.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Blind XSS testing</span>
+                        <code class="command-code">dalfox url https://target.com/?param=value --blind YOUR_COLLAB_URL</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Use mining dictionary for better coverage</span>
+                        <code class="command-code">dalfox url https://target.com/?param=value --mining-dict</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WPScan -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            WPScan
+                            <span class="tool-badge">WordPress Security</span>
+                        </span>
+                        <p class="tool-description">WordPress vulnerability scanner</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic WordPress scan</span>
+                        <code class="command-code">wpscan --url https://target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Enumerate users</span>
+                        <code class="command-code">wpscan --url https://target.com --enumerate u</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Enumerate vulnerable plugins</span>
+                        <code class="command-code">wpscan --url https://target.com --enumerate vp</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Full enumeration with API token</span>
+                        <code class="command-code">wpscan --url https://target.com --enumerate ap,at,u --api-token YOUR_TOKEN</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Password brute force</span>
+                        <code class="command-code">wpscan --url https://target.com --passwords passwords.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- XSStrike -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            XSStrike
+                            <span class="tool-badge">Advanced XSS</span>
+                        </span>
+                        <p class="tool-description">Advanced XSS detection suite</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic XSS scan</span>
+                        <code class="command-code">python3 xsstrike.py -u "https://target.com/?param=value"</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Crawl and scan</span>
+                        <code class="command-code">python3 xsstrike.py -u "https://target.com/?param=value" --crawl</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Use fuzzing mode</span>
+                        <code class="command-code">python3 xsstrike.py -u "https://target.com/?param=value" --fuzzer</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nikto -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Nikto
+                            <span class="tool-badge">Web Server Scanner</span>
+                        </span>
+                        <p class="tool-description">Web server vulnerability scanner</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Basic scan</span>
+                        <code class="command-code">nikto -h https://target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Scan with output file</span>
+                        <code class="command-code">nikto -h https://target.com -o nikto_scan.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Scan with tuning options</span>
+                        <code class="command-code">nikto -h https://target.com -Tuning 123bde</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Scan multiple ports</span>
+                        <code class="command-code">nikto -h https://target.com -p 80,443,8080</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arjun -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Arjun
+                            <span class="tool-badge">Parameter Discovery</span>
+                        </span>
+                        <p class="tool-description">HTTP parameter discovery suite</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Find hidden parameters</span>
+                        <code class="command-code">arjun -u https://target.com/page</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Test GET method</span>
+                        <code class="command-code">arjun -u https://target.com/page -m GET</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Test POST method</span>
+                        <code class="command-code">arjun -u https://target.com/page -m POST</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Test multiple URLs</span>
+                        <code class="command-code">arjun -i urls.txt -o arjun_output.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Use stable mode for fewer false positives</span>
+                        <code class="command-code">arjun -u https://target.com/page --stable</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LinkFinder -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            LinkFinder
+                            <span class="tool-badge">JS Analysis</span>
+                        </span>
+                        <p class="tool-description">Discover endpoints in JavaScript files</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Extract endpoints from JS file</span>
+                        <code class="command-code">linkfinder -i https://target.com/app.js -o results.html</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Output to CLI</span>
+                        <code class="command-code">linkfinder -i https://target.com/app.js -o cli</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Process multiple JS files</span>
+                        <code class="command-code">linkfinder -i js_files.txt -o linkfinder_results.html</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Corsy -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div>
+                        <span class="tool-name">
+                            Corsy
+                            <span class="tool-badge">CORS Testing</span>
+                        </span>
+                        <p class="tool-description">CORS misconfiguration scanner</p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="command-list">
+                    <div class="command-item">
+                        <span class="command-label">Scan single URL</span>
+                        <code class="command-code">python3 corsy.py -u https://target.com</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Scan multiple URLs</span>
+                        <code class="command-code">python3 corsy.py -i urls.txt</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-label">Save results as JSON</span>
+                        <code class="command-code">python3 corsy.py -u https://target.com -o corsy_output.json</code>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+      
+            Made by sudoninja | 
+            <a href="https://github.com/gatiella" target="_blank">inspire by gatiella </a>
+        </p>
+    </div>
+
+    <script>
+
+        // =========================
+        // Matrix Rain Background
+        // =========================
+        (function () {
+            const canvas = document.getElementById('matrix');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+
+            const resize = () => {
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = Math.floor(window.innerWidth * dpr);
+                canvas.height = Math.floor(window.innerHeight * dpr);
+                canvas.style.width = window.innerWidth + 'px';
+                canvas.style.height = window.innerHeight + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            };
+
+            resize();
+            window.addEventListener('resize', resize);
+
+            const chars = ('01アイウエオカキクケコサシスセソタチツテトナニヌネノ' +
+                           'ハヒフヘホマミムメモヤユヨラリルレロワヲン' +
+                           'ABCDEFGHIJKLMNOPQRSTUVWXYZ#$%&*+=-').split('');
+            const fontSize = 16;
+            let columns = Math.floor(window.innerWidth / fontSize);
+            let drops = new Array(columns).fill(1);
+
+            const resetDrops = () => {
+                columns = Math.floor(window.innerWidth / fontSize);
+                drops = new Array(columns).fill(1);
+            };
+            window.addEventListener('resize', resetDrops);
+
+            const draw = () => {
+                // Fade the canvas a bit to create trails
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+                ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+                ctx.font = fontSize + 'px "Share Tech Mono", monospace';
+
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    const x = i * fontSize;
+                    const y = drops[i] * fontSize;
+
+                    // Primary glyph
+                    ctx.fillStyle = 'rgba(57, 255, 20, 0.85)';
+                    ctx.fillText(text, x, y);
+
+                    // Occasionally reset a column
+                    if (y > window.innerHeight && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+                requestAnimationFrame(draw);
+            };
+
+            // Respect reduced motion
+            const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (!reduceMotion) requestAnimationFrame(draw);
+        })();
+
+// Phase navigation
+        const phaseButtons = document.querySelectorAll('.phase-btn');
+        const phaseSections = document.querySelectorAll('.phase-section');
+
+        phaseButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const phaseId = button.getAttribute('data-phase');
+                
+                phaseButtons.forEach(btn => btn.classList.remove('active'));
+                phaseSections.forEach(section => section.classList.remove('active'));
+                
+                button.classList.add('active');
+                document.getElementById(phaseId).classList.add('active');
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        // Tool card expansion
+        document.querySelectorAll('.tool-card').forEach(card => {
+            const header = card.querySelector('.tool-header');
+            header.addEventListener('click', () => {
+                card.classList.toggle('expanded');
+            });
+        });
+
+        // Copy button functionality
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const commandCode = button.previousElementSibling;
+                const textToCopy = commandCode.textContent;
+                
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    button.textContent = 'Copied!';
+                    button.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        button.textContent = 'Copy';
+                        button.classList.remove('copied');
+                    }, 2000);
+                });
+            });
+        });
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const allCards = document.querySelectorAll('.tool-card');
+            
+            allCards.forEach(card => {
+                const toolName = card.querySelector('.tool-name').textContent.toLowerCase();
+                const toolDescription = card.querySelector('.tool-description').textContent.toLowerCase();
+                const commands = Array.from(card.querySelectorAll('.command-code'))
+                    .map(cmd => cmd.textContent.toLowerCase())
+                    .join(' ');
+                
+                const matches = toolName.includes(searchTerm) || 
+                               toolDescription.includes(searchTerm) || 
+                               commands.includes(searchTerm);
+                
+                if (searchTerm === '' || matches) {
+                    card.style.display = 'block';
+                    if (searchTerm !== '' && matches) {
+                        card.classList.add('expanded');
+                    }
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape' && document.activeElement === searchInput) {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+                searchInput.blur();
+            }
+        });
+
+        // Auto-expand first few cards on load
+        window.addEventListener('load', () => {
+            const firstPhaseCards = document.querySelectorAll('#phase1 .tool-card');
+            firstPhaseCards.forEach((card, index) => {
+                if (index < 2) {
+                    card.classList.add('expanded');
+                }
+            });
+        });
+    </script>
+</body>
+</html></code>
