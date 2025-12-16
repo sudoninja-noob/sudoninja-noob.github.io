@@ -43,7 +43,7 @@
             verified exploits, and a decade of experience in offensive security.
           </p>
           <div class="hero-actions">
-            <a href="https://drive.google.com/file/d/19G8IVMV4I9-kdHfldrgHCrGMprXz7VWm/view?usp=sharing" class="btn primary"><i class="fa-solid fa-paper-plane"></i> Hire Me</a>
+            <a href="https://drive.google.com/file/d/19G8IVMV4I9-kdHfldrgHCrGMprXz7VWm/view?usp=sharing" class="btn primary"><i class="fa-solid fa-paper-plane"></i> Request Security Assessment</a>
             <a href="#cves" class="btn ghost"><i class="fa-solid fa-bug"></i> View CVE Work</a>
           </div>
           <div class="hero-meta">
@@ -99,7 +99,6 @@
             <span class="badge">CNSP</span>
             <span class="badge">CAP</span>
             <span class="badge">CCNA</span>
-            <span class="badge">CNSP</span>
             <span class="badge">Practical API Hacking</span>
             
             
@@ -225,7 +224,7 @@
               The complete indexed list of CVEs (100+) is available in my dedicated write-up and reports.
               For detailed impact, exploitation notes, and affected products, feel free to reach out.
             </p>
-            <a href="https://github.com/sudoninja-noob/CVE-list/blob/main/READ.md" class="btn small ghost">Request Full CVE Portfolio</a>
+            <a href="https://github.com/sudoninja-noob/CVE-list/blob/main/README.md"> class="btn small ghost">Request Full CVE Portfolio</a>
           </div>
         </div>
       </div>
@@ -267,7 +266,7 @@
               </tr>
               <tr>
                 <td>2023-04-08</td>
-                <td><a href="https://www.exploit-db.com/exploits/51338" target="_blank">Medicine Tracker System v1.0 - SQL Injection</a></td>
+                <td><a href="https://www.exploit-db.com/exploits/51338" target="_blank"rel="noopener noreferrer">Medicine Tracker System v1.0 - SQL Injection</a></td>
                 <td>WebApp</td>
                 <td>PHP</td>
                 <td>Sanjay Singh</td>
@@ -485,7 +484,7 @@
           <ul class="contact-list">
             <li><i class="fa-solid fa-location-dot"></i> Bangalore,Karnataka, India</li>
             <li><i class="fa-solid fa-phone"></i> +91 7000740649</li>
-            <li><i class="fa-solid fa-envelope"></i> <a href="mailto:mailto:sanjaysinghss3@gmail.com">mailto:sanjaysinghss3@gmail.com</a></li>
+            <li><i class="fa-solid fa-envelope"></i> <a href="mailto:sanjaysinghss3@gmail.com">sanjaysinghss3@gmail.com</a></li>
           </ul>
         </div>
         <div>
@@ -510,11 +509,38 @@
   </main>
 
   <footer class="site-footer">
-    <div class="container footer-inner">
-      <p>&copy; 2025 Sanjay Singh. All rights reserved.</p>
-      <p class="muted">Designed with ❤️ for offensive security & research.</p>
-    </div>
-  </footer>
+  <div class="container footer-inner">
+    <p>&copy; 2025 Sanjay Singh. All rights reserved.</p>
+    <p class="muted">Designed with ❤️ for offensive security & research.</p>
+
+    <p class="muted">
+      👀 Visitors: <span id="visitor-count">—</span>
+    </p>
+
+    <script>
+    fetch('https://sudoninja.goatcounter.com/counter/visitors')
+      .then(r => r.json())
+      .then(d => {
+        const el = document.getElementById('visitor-count');
+        if (!el) return;
+
+        let count = 0;
+        const end = d.count;
+        const step = Math.max(1, Math.floor(end / 50));
+
+        const timer = setInterval(() => {
+          count += step;
+          if (count >= end) {
+            count = end;
+            clearInterval(timer);
+          }
+          el.textContent = count.toLocaleString();
+        }, 30);
+      });
+    </script>
+  </div>
+</footer>
+
 
   <script src="js/main.js"></script>
 </body>
