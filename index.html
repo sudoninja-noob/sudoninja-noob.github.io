@@ -524,26 +524,22 @@
     </p>
 
     <script>
-    fetch('https://sudoninja.goatcounter.com/counter/visitors')
-      .then(r => r.json())
-      .then(d => {
-        const el = document.getElementById('visitor-count');
-        if (!el) return;
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('visitor-count');
+  if (!el) return;
 
-        let count = 0;
-        const end = d.count;
-        const step = Math.max(1, Math.floor(end / 50));
+  fetch('https://sudoninja.goatcounter.com/counter/visitors')
+    .then(r => r.json())
+    .then(d => {
+      if (!d || typeof d.count !== 'number') return;
+      el.textContent = d.count.toLocaleString();
+    })
+    .catch(() => {
+      el.textContent = '—';
+    });
+});
+</script>
 
-        const timer = setInterval(() => {
-          count += step;
-          if (count >= end) {
-            count = end;
-            clearInterval(timer);
-          }
-          el.textContent = count.toLocaleString();
-        }, 30);
-      });
-    </script>
   </div>
 </footer>
 
