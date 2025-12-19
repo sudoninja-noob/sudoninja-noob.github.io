@@ -659,7 +659,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   <!-- Fancy Live CVE Feed -->
 <script>
-fetch("https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=10&sortBy=published&sortOrder=desc")
+fetch("https://api.allorigins.win/raw?url=https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=10&sortBy=published&sortOrder=desc")
   .then(r => r.json())
   .then(d => {
     const list = document.getElementById("sn-cve-list");
