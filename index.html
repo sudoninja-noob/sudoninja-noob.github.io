@@ -559,5 +559,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   <script src="js/main.js"></script>
+      <!-- Live Latest CVEs -->
+
+  <script>
+fetch("https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=10&sortBy=published&sortOrder=desc")
+  .then(res => res.json())
+  .then(data => {
+    const box = document.getElementById("live-cve-container");
+    box.innerHTML = "";
+
+    data.vulnerabilities.forEach(v => {
+      const cve = v.cve;
+      const score =
+        cve.metrics?.cvssMetricV31?.[0]?.cvssData?.baseScore || "N/A";
+
+      box.innerHTML += `
+        <div style="border-left:4px solid #22c55e;padding:10px;margin-bottom:12px;">
+          <b style="color:#38bdf8">${cve.id}</b>
+          <span style="float:right;color:#22c55e">CVSS ${score}</span>
+          <p style="margin:6px 0;font-size:13px">${cve.descriptions[0]?.value}</p>
+          <a href="https://nvd.nist.gov/vuln/detail/${cve.id}"
+             target="_blank"
+             style="color:#22c55e;font-size:12px">
+             View on NVD →
+          </a>
+        </div>
+      `;
+    });
+  })
+  .catch(() => {
+    document.getElementById("live-cve-container").innerText =
+      "Failed to load CVE feed.";
+  });
+</script>
+  
+        <!-- Live Latest CVEs -->
+
+
 </body>
 </html>
