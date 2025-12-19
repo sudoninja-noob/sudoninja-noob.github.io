@@ -653,7 +653,7 @@ fetch("/data/latest-cves.json")
     time.textContent = "Last updated: " + new Date(d.updated).toLocaleString();
     list.innerHTML = "";
 
-    d.cves.forEach(c => {
+    d.cves.slice(0, 5).forEach(c => {
       let sev = "low";
       if (c.cvss >= 7) sev = "high";
       else if (c.cvss >= 4) sev = "medium";
