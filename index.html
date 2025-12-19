@@ -7,6 +7,102 @@
   <meta name="description" content="Portfolio of Sanjay Singh - Penetration Tester, CVE Hunter, Exploit Developer, Security Researcher." />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"  crossorigin="anonymous" />
   <link rel="stylesheet" href="css/style.css" />
+<!-- Fancy Live CVE Feed -->
+<style>
+#sn-cve-box {
+  max-width: 900px;
+  margin: 40px auto;
+  background: #020617;
+  border: 1px solid #0f172a;
+  border-radius: 14px;
+  padding: 24px;
+  font-family: "Courier New", monospace;
+  box-shadow: 0 0 40px rgba(34,197,94,.12);
+}
+
+.sn-cve-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sn-cve-header h3 {
+  color: #22c55e;
+  margin: 0;
+}
+
+.sn-live {
+  color: #22c55e;
+  border: 1px solid #22c55e;
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 999px;
+  animation: pulse 1.4s infinite;
+}
+
+@keyframes pulse {
+  0% {opacity:.3}
+  50% {opacity:1}
+  100% {opacity:.3}
+}
+
+#sn-last-updated {
+  font-size: 12px;
+  color: #64748b;
+  margin: 8px 0 14px;
+}
+
+.sn-cve-card {
+  background: #020617;
+  border-left: 4px solid #22c55e;
+  padding: 14px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.sn-cve-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px rgba(34,197,94,.2);
+}
+
+.sn-cve-id {
+  color: #38bdf8;
+  font-weight: bold;
+}
+
+.sn-desc {
+  font-size: 13px;
+  color: #cbd5f5;
+  margin: 6px 0;
+}
+
+.sn-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sn-cvss {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: bold;
+}
+
+.low { background:#16a34a }
+.medium { background:#ca8a04 }
+.high { background:#dc2626 }
+
+.sn-link {
+  color: #22c55e;
+  font-size: 12px;
+  text-decoration: none;
+}
+</style>
+
+<!-- Fancy Live CVE Feed -->
+  
 </head>
 <body>
   <header class="site-header">
@@ -164,18 +260,7 @@
     <!-- CVEs -->
     <section id="cves" class="section">
 
-      <!-- Live Latest CVEs -->
-<div class="sudoninja-live-cves">
-  <div class="live-header">
-    <h3>☠️ Latest 10 CVE Alerts (Live)</h3>
-    <span class="live-indicator">LIVE</span>
-  </div>
-
-  <div id="live-cve-container">
-    <p class="loading">Fetching latest CVEs from NVD…</p>
-  </div>
-</div>
- <!-- Live Latest CVEs -->
+     
       <div class="container">
         <h2 class="section-title center">Published CVEs</h2>
         <p class="section-lead center">
@@ -248,6 +333,21 @@
           </div>
         </div>
       </div>
+
+      <!-- Fancy Live CVE Feed -->
+<div id="sn-cve-box">
+  <div class="sn-cve-header">
+    <h3>☠️ Live CVE Feed</h3>
+    <span class="sn-live">LIVE</span>
+  </div>
+
+  <div id="sn-last-updated">Updating…</div>
+
+  <div id="sn-cve-list">
+    Loading latest CVEs…
+  </div>
+</div>
+<!-- Fancy Live CVE Feed -->
     </section>
 
     <!-- Exploit-DB -->
@@ -557,44 +657,50 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 </footer>
 
-
-  <script src="js/main.js"></script>
-      <!-- Live Latest CVEs -->
-
-  <script>
+  <!-- Fancy Live CVE Feed -->
+<script>
 fetch("https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=10&sortBy=published&sortOrder=desc")
-  .then(res => res.json())
-  .then(data => {
-    const box = document.getElementById("live-cve-container");
-    box.innerHTML = "";
+  .then(r => r.json())
+  .then(d => {
+    const list = document.getElementById("sn-cve-list");
+    const time = document.getElementById("sn-last-updated");
+    list.innerHTML = "";
 
-    data.vulnerabilities.forEach(v => {
-      const cve = v.cve;
+    time.textContent = "Last updated: " + new Date().toLocaleString();
+
+    d.vulnerabilities.forEach(v => {
+      const c = v.cve;
       const score =
-        cve.metrics?.cvssMetricV31?.[0]?.cvssData?.baseScore || "N/A";
+        c.metrics?.cvssMetricV31?.[0]?.cvssData?.baseScore || 0;
 
-      box.innerHTML += `
-        <div style="border-left:4px solid #22c55e;padding:10px;margin-bottom:12px;">
-          <b style="color:#38bdf8">${cve.id}</b>
-          <span style="float:right;color:#22c55e">CVSS ${score}</span>
-          <p style="margin:6px 0;font-size:13px">${cve.descriptions[0]?.value}</p>
-          <a href="https://nvd.nist.gov/vuln/detail/${cve.id}"
-             target="_blank"
-             style="color:#22c55e;font-size:12px">
-             View on NVD →
-          </a>
+      let sev = "low";
+      if (score >= 7) sev = "high";
+      else if (score >= 4) sev = "medium";
+
+      list.innerHTML += `
+        <div class="sn-cve-card">
+          <div class="sn-cve-id">${c.id}</div>
+          <div class="sn-desc">${c.descriptions[0]?.value || "No description"}</div>
+          <div class="sn-meta">
+            <span class="sn-cvss ${sev}">CVSS ${score || "N/A"}</span>
+            <a class="sn-link" target="_blank"
+               href="https://nvd.nist.gov/vuln/detail/${c.id}">
+               View →
+            </a>
+          </div>
         </div>
       `;
     });
   })
   .catch(() => {
-    document.getElementById("live-cve-container").innerText =
-      "Failed to load CVE feed.";
+    document.getElementById("sn-cve-list").innerText =
+      "⚠️ CVE feed unavailable";
   });
 </script>
+
+  <!-- Fancy Live CVE Feed -->
   
-        <!-- Live Latest CVEs -->
-
-
+  <script src="js/main.js"></script>
+      
 </body>
 </html>
