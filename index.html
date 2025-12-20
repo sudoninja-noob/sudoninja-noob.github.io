@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sanjay Singh | Offensive Security & CVE Researcher</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Portfolio of Sanjay Singh - Penetration Tester, CVE Hunter, Exploit Developer, Security Researcher." />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"  crossorigin="anonymous" />
+  <link rel="stylesheet" href="css/style.css" />
+<!-- Fancy Live CVE Feed -->
+<style>
+#sn-cve-box {
+  width: 100%;
+  margin: 40px 0;
+  background: #020617;
+  border: 1px solid #0f172a;
+  border-radius: 14px;
+  padding: 24px;
+  font-family: "Courier New", monospace;
+  box-shadow: 0 0 40px rgba(34,197,94,.12);
+}
+
+.sn-cve-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sn-cve-header h3 {
+  color: #22c55e;
+  margin: 0;
+}
+
+.sn-live {
+  color: #22c55e;
+  border: 1px solid #22c55e;
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 999px;
+}
+
+#sn-last-updated {
+  font-size: 12px;
+  color: #64748b;
+  margin: 8px 0 14px;
+}
+
+.sn-cve-card {
+  border-left: 4px solid #22c55e;
+  padding: 14px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+}
+
+.sn-cve-id {
+  color: #38bdf8;
+  font-weight: bold;
+}
+
+.sn-desc {
+  color: #cbd5f5;
+  font-size: 13px;
+  margin: 6px 0;
+}
+
+.sn-meta {
+  display: flex;
+  justify-content: space-between;
+}
+
+.sn-cvss {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: bold;
+}
+
+.low { background:#16a34a }
+.medium { background:#ca8a04 }
+.high { background:#dc2626 }
+
+.sn-link {
+  color: #22c55e;
+  font-size: 12px;
+  text-decoration: none;
+}
+</style>
+
+
+<!-- Fancy Live CVE Feed -->
+  
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-wrapper">
+      <div class="logo">sudo<span>ninja</span></div>
+      <nav class="main-nav">
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#skills">Skills</a>
+        <a href="#cves">CVEs</a>
+        <a href="#exploits">Exploit-DB</a>
+        <a href="#books">Books</a>
+        <a href="#services">Services</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#media">Blog & YouTube</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <button class="nav-toggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section id="home" class="hero">
+      <div class="hero-overlay"></div>
+      <div class="container hero-inner">
+        <div class="hero-text">
+          <p class="eyebrow">Penetration Tester • Security Researcher • Author • Bug Hunter</p>
+          <h1>Hi, I'm <span>Sanjay Singh</span></h1>
+          <p class="hero-subtitle">
+            I break things so others can build them safer — with 100+ published CVEs,
+            verified exploits, and a decade of experience in offensive security.
+          </p>
+          <div class="hero-actions">
+            <a href="https://drive.google.com/file/d/19G8IVMV4I9-kdHfldrgHCrGMprXz7VWm/view?usp=sharing" class="btn primary"><i class="fa-solid fa-paper-plane"></i> Request Security Assessment</a>
+            <a href="#cves" class="btn ghost"><i class="fa-solid fa-bug"></i> View CVE Work</a>
+          </div>
+          <div class="hero-meta">
+            <span><i class="fa-solid fa-shield-halved"></i> 10+ Years Experience</span>
+            <span><i class="fa-solid fa-bug"></i> 100+ CVEs</span>
+            <span><i class="fa-solid fa-file-pen"></i> Author </span>
+          </div>
+        </div>
+        <div class="hero-card">
+          <div class="profile-circle">
+            <span class="glow-ring"></span>
+            <div class="avatar-fallback">SS</div>
+          </div>
+          <div class="hero-card-body">
+            <h2>Offensive Security Specialist</h2>
+            <ul>
+              <li>Web Application Penetration Testing</li>
+              <li>Network Penetration Testing</li>
+              <li>Mobile Application Penetration Testing</li>
+              <li>API Penetration Testing</li>
+              <li>Source Code Review </li>
+              <li>Network Device Security Assessment</li>
+              <li>IoT Penetration Testing</li>
+              <li>Telecom Product Penetration Testing</li>
+            </ul>
+            <a href="#about" class="btn small fullwidth">View Profile</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section id="about" class="section">
+      <div class="container split">
+        <div>
+          <h2 class="section-title">About Me</h2>
+          <p class="section-lead">
+            I’m a security researcher and penetration tester specializing in application,
+            infrastructure, and telecom product security — with a strong focus on vulnerability
+            discovery, protocol fuzzing, and exploit development.
+          </p>
+          <ul class="about-list">
+            <li>Acknowledged by multiple global organizations for impactful vulnerability research.</li>
+            <li>Hands-on experience with routers, switches, IoT devices, and telecom products.</li>
+            <li>Comfortable across Web, Mobile, API, Cloud, IoT, and traditional infrastructure.</li>
+          </ul>
+          <div class="badges">
+            <span class="badge">OSCP</span>
+            <span class="badge">CRTP</span>
+            <span class="badge">CEH</span>
+            <span class="badge">CPTE</span>
+            <span class="badge">CCEP</span>
+            <span class="badge">CNSP</span>
+            <span class="badge">CAP</span>
+            <span class="badge">CCNA</span>
+            <span class="badge">CAPT</span>
+            <span class="badge">Practical API Hacking</span>
+            
+            
+          </div>
+        </div>
+        <div>
+          <div class="info-card">
+            <h3>Quick Info</h3>
+            <dl>
+              <div><dt>Name</dt><dd>Sanjay Singh</dd></div>
+              <div><dt>Role</dt><dd>Senior Manager – Cyber Security Services</dd></div>
+              <div><dt>Email</dt><dd><a href="mailto:sanjaysinghss3@gmail.com">sanjaysinghss3@gmail.com</a></dd></div>
+              <div><dt>Location</dt><dd>Bangalore,Karnataka, India</dd></div>
+            </dl>
+            <div class="social-row">
+              <a href="https://www.linkedin.com/in/sanjaysingh06/" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+              <a href="https://github.com/sudoninja-noob" target="_blank"><i class="fa-brands fa-github"></i></a>
+              <a href="https://twitter.com/sudoninja_" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+              <a href="https://sudoninja.gitbook.io" target="_blank"><i class="fa-solid fa-book"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills -->
+    <section id="skills" class="section alt">
+      <div class="container">
+        <h2 class="section-title center">Core Skills</h2>
+        <p class="section-lead center">
+          A practical mix of offensive security experience across applications, infrastructure, IoT, and telecom.
+        </p>
+        <div class="grid three">
+          <div class="skill-card">
+            <h3>Application Security</h3>
+            <ul>
+              <li>Web Application Pentesting (OWASP Top 10)</li>
+              <li>API Security (REST, SOAP, GraphQL)</li>
+              <li>Mobile Security (Android & iOS)</li>
+            </ul>
+          </div>
+          <div class="skill-card">
+            <h3>Infrastructure </h3>
+            <ul>
+              <li>External & Internal Network Pentest</li>
+              <li> Virtualized Environments</li>
+              <li>Telecom / NFV Product Security</li>
+            </ul>
+          </div>
+          <div class="skill-card">
+            <h3>Offensive R&D</h3>
+            <ul>
+              <li>Vulnerability Research & 0-day Discovery</li>
+              <li>Protocol Fuzzing & Robustness Testing</li>
+              <li>Exploit Development & PoC Creation</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CVEs -->
+    <section id="cves" class="section">
+
+     
+      <div class="container">
+        <h2 class="section-title center">Published CVEs</h2>
+        <p class="section-lead center">
+          Over <strong>100+</strong> CVEs assigned by MITRE across authentication, injection, access control,
+          and remote code execution categories. Below is a small public snapshot.
+        </p>
+
+        <div class="cve-highlight">
+          <div class="cve-stat">
+            <span class="label">Total CVEs</span>
+            <span class="value">100+</span>
+          </div>
+          <div class="cve-stat">
+            <span class="label">Years Active</span>
+            <span class="value">2020–2025</span>
+          </div>
+          <div class="cve-stat">
+            <span class="label">Domains</span>
+            <span class="value">Web • IoT • Products</span>
+          </div>
+        </div>
+
+        <div class="cve-grid">
+          <div class="cve-card">
+            <h3>Recent CVEs</h3>
+            <ul>
+              <li>CVE-2025-26208</li>
+              <li>CVE-2025-26209</li>
+              <li>CVE-2025-28349</li>
+              <li>CVE-2025-28350</li>
+              <li>CVE-2025-28351</li>
+            </ul>
+          </div>
+
+          <div class="cve-card">
+            <h3>2024 Highlights</h3>
+            <ul>
+              <li>CVE-2024-31531</li>
+              <li>CVE-2024-31532</li>
+              <li>CVE-2024-31540</li>
+              <li>CVE-2024-33280</li>
+              <li>CVE-2024-29355</li>
+            </ul>
+          </div>
+
+          <div class="cve-card">
+            <h3>Earlier Work</h3>
+            <ul>
+              <li>CVE-2020-15035</li>
+              <li>CVE-2020-15036</li>
+              <li>CVE-2022-29004</li>
+              <li>CVE-2023-30101</li>
+              <li>CVE-2023-33396</li>
+            </ul>
+          </div>
+
+          <div class="cve-card wide">
+            <h3>Full CVE List</h3>
+            <p>
+              The complete indexed list of CVEs (100+) is available in my dedicated write-up and reports.
+              For detailed impact, exploitation notes, and affected products, feel free to reach out.
+            </p>
+            <a href="https://github.com/sudoninja-noob/CVE-list/blob/main/README.md"
+               class="btn small ghost"
+               target="_blank"
+               rel="noopener noreferrer">
+               Request Full CVE Portfolio
+           </a>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Fancy Live CVE Feed -->
+<!-- Fancy Live CVE Feed -->
+<div id="sn-cve-box">
+  <div class="sn-cve-header">
+    <h3>☠️ Live CVE Feed</h3>
+    <span class="sn-live">LIVE</span>
+  </div>
+
+  <div id="sn-last-updated">Updating…</div>
+  <div id="sn-cve-list">Loading CVEs…</div>
+</div>
+
+     <!-- Fancy Live CVE Feed -->
+    </section>
+
+    <!-- Exploit-DB -->
+    <section id="exploits" class="section alt">
+      <div class="container">
+        <h2 class="section-title center">Verified Exploits & PoCs</h2>
+        <p class="section-lead center">
+          Publicly verified vulnerabilities and exploits published on Exploit-DB and other platforms.
+        </p>
+
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Platform</th>
+                <th>Author</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>2025-06-05</td>
+                <td><a href="https://www.exploit-db.com/exploits/52314" target="_blank" rel="noopener noreferrer">CloudClassroom PHP Project 1.0 - SQL Injection</a></td>
+                <td>WebApp</td>
+                <td>PHP</td>
+                <td>Sanjay Singh</td>
+              </tr>
+              <tr>
+                <td>2024-05-13</td>
+                <td><a href="https://www.exploit-db.com/exploits/52017" target="_blank" rel="noopener noreferrer">Prison Management System - SQL Injection Authentication Bypass</a></td>
+                <td>WebApp</td>
+                <td>PHP</td>
+                <td>Sanjay Singh</td>
+              </tr>
+              <tr>
+                <td>2023-04-08</td>
+                <td><a href="https://www.exploit-db.com/exploits/51338" target="_blank"rel="noopener noreferrer">Medicine Tracker System v1.0 - SQL Injection</a></td>
+                <td>WebApp</td>
+                <td>PHP</td>
+                <td>Sanjay Singh</td>
+              </tr>
+              <tr>
+                <td>2023-04-08</td>
+                <td><a href="https://www.exploit-db.com/exploits/51337" target="_blank" rel="noopener noreferrer">Online Appointment System v1.0 - XSS</a></td>
+                <td>WebApp</td>
+                <td>PHP</td>
+                <td>Sanjay Singh</td>
+              </tr>
+              <tr>
+                <td>2022-06-10</td>
+                <td><a href="https://www.exploit-db.com/exploits/50951" target="_blank" rel="noopener noreferrer">WordPress Motopress Hotel Booking Lite 4.2.4 - Stored XSS</a></td>
+                <td>WebApp</td>
+                <td>PHP</td>
+                <td>Sanjay Singh</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Books -->
+    <section id="books" class="section">
+      <div class="container">
+        <h2 class="section-title center">Books Published</h2>
+        <p class="section-lead center">
+          Cybersecurity books focused on CVE hunting, penetration testing, and career guidance.
+        </p>
+        <div class="grid two">
+          <div class="book-card">
+            <h3>A Tale of 100 CVE's Hunting</h3>
+            <p>A deep dive into vulnerability hunting, showcasing 100 CVEs and the research behind them.</p>
+            <a href="https://www.amazon.in/dp/B0DJ3LP4H1" target="_blank" class="btn small primary">Buy on Amazon.in</a>
+          </div>
+          <div class="book-card">
+            <h3>How to Become a Penetration Tester: Zero to One</h3>
+            <p>From beginner to pro — learn the skills, tools, and strategies for a career in ethical hacking.</p>
+            <a href="https://www.amazon.in/dp/B0D9J3B2ND" target="_blank" class="btn small primary">Buy on Amazon.in</a>
+          </div>
+          <div class="book-card">
+            <h3>How to Start a Career in Cybersecurity</h3>
+            <p>Your complete roadmap to building a cybersecurity career, made simple and actionable.</p>
+            <a href="https://www.amazon.com/dp/B0CPH312KH" target="_blank" class="btn small primary">Buy on Amazon.com</a>
+          </div>
+          <div class="book-card">
+            <h3>Privilege Escalation: Unlocking Security</h3>
+            <p>Master post-exploitation and privilege escalation techniques used by real-world ethical hackers.</p>
+            <a href="https://www.amazon.in/dp/B0CPR29ZNJ" target="_blank" class="btn small primary">Buy on Amazon.in</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services -->
+    <section id="services" class="section alt">
+      <div class="container">
+        <h2 class="section-title center">Services</h2>
+        <p class="section-lead center">
+          I help organizations understand, measure, and reduce their security risk through practical offensive testing.
+        </p>
+        <div class="grid three">
+          <div class="service-card">
+            <div class="icon-circle"><i class="fa-solid fa-earth-americas"></i></div>
+            <h3>Web Application Testing</h3>
+            <p>Black-box, gray-box and authenticated testing of critical web applications and portals.</p>
+          </div>
+          <div class="service-card">
+            <div class="icon-circle"><i class="fa-brands fa-android"></i></div>
+            <h3>Mobile App Testing</h3>
+            <p>Static and dynamic analysis of Android and iOS applications with business logic review.</p>
+          </div>
+          <div class="service-card">
+            <div class="icon-circle"><i class="fa-solid fa-network-wired"></i></div>
+            <h3>Network & Infra Testing</h3>
+            <p>External and internal network penetration testing for servers, firewalls, and routers.</p>
+          </div>
+          <div class="service-card">
+            <div class="icon-circle"><i class="fa-solid fa-sitemap"></i></div>
+            <h3>API Security</h3>
+            <p>End-to-end testing of REST, SOAP, and GraphQL APIs for auth, access control and injection flaws.</p>
+          </div>
+          <div class="service-card">
+            <div class="icon-circle"><i class="fa-solid fa-microchip"></i></div>
+            <h3>IoT & Telecom Security</h3>
+            <p>Testing of IoT devices and telecom products in line with standards like EN 303-645 & EN 18031.</p>
+          </div>
+          <div class="service-card">
+            <div class="icon-circle"><i class="fa-solid fa-file-shield"></i></div>
+            <h3>Reporting & Guidance</h3>
+            <p>Clear reporting with PoC, risk rating, and remediation recommendations your teams can act on.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="section">
+      <div class="container">
+        <h2 class="section-title center"> Engagement Models</h2>
+        <p class="section-lead center">
+          High-level example pricing for typical assessments. Actual scope and cost will depend on complexity,
+          size, and depth required.
+        </p>
+        <div class="grid three">
+          <div class="pricing-card">
+            <h3>Vulnerability Assessment</h3>
+            <p class="price">$199</p>
+            <ul>
+              <li>Asset discovery</li>
+              <li>Subdomain & port mapping</li>
+              <li>Technology fingerprinting</li>
+              <li>Report within 3 days</li>
+            </ul>
+          </div>
+          <div class="pricing-card featured">
+            <h3>Network Pentest</h3>
+            <p class="price">$299</p>
+            <ul>
+              <li>Attack surface mapping</li>
+              <li>Automated scanning</li>
+              <li>Manual validation</li>
+              <li>Report within 5 days</li>
+            </ul>
+          </div>
+          <div class="pricing-card">
+            <h3>Web App Pentest</h3>
+            <p class="price">$499</p>
+            <ul>
+              <li>Full manual & automated testing</li>
+              <li>Business logic testing</li>
+              <li>Retest window included</li>
+              <li>Report within 15 days</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Media (Blog + YouTube) -->
+    <section id="media" class="section alt">
+      <div class="container">
+        <h2 class="section-title center">Content & Community</h2>
+        <p class="section-lead center">
+          I share practical techniques, bug-hunting workflows, and security learnings through blogs and videos.
+        </p>
+
+        <div class="grid two">
+          <div>
+            <h3>Medium Articles</h3>
+            <div class="media-card">
+              <h4>
+                <a href="https://sudoninja.medium.com/easy-to-check-and-find-3-different-bug-on-sign-in-and-sign-up-bb35da1e4ddd"
+                  target="_blank">
+                  Easy to check and find 3 different Bugs on sign-in and sign-up
+                </a>
+              </h4>
+              <p>
+                Identifying common yet impactful bugs in authentication flows — quickly and systematically.
+              </p>
+            </div>
+
+            <div class="media-card">
+              <h4>
+                <a href="https://sudoninja.medium.com/directory-listings-checker-0abcc983b532"
+                  target="_blank">
+                  Directory Listings Checker
+                </a>
+              </h4>
+              <p>
+                A practical approach to discovering sensitive files and misconfigurations using directory listing checks.
+              </p>
+            </div>
+
+            <div class="media-card">
+              <h4>
+                <a href="https://sudoninja.medium.com/shinobilabs-hidden-leaf-exploit-c11b1e15064c"
+                  target="_blank">
+                  ShinobiLabs: Hidden Leaf Exploit
+                </a>
+              </h4>
+              <p>
+                Walkthrough of a custom lab exploit focusing on enumeration, exploitation, and privilege escalation.
+              </p>
+            </div>
+
+            
+          </div>
+          <div>
+            <h3>YouTube</h3>
+            <div class="video-grid">
+              <div class="video-embed">
+                <iframe src="https://www.youtube.com/embed/ZNuRZxsmxHc" title="YouTube video" frameborder="0" allowfullscreen></iframe>
+              </div>
+              <div class="video-embed">
+                <iframe src="https://www.youtube.com/embed/BoJ8QHuxB_I" title="YouTube video" frameborder="0" allowfullscreen></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="section contact-section">
+      <div class="container split">
+        <div>
+          <h2 class="section-title">Get in Touch</h2>
+          <p class="section-lead">
+            Whether you need a focused security assessment, help with product hardening, or want to collaborate
+            on research — feel free to reach out.
+          </p>
+          <ul class="contact-list">
+            <li><i class="fa-solid fa-location-dot"></i> Bangalore,Karnataka, India</li>
+            <li><i class="fa-solid fa-phone"></i> +91 7000740649</li>
+            <li><i class="fa-solid fa-envelope"></i> <a href="mailto:sanjaysinghss3@gmail.com">sanjaysinghss3@gmail.com</a></li>
+          </ul>
+        </div>
+        <div>
+          <form class="contact-form" action="https://formspree.io/f/xayrvqbj" method="POST">
+            <div class="form-row">
+              <input type="text" name="name" placeholder="Your Name" required />
+            </div>
+            <div class="form-row">
+              <input type="email" name="email" placeholder="Your Email" required />
+            </div>
+            <div class="form-row">
+              <input type="text" name="subject" placeholder="Subject" required />
+            </div>
+            <div class="form-row">
+              <textarea name="message" rows="4" placeholder="Your Message" required></textarea>
+            </div>
+            <button type="submit" class="btn primary fullwidth">Send Message</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+  <div class="container footer-inner">
+    <p>&copy; 2025 Sanjay Singh. All rights reserved.</p>
+    <p class="muted">Designed with ❤️ for offensive security & research.</p>
+
+    <p class="muted">
+      👀 Visitors: <span id="visitor-count">—</span>
+    </p>
+
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('visitor-count');
+  if (!el) return;
+
+  fetch('https://sudoninja.goatcounter.com/counter/visitors')
+    .then(r => r.json())
+    .then(d => {
+      if (!d || typeof d.count !== 'number') return;
+      el.textContent = d.count.toLocaleString();
+    })
+    .catch(() => {
+      el.textContent = '—';
+    });
+});
+</script>
+
+  </div>
+</footer>
+
+  <!-- Fancy Live CVE Feed -->
+<script>
+fetch("/data/latest-cves.json")
+  .then(r => r.json())
+  .then(d => {
+    const list = document.getElementById("sn-cve-list");
+    const time = document.getElementById("sn-last-updated");
+
+    time.textContent = "Last updated: " + new Date(d.updated).toLocaleString();
+    list.innerHTML = "";
+
+    d.cves.slice(0, 5).forEach(c => {
+      let sev = "low";
+      if (c.cvss >= 7) sev = "high";
+      else if (c.cvss >= 4) sev = "medium";
+
+      list.innerHTML += `
+        <div class="sn-cve-card">
+          <div class="sn-cve-id">${c.id}</div>
+          <div class="sn-desc">${c.description}</div>
+          <div class="sn-meta">
+            <span class="sn-cvss ${sev}">CVSS ${c.cvss}</span>
+            <a class="sn-link" target="_blank"
+               href="https://nvd.nist.gov/vuln/detail/${c.id}">
+               View →
+            </a>
+          </div>
+        </div>
+      `;
+    });
+  })
+  .catch(() => {
+    document.getElementById("sn-cve-list").innerText =
+      "⚠️ CVE feed unavailable";
+  });
+</script>
+
+
+  <!-- Fancy Live CVE Feed -->
+  
+  <script src="js/main.js"></script>
+      
+</body>
+</html>
