@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>sudoninja | Live Threat Intel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Live exploit and threat intelligence feed">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body{margin:0;background:#020617;color:#e5e7eb;font-family:Arial,sans-serif}
+    .container{max-width:1100px;margin:auto;padding:0 16px}
+    .section{padding:80px 0}
+    .section-title{text-align:center;font-size:32px}
+    .muted{color:#94a3b8;text-align:center}
+    .grid{display:grid;gap:16px}
+    .grid.two{grid-template-columns:repeat(2,1fr)}
+    .service-card{background:#020617;border:1px solid #0f172a;border-radius:14px;padding:18px}
+    .btn{display:inline-block;margin-top:10px;padding:8px 12px;border-radius:12px;border:1px solid #22c55e;color:#22c55e;text-decoration:none;font-size:13px}
+    @media(max-width:800px){.grid.two{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<section id="intel" class="section">
+  <div class="container">
+    <h2 class="section-title">🌐 Live Threat Intelligence</h2>
+    <p class="muted">Exploit & vulnerability mentions (Exploit‑DB, Packet Storm, CISA KEV)</p>
+    <div id="intel-updated" class="muted" style="margin:20px 0">Loading…</div>
+    <div id="intel-list" class="grid two"></div>
+  </div>
+</section>
+<script src="js/intel.js"></script>
+</body>
+</html>
