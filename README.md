@@ -1,1 +1,0 @@
-Threat Intel Feed for sudoninja – GitHub Pages ready.
