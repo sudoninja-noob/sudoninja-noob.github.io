@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>sudoNinja :: vulnx Terminal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    background: #020b02;
+    color: #00ff88;
+    font-family: "Courier New", monospace;
+    display: flex;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+    width: 240px;
+    background: #00160d;
+    border-right: 1px solid #00ff88;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.sidebar h2 {
+    margin-top: 0;
+    color: #00ffaa;
+    font-size: 20px;
+}
+
+.sidebar a {
+    display: block;
+    color: #66ffcc;
+    text-decoration: none;
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.sidebar a:hover {
+    color: #00ff88;
+}
+
+/* ===== MAIN CONTENT ===== */
+.main {
+    flex: 1;
+    overflow-x: hidden;
+}
+
+header {
+    padding: 20px;
+    border-bottom: 1px solid #00ff88;
+    background: linear-gradient(90deg, #001a0f, #00331f);
+}
+
+header h1 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.search-box {
+    padding: 15px;
+    border-bottom: 1px dashed #003322;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 10px;
+    background: #020b02;
+    border: 1px solid #00ff88;
+    color: #00ff88;
+    font-size: 16px;
+}
+
+section {
+    padding: 20px;
+    border-bottom: 1px dashed #003322;
+}
+
+h2 {
+    color: #00ffaa;
+    border-left: 4px solid #00ff88;
+    padding-left: 10px;
+}
+
+/* ===== COMMAND BLOCK ===== */
+.command {
+    position: relative;
+    margin-top: 10px;
+}
+
+pre {
+    background: #00160d;
+    padding: 15px;
+    border-left: 4px solid #00ff88;
+    overflow-x: auto;
+    color: #aaffdd;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #00331f;
+    color: #00ff88;
+    border: 1px solid #00ff88;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+/* ===== TERMINAL ===== */
+.terminal {
+    background: #000;
+    border: 1px solid #00ff88;
+    padding: 15px;
+    font-size: 14px;
+}
+
+.terminal-output {
+    white-space: pre-wrap;
+    margin-bottom: 10px;
+}
+
+.terminal-input {
+    display: flex;
+}
+
+.terminal-input span {
+    margin-right: 5px;
+}
+
+.terminal-input input {
+    background: none;
+    border: none;
+    color: #00ff88;
+    outline: none;
+    flex: 1;
+    font-family: inherit;
+}
+
+/* ===== FOOTER ===== */
+footer {
+    padding: 15px;
+    text-align: center;
+    color: #66ffcc;
+    font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+<h2>sudoNinja</h2>
+<a href="#terminal">Terminal</a>
+<a href="#quickstart">Quick Start</a>
+<a href="#highrisk">High Risk</a>
+<a href="#lookup">CVE Lookup</a>
+<a href="#exploit">Exploit Intel</a>
+<a href="#auth">Authentication</a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<header>
+<h1>vulnx :: CVE Intelligence Console</h1>
+<p>Red Team | Blue Team | SOC | Pentesters</p>
+</header>
+
+<div class="search-box">
+<input type="text" id="searchInput" placeholder="🔍 Filter commands & sections">
+</div>
+
+<!-- TERMINAL -->
+<section id="terminal" class="filterable">
+<h2>💻 Interactive Terminal (Simulation)</h2>
+
+<div class="terminal">
+<div class="terminal-output" id="terminalOutput">
+sudoNinja@vulnx:~$ welcome
+Type: help
+</div>
+<div class="terminal-input">
+<span>sudoNinja@vulnx:~$</span>
+<input type="text" id="terminalInput" autofocus>
+</div>
+</div>
+</section>
+
+<section id="quickstart" class="filterable">
+<h2>🚀 Quick Start</h2>
+<div class="command">
+<button class="copy-btn">COPY</button>
+<pre>
+go install github.com/projectdiscovery/cvemap/cmd/vulnx@latest
+vulnx search apache
+vulnx auth
+</pre>
+</div>
+</section>
+
+<section id="highrisk" class="filterable">
+<h2>🎯 High Risk Queries</h2>
+<div class="command">
+<button class="copy-btn">COPY</button>
+<pre>
+vulnx search "severity:critical && is_remote:true && is_kev:true"
+vulnx search "cvss_score:>8.0 && cve_created_at:>=2024"
+</pre>
+</div>
+</section>
+
+<section id="lookup" class="filterable">
+<h2>🧠 CVE Lookup</h2>
+<div class="command">
+<button class="copy-btn">COPY</button>
+<pre>
+vulnx id CVE-2021-44228
+vulnx id CVE-2024-1234 --json
+</pre>
+</div>
+</section>
+
+<section id="exploit" class="filterable">
+<h2>🧪 Exploit Intelligence</h2>
+<div class="command">
+<button class="copy-btn">COPY</button>
+<pre>
+vulnx search --kev
+vulnx search --poc
+vulnx search --template
+</pre>
+</div>
+</section>
+
+<section id="auth" class="filterable">
+<h2>🔐 Authentication</h2>
+<div class="command">
+<button class="copy-btn">COPY</button>
+<pre>
+vulnx auth
+export PDCP_API_KEY="YOUR_API_KEY"
+vulnx auth --test
+</pre>
+</div>
+</section>
+
+<footer>
+sudoNinja © 2025 — Hacker-grade CVE Console
+</footer>
+
+</div>
+
+<script>
+// COPY BUTTONS
+document.querySelectorAll(".copy-btn").forEach(btn => {
+    btn.onclick = () => {
+        navigator.clipboard.writeText(btn.nextElementSibling.innerText);
+        btn.innerText = "COPIED";
+        setTimeout(() => btn.innerText = "COPY", 1200);
+    };
+});
+
+// SEARCH FILTER
+document.getElementById("searchInput").addEventListener("keyup", function () {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll(".filterable").forEach(s => {
+        s.style.display = s.innerText.toLowerCase().includes(q) ? "block" : "none";
+    });
+});
+
+// TERMINAL SIMULATION
+const terminalInput = document.getElementById("terminalInput");
+const terminalOutput = document.getElementById("terminalOutput");
+
+const responses = {
+    help: `
+Available commands:
+ help
+ vulnx search apache
+ vulnx id CVE-2021-44228
+ clear
+`,
+    clear: ""
+};
+
+terminalInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+        const cmd = terminalInput.value.trim();
+        terminalOutput.innerText += `\n$ ${cmd}\n`;
+
+        if (responses[cmd]) {
+            terminalOutput.innerText += responses[cmd];
+        } else {
+            terminalOutput.innerText += `command not found: ${cmd}\n`;
+        }
+
+        if (cmd === "clear") terminalOutput.innerText = "";
+
+        terminalInput.value = "";
+        terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    }
+});
+</script>
+
+</body>
+</html>
