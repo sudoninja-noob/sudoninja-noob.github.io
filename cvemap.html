@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>sudoNinja :: vulnx Terminal</title>
+<title>sudoNinja :: vulnx CVE Console</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -16,7 +16,7 @@ body {
 
 /* ===== SIDEBAR ===== */
 .sidebar {
-    width: 240px;
+    width: 260px;
     background: #00160d;
     border-right: 1px solid #00ff88;
     position: sticky;
@@ -24,6 +24,7 @@ body {
     height: 100vh;
     padding: 20px;
     box-sizing: border-box;
+    overflow-y: auto;
 }
 
 .sidebar h2 {
@@ -36,7 +37,7 @@ body {
     display: block;
     color: #66ffcc;
     text-decoration: none;
-    margin: 10px 0;
+    margin: 8px 0;
     font-size: 14px;
 }
 
@@ -44,7 +45,7 @@ body {
     color: #00ff88;
 }
 
-/* ===== MAIN CONTENT ===== */
+/* ===== MAIN ===== */
 .main {
     flex: 1;
     overflow-x: hidden;
@@ -157,12 +158,15 @@ footer {
 <!-- SIDEBAR -->
 <div class="sidebar">
 <h2>sudoNinja</h2>
+<a href="#migration">Migration Notice</a>
 <a href="#terminal">Terminal</a>
 <a href="#quickstart">Quick Start</a>
-<a href="#highrisk">High Risk</a>
-<a href="#lookup">CVE Lookup</a>
-<a href="#exploit">Exploit Intel</a>
+<a href="#core">Core Commands</a>
+<a href="#search">Advanced Search</a>
+<a href="#patterns">Common Patterns</a>
+<a href="#filters">Filter Flags</a>
 <a href="#auth">Authentication</a>
+<a href="#troubleshoot">Troubleshooting</a>
 </div>
 
 <!-- MAIN -->
@@ -177,14 +181,19 @@ footer {
 <input type="text" id="searchInput" placeholder="🔍 Filter commands & sections">
 </div>
 
-<!-- TERMINAL -->
+<section id="migration" class="filterable">
+<h2>⚠️ Migration Notice</h2>
+<p>
+<b>vulnx</b> is the next generation of <b>cvemap</b>.  
+The older cvemap API will be <b>discontinued on August 1, 2025</b>.
+</p>
+</section>
+
 <section id="terminal" class="filterable">
 <h2>💻 Interactive Terminal (Simulation)</h2>
-
 <div class="terminal">
 <div class="terminal-output" id="terminalOutput">
-sudoNinja@vulnx:~$ welcome
-Type: help
+sudoNinja@vulnx:~$ help
 </div>
 <div class="terminal-input">
 <span>sudoNinja@vulnx:~$</span>
@@ -199,42 +208,66 @@ Type: help
 <button class="copy-btn">COPY</button>
 <pre>
 go install github.com/projectdiscovery/cvemap/cmd/vulnx@latest
+vulnx --help
 vulnx search apache
 vulnx auth
 </pre>
 </div>
 </section>
 
-<section id="highrisk" class="filterable">
-<h2>🎯 High Risk Queries</h2>
+<section id="core" class="filterable">
+<h2>🧠 Core Commands</h2>
 <div class="command">
 <button class="copy-btn">COPY</button>
 <pre>
-vulnx search "severity:critical && is_remote:true && is_kev:true"
-vulnx search "cvss_score:>8.0 && cve_created_at:>=2024"
-</pre>
-</div>
-</section>
-
-<section id="lookup" class="filterable">
-<h2>🧠 CVE Lookup</h2>
-<div class="command">
-<button class="copy-btn">COPY</button>
-<pre>
+vulnx search "apache && severity:high"
 vulnx id CVE-2021-44228
-vulnx id CVE-2024-1234 --json
+vulnx filters
+vulnx analyze -f severity
+vulnx update
+vulnx healthcheck
 </pre>
 </div>
 </section>
 
-<section id="exploit" class="filterable">
-<h2>🧪 Exploit Intelligence</h2>
+<section id="search" class="filterable">
+<h2>🔍 Advanced Search</h2>
 <div class="command">
 <button class="copy-btn">COPY</button>
 <pre>
-vulnx search --kev
-vulnx search --poc
+vulnx search "severity:critical && is_remote:true"
+vulnx search "cvss_score:>8.0 && cve_created_at:>=2024"
+vulnx search --json "apache"
+vulnx search --limit 50 --sort-desc cvss_score "nginx"
+</pre>
+</div>
+</section>
+
+<section id="patterns" class="filterable">
+<h2>🎯 Common Search Patterns</h2>
+<div class="command">
+<button class="copy-btn">COPY</button>
+<pre>
+vulnx search "is_kev:true && age_in_days:<90"
+vulnx search "affected_products.vendor:microsoft"
+vulnx search "is_poc:true"
 vulnx search --template
+</pre>
+</div>
+</section>
+
+<section id="filters" class="filterable">
+<h2>🧪 Filter Flags</h2>
+<div class="command">
+<button class="copy-btn">COPY</button>
+<pre>
+--severity critical,high
+--cvss-score ">8.0"
+--epss-score ">0.8"
+--kev
+--poc
+--remote-exploit
+--vuln-age "<30"
 </pre>
 </div>
 </section>
@@ -245,8 +278,22 @@ vulnx search --template
 <button class="copy-btn">COPY</button>
 <pre>
 vulnx auth
+vulnx auth --api-key YOUR_API_KEY
 export PDCP_API_KEY="YOUR_API_KEY"
 vulnx auth --test
+</pre>
+</div>
+</section>
+
+<section id="troubleshoot" class="filterable">
+<h2>🛠️ Troubleshooting</h2>
+<div class="command">
+<button class="copy-btn">COPY</button>
+<pre>
+vulnx healthcheck
+vulnx --timeout 60s search "apache"
+vulnx --debug search "nginx"
+vulnx search --limit 100 --offset 100
 </pre>
 </div>
 </section>
@@ -258,7 +305,7 @@ sudoNinja © 2025 — Hacker-grade CVE Console
 </div>
 
 <script>
-// COPY BUTTONS
+// COPY BUTTON
 document.querySelectorAll(".copy-btn").forEach(btn => {
     btn.onclick = () => {
         navigator.clipboard.writeText(btn.nextElementSibling.innerText);
@@ -275,13 +322,12 @@ document.getElementById("searchInput").addEventListener("keyup", function () {
     });
 });
 
-// TERMINAL SIMULATION
+// TERMINAL SIM
 const terminalInput = document.getElementById("terminalInput");
 const terminalOutput = document.getElementById("terminalOutput");
 
 const responses = {
-    help: `
-Available commands:
+    help: `Commands:
  help
  vulnx search apache
  vulnx id CVE-2021-44228
@@ -294,17 +340,9 @@ terminalInput.addEventListener("keydown", e => {
     if (e.key === "Enter") {
         const cmd = terminalInput.value.trim();
         terminalOutput.innerText += `\n$ ${cmd}\n`;
-
-        if (responses[cmd]) {
-            terminalOutput.innerText += responses[cmd];
-        } else {
-            terminalOutput.innerText += `command not found: ${cmd}\n`;
-        }
-
+        terminalOutput.innerText += responses[cmd] || `command not found: ${cmd}\n`;
         if (cmd === "clear") terminalOutput.innerText = "";
-
         terminalInput.value = "";
-        terminalOutput.scrollTop = terminalOutput.scrollHeight;
     }
 });
 </script>
