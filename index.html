@@ -655,49 +655,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
   <!-- Fancy Live CVE Feed -->
 <script>
-(async function () {
+document.addEventListener("DOMContentLoaded", async () => {
   const list = document.getElementById("sn-cve-list");
   const time = document.getElementById("sn-last-updated");
 
   try {
-    const res = await fetch(
-      "https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=5&pubStartDate=2025-01-01T00:00:00.000"
-    );
+    const res = await fetch("/data/latest-cves.json", {
+      cache: "no-store"
+    });
+
+    if (!res.ok) throw new Error("CVE JSON not found");
+
     const data = await res.json();
 
-    time.textContent = "Last updated: " + new Date().toLocaleString();
+    time.textContent =
+      "Last updated: " +
+      new Date(data.updated).toLocaleString();
+
     list.innerHTML = "";
 
-    data.vulnerabilities.forEach(v => {
-      const cve = v.cve;
-      const id = cve.id;
-      const desc = cve.descriptions[0]?.value || "No description";
-      const score =
-        cve.metrics?.cvssMetricV31?.[0]?.cvssData?.baseScore ?? "N/A";
+    if (!data.cves || !data.cves.length) {
+      list.textContent = "No CVEs available.";
+      return;
+    }
 
+    data.cves.slice(0, 5).forEach(c => {
       const sev =
-        score >= 7 ? "high" : score >= 4 ? "medium" : "low";
+        c.cvss >= 7 ? "high" :
+        c.cvss >= 4 ? "medium" : "low";
 
-      list.innerHTML += `
-        <div class="sn-cve-card">
-          <div class="sn-cve-id">${id}</div>
-          <div class="sn-desc">${desc}</div>
-          <div class="sn-meta">
-            <span class="sn-cvss ${sev}">CVSS ${score}</span>
-            <a class="sn-link" target="_blank" rel="noopener"
-              href="https://nvd.nist.gov/vuln/detail/${id}">
-              View →
-            </a>
-          </div>
+      const card = document.createElement("div");
+      card.className = "sn-cve-card";
+
+      card.innerHTML = `
+        <div class="sn-cve-id">${c.id}</div>
+        <div class="sn-desc">${c.description}</div>
+        <div class="sn-meta">
+          <span class="sn-cvss ${sev}">CVSS ${c.cvss}</span>
+          <a class="sn-link"
+             href="https://nvd.nist.gov/vuln/detail/${c.id}"
+             target="_blank"
+             rel="noopener noreferrer">
+             View →
+          </a>
         </div>
       `;
+
+      list.appendChild(card);
     });
-  } catch (e) {
-    list.textContent = "⚠️ Live CVE feed unavailable";
-    console.error(e);
+
+  } catch (err) {
+    time.textContent = "";
+    list.innerHTML =
+      "⚠️ Live CVE feed unavailable (missing data/latest-cves.json)";
+    console.error(err);
   }
-})();
+});
 </script>
+
 
 
   <!-- Fancy Live CVE Feed -->
