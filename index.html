@@ -655,39 +655,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
   <!-- Fancy Live CVE Feed -->
 <script>
-fetch("/data/latest-cves.json")
-  .then(r => r.json())
-  .then(d => {
-    const list = document.getElementById("sn-cve-list");
-    const time = document.getElementById("sn-last-updated");
+(async function () {
+  const list = document.getElementById("sn-cve-list");
+  const time = document.getElementById("sn-last-updated");
 
-    time.textContent = "Last updated: " + new Date(d.updated).toLocaleString();
+  try {
+    const res = await fetch(
+      "https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=5&pubStartDate=2025-01-01T00:00:00.000"
+    );
+    const data = await res.json();
+
+    time.textContent = "Last updated: " + new Date().toLocaleString();
     list.innerHTML = "";
 
-    d.cves.slice(0, 5).forEach(c => {
-      let sev = "low";
-      if (c.cvss >= 7) sev = "high";
-      else if (c.cvss >= 4) sev = "medium";
+    data.vulnerabilities.forEach(v => {
+      const cve = v.cve;
+      const id = cve.id;
+      const desc = cve.descriptions[0]?.value || "No description";
+      const score =
+        cve.metrics?.cvssMetricV31?.[0]?.cvssData?.baseScore ?? "N/A";
+
+      const sev =
+        score >= 7 ? "high" : score >= 4 ? "medium" : "low";
 
       list.innerHTML += `
         <div class="sn-cve-card">
-          <div class="sn-cve-id">${c.id}</div>
-          <div class="sn-desc">${c.description}</div>
+          <div class="sn-cve-id">${id}</div>
+          <div class="sn-desc">${desc}</div>
           <div class="sn-meta">
-            <span class="sn-cvss ${sev}">CVSS ${c.cvss}</span>
-            <a class="sn-link" target="_blank"
-               href="https://nvd.nist.gov/vuln/detail/${c.id}">
-               View →
+            <span class="sn-cvss ${sev}">CVSS ${score}</span>
+            <a class="sn-link" target="_blank" rel="noopener"
+              href="https://nvd.nist.gov/vuln/detail/${id}">
+              View →
             </a>
           </div>
         </div>
       `;
     });
-  })
-  .catch(() => {
-    document.getElementById("sn-cve-list").innerText =
-      "⚠️ CVE feed unavailable";
-  });
+  } catch (e) {
+    list.textContent = "⚠️ Live CVE feed unavailable";
+    console.error(e);
+  }
+})();
 </script>
 
 
