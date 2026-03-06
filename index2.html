@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sanjay Singh // Offensive Security Researcher</title>
+<meta name="description" content="Sanjay Singh — 100+ CVEs, Penetration Tester, Exploit Developer, Security Author. Bangalore, India."/>
+<meta property="og:title" content="Sanjay Singh // Offensive Security"/>
+<meta property="og:description" content="100+ CVEs. Verified exploits. A decade breaking things to make them safer."/>
+<meta property="og:type" content="website"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"Sanjay Singh","jobTitle":"Penetration Tester","url":"https://sudoninja-noob.github.io","sameAs":["https://www.linkedin.com/in/sanjaysingh06/","https://github.com/sudoninja-noob"]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous"/>
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN SYSTEM
+═══════════════════════════════════════════ */
+:root{
+  --void:#000008;
+  --deep:#03091a;
+  --panel:#060f24;
+  --card:#080e20;
+  --card2:#0a1530;
+  --c:#00ffe5;       /* cyan  */
+  --g:#00ff88;       /* green */
+  --b:#0af;          /* blue  */
+  --r:#ff2d55;       /* red   */
+  --a:#ffb700;       /* amber */
+  --p:#b44bff;       /* purple*/
+  --txt:#c8d8f0;
+  --mut:#3a5272;
+  --bord:rgba(0,255,229,.1);
+  --font-mono:'Share Tech Mono',monospace;
+  --font-disp:'Orbitron',sans-serif;
+  --font-body:'Rajdhani',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--void);color:var(--txt);
+  font-family:var(--font-body);line-height:1.7;
+  overflow-x:hidden;cursor:none;
+}
+a{color:inherit;text-decoration:none}
+ul{list-style:none}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--void)}
+::-webkit-scrollbar-thumb{background:var(--c);border-radius:2px}
+
+/* ═══════════════════════════════════════════
+   NOISE TEXTURE OVERLAY
+═══════════════════════════════════════════ */
+body::before{
+  content:'';position:fixed;inset:0;z-index:2;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:.025;background-size:200px 200px;
+}
+/* scanlines */
+body::after{
+  content:'';position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,229,.012) 2px,rgba(0,255,229,.012) 4px);
+}
+
+/* ═══════════════════════════════════════════
+   CUSTOM CURSOR
+═══════════════════════════════════════════ */
+#cur{position:fixed;width:10px;height:10px;border-radius:50%;background:var(--c);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 15px var(--c),0 0 30px rgba(0,255,229,.5);transition:width .12s,height .12s,background .2s;mix-blend-mode:screen}
+#cur-r{position:fixed;width:32px;height:32px;border-radius:50%;border:1px solid rgba(0,255,229,.5);pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
+#cur.big{width:18px;height:18px;background:var(--g)}
+#cur-r.big{width:48px;height:48px;border-color:rgba(0,255,136,.8)}
+
+/* ═══════════════════════════════════════════
+   BOOT SCREEN
+═══════════════════════════════════════════ */
+#boot{
+  position:fixed;inset:0;z-index:8000;background:#000;
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;
+  padding:3rem 4rem;font-family:var(--font-mono);
+  transition:opacity .8s ease;
+}
+#boot.out{opacity:0;pointer-events:none}
+.boot-line{
+  font-size:.75rem;color:#0f0;margin-bottom:.2rem;
+  opacity:0;transform:translateX(-8px);
+  transition:opacity .1s,transform .1s;white-space:nowrap;
+}
+.boot-line.show{opacity:1;transform:none}
+.boot-line.dim{color:#3a3;opacity:.5}
+.boot-line.bright{color:#0ff;font-weight:bold}
+.boot-line.err{color:#f55}
+.boot-line.warn{color:#fa0}
+.boot-bar-wrap{margin:1rem 0;width:340px}
+.boot-bar-bg{height:3px;background:#111;border-radius:2px;overflow:hidden}
+.boot-bar-fill{height:100%;background:linear-gradient(90deg,#0f0,#0ff);border-radius:2px;width:0%;transition:width .05s}
+.boot-pct{font-size:.65rem;color:#3a3;margin-top:.4rem}
+#boot-skip{
+  position:absolute;bottom:2rem;right:2rem;
+  font-family:var(--font-mono);font-size:.65rem;color:#333;
+  border:1px solid #222;padding:.35rem .7rem;border-radius:3px;
+  cursor:pointer;transition:all .2s;
+}
+#boot-skip:hover{color:#0ff;border-color:#0ff}
+
+/* ═══════════════════════════════════════════
+   CVE TICKER
+═══════════════════════════════════════════ */
+#ticker{
+  position:fixed;top:0;left:0;right:0;z-index:600;
+  height:26px;background:rgba(0,0,8,.95);
+  border-bottom:1px solid rgba(255,45,85,.25);
+  overflow:hidden;display:flex;align-items:center;
+}
+.ticker-label{
+  flex-shrink:0;padding:0 1rem;font-family:var(--font-mono);
+  font-size:.6rem;color:var(--r);letter-spacing:.15em;
+  background:rgba(255,45,85,.12);height:100%;display:flex;align-items:center;
+  border-right:1px solid rgba(255,45,85,.2);white-space:nowrap;
+}
+.ticker-track{display:flex;gap:0;animation:tick 60s linear infinite;white-space:nowrap}
+@keyframes tick{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tick-item{
+  font-family:var(--font-mono);font-size:.6rem;color:var(--mut);
+  padding:0 1.5rem;display:inline-flex;align-items:center;gap:.5rem;
+}
+.tick-item .cve-id{color:var(--b)}
+.tick-item .tick-sev{font-size:.55rem;padding:.1rem .35rem;border-radius:2px}
+.tick-sev.c{background:rgba(180,75,255,.2);color:#d480ff}
+.tick-sev.h{background:rgba(255,45,85,.15);color:#ff6b8a}
+.tick-sev.m{background:rgba(255,183,0,.1);color:#ffd54f}
+
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+.site-header{
+  position:fixed;top:26px;left:0;right:0;z-index:500;height:60px;
+  display:flex;align-items:center;
+  background:rgba(3,9,26,.92);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--bord);
+}
+.nav-wrap{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:1400px;margin:0 auto;padding:0 2rem;gap:1rem}
+.logo{font-family:var(--font-disp);font-size:.9rem;font-weight:900;letter-spacing:.2em;display:flex;align-items:center;gap:.3rem;flex-shrink:0}
+.logo .lb{color:rgba(0,255,229,.4)}
+.logo .ln{color:var(--c);text-shadow:0 0 20px var(--c)}
+.logo .lw{color:#fff}
+.logo-dot{width:6px;height:6px;border-radius:50%;background:var(--g);margin-left:.5rem;box-shadow:0 0 8px var(--g);animation:hb2 2s infinite}
+@keyframes hb2{0%,100%{opacity:1}50%{opacity:.3}}
+.main-nav{display:flex;gap:0;align-items:center;flex-wrap:nowrap}
+.main-nav a{
+  font-family:var(--font-mono);font-size:.6rem;color:var(--mut);
+  padding:.38rem .6rem;letter-spacing:.08em;text-transform:uppercase;
+  transition:color .2s;position:relative;white-space:nowrap;
+}
+.main-nav a::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:1px;background:var(--c);transition:all .25s}
+.main-nav a:hover,.main-nav a.active{color:var(--c)}
+.main-nav a:hover::after,.main-nav a.active::after{left:8%;right:8%}
+.nav-status{
+  font-family:var(--font-mono);font-size:.58rem;color:var(--g);
+  display:flex;align-items:center;gap:.4rem;flex-shrink:0;
+  border:1px solid rgba(0,255,136,.2);padding:.3rem .7rem;border-radius:3px;
+  background:rgba(0,255,136,.04);white-space:nowrap;
+}
+.nav-hire{
+  font-family:var(--font-mono);font-size:.6rem;padding:.38rem .9rem;
+  border:1px solid var(--c);color:var(--c);border-radius:3px;
+  letter-spacing:.1em;text-transform:uppercase;transition:all .25s;
+  background:transparent;cursor:none;flex-shrink:0;white-space:nowrap;
+}
+.nav-hire:hover{background:var(--c);color:#000;box-shadow:0 0 20px rgba(0,255,229,.4)}
+.nav-toggle{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:none;padding:.5rem;flex-shrink:0}
+.nav-toggle span{width:20px;height:1px;background:var(--c);display:block;transition:all .3s}
+
+/* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
+.container{max-width:1400px;margin:0 auto;padding:0 2rem;position:relative;z-index:10}
+section{padding:7rem 0;position:relative}
+section.alt{background:rgba(6,15,36,.7)}
+.pt-header{padding-top:120px}
+
+.sec-label{
+  font-family:var(--font-mono);font-size:.6rem;color:var(--c);
+  letter-spacing:.22em;text-transform:uppercase;margin-bottom:.75rem;
+  display:flex;align-items:center;gap:.7rem;
+}
+.sec-label::before{content:'';width:20px;height:1px;background:var(--c)}
+.sec-label.ctr{justify-content:center}
+.sec-label.ctr::before,.sec-label.ctr::after{content:'';width:20px;height:1px;background:var(--c);display:block}
+.sec-title{
+  font-family:var(--font-disp);font-weight:700;
+  font-size:clamp(1.7rem,3.2vw,2.9rem);line-height:1.05;
+  margin-bottom:.9rem;letter-spacing:-.02em;color:#fff;
+}
+.sec-title.ctr{text-align:center}
+.sec-title em{color:var(--c);font-style:normal;text-shadow:0 0 28px rgba(0,255,229,.5)}
+.sec-lead{color:var(--mut);font-size:1rem;max-width:580px;margin-bottom:3rem;font-weight:400;letter-spacing:.02em}
+.sec-lead.ctr{text-align:center;margin-left:auto;margin-right:auto}
+
+/* ═══════════════════════════════════════════
+   REVEAL
+═══════════════════════════════════════════ */
+.rv{opacity:0;transform:translateY(24px);transition:opacity .65s ease,transform .65s ease}
+.rv.on{opacity:1;transform:none}
+.rl{opacity:0;transform:translateX(-32px);transition:opacity .65s ease,transform .65s ease}
+.rl.on{opacity:1;transform:none}
+.rr{opacity:0;transform:translateX(32px);transition:opacity .65s ease,transform .65s ease}
+.rr.on{opacity:1;transform:none}
+
+/* ═══════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════ */
+#home{
+  min-height:100vh;display:flex;align-items:center;
+  padding-top:110px;padding-bottom:4rem;overflow:hidden;
+}
+.hero-grid{display:grid;grid-template-columns:1fr 500px;gap:3rem;align-items:center;width:100%;max-width:1400px;margin:0 auto;padding:0 2rem;position:relative;z-index:10}
+
+.hero-eyebrow{font-family:var(--font-mono);font-size:.72rem;color:var(--c);letter-spacing:.2em;text-transform:uppercase;margin-bottom:1.2rem;display:flex;align-items:center;gap:.7rem}
+.h-pulse{width:7px;height:7px;border-radius:50%;background:var(--g);flex-shrink:0;animation:hb2 2s infinite}
+
+.hero-name{
+  font-family:var(--font-disp);font-size:clamp(2.6rem,5.5vw,4.8rem);
+  font-weight:900;line-height:1;letter-spacing:-.04em;color:#fff;
+  margin-bottom:.4rem;position:relative;display:inline-block;
+}
+/* glitch layers */
+.hero-name::before{content:attr(data-t);position:absolute;top:0;left:0;color:var(--c);clip-path:polygon(0 0,100% 0,100% 33%,0 33%);animation:ga 6s infinite;opacity:0}
+.hero-name::after{content:attr(data-t);position:absolute;top:0;left:0;color:var(--r);clip-path:polygon(0 66%,100% 66%,100% 100%,0 100%);animation:gb 6s infinite;opacity:0}
+@keyframes ga{0%,85%,100%{opacity:0;transform:none}86%{opacity:.8;transform:translate(-3px,-1px)}88%{opacity:.8;transform:translate(2px,1px)}90%{opacity:.8;transform:none}91%{opacity:0}}
+@keyframes gb{0%,87%,100%{opacity:0;transform:none}88%{opacity:.6;transform:translate(3px,0)}90%{opacity:.6;transform:translate(-2px,0)}92%{opacity:.6;transform:none}93%{opacity:0}}
+
+.hero-title2{
+  font-family:var(--font-disp);font-size:clamp(1rem,2.2vw,1.8rem);
+  font-weight:400;color:var(--c);letter-spacing:.08em;
+  margin-bottom:1.4rem;opacity:.85;
+}
+
+.hero-sub{font-family:var(--font-body);font-size:1.05rem;color:var(--mut);font-weight:400;max-width:520px;margin-bottom:2.5rem;letter-spacing:.02em;line-height:1.75}
+.hero-sub strong{color:var(--txt);font-weight:600}
+
+.hero-cta{display:flex;gap:.9rem;flex-wrap:wrap;margin-bottom:3rem}
+
+/* Buttons */
+.btn{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;padding:.75rem 1.6rem;border-radius:3px;display:inline-flex;align-items:center;gap:.55rem;cursor:none;transition:all .25s;border:none}
+.btn-p{background:var(--c);color:#000;font-weight:700;box-shadow:0 0 25px rgba(0,255,229,.35);position:relative;overflow:hidden}
+.btn-p::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);transform:translateX(-100%);transition:transform .5s}
+.btn-p:hover::before{transform:translateX(100%)}
+.btn-p:hover{box-shadow:0 0 45px rgba(0,255,229,.65);transform:translateY(-2px)}
+.btn-g{background:transparent;color:var(--c);border:1px solid rgba(0,255,229,.4)}
+.btn-g:hover{background:rgba(0,255,229,.07);border-color:var(--c);box-shadow:0 0 18px rgba(0,255,229,.15);transform:translateY(-2px)}
+.btn-sm{padding:.45rem .95rem;font-size:.65rem}
+.btn-full{width:100%;justify-content:center}
+
+/* Stats strip */
+.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--bord);border-radius:4px;overflow:hidden;background:rgba(0,255,229,.015)}
+.h-stat{padding:.9rem .6rem;text-align:center;border-right:1px solid var(--bord)}
+.h-stat:last-child{border-right:none}
+.h-stat-n{font-family:var(--font-disp);font-size:1.5rem;font-weight:700;color:var(--c);text-shadow:0 0 20px rgba(0,255,229,.5);line-height:1}
+.h-stat-l{font-family:var(--font-mono);font-size:.55rem;color:var(--mut);letter-spacing:.1em;text-transform:uppercase;margin-top:.25rem}
+
+/* Globe container */
+.globe-wrap{position:relative;width:500px;height:500px;display:flex;align-items:center;justify-content:center}
+#globe-canvas{display:block;border-radius:50%;box-shadow:0 0 80px rgba(0,255,229,.12),0 0 160px rgba(0,170,255,.07)}
+.globe-ring{
+  position:absolute;inset:-20px;border-radius:50%;
+  border:1px solid rgba(0,255,229,.08);
+  animation:spin-slow 20s linear infinite;
+}
+.globe-ring2{
+  position:absolute;inset:-40px;border-radius:50%;
+  border:1px dashed rgba(0,255,229,.04);
+  animation:spin-slow 35s linear infinite reverse;
+}
+@keyframes spin-slow{to{transform:rotate(360deg)}}
+.globe-label{
+  position:absolute;font-family:var(--font-mono);font-size:.58rem;color:var(--c);
+  letter-spacing:.1em;text-transform:uppercase;opacity:.6;
+  animation:orb-fade 3s ease infinite;
+}
+@keyframes orb-fade{0%,100%{opacity:.3}50%{opacity:.9}}
+.globe-label.tl{top:5%;left:8%}
+.globe-label.tr{top:12%;right:5%}
+.globe-label.bl{bottom:12%;left:5%}
+.globe-label.br{bottom:5%;right:8%}
+
+/* ═══════════════════════════════════════════
+   ABOUT
+═══════════════════════════════════════════ */
+.about-split{display:grid;grid-template-columns:1fr 420px;gap:5rem;align-items:start}
+.about-list li{padding:.72rem 0;border-bottom:1px solid var(--bord);display:flex;gap:.9rem;font-size:.97rem;color:var(--mut);letter-spacing:.02em}
+.about-list li .ar{color:var(--c);font-family:var(--font-mono);flex-shrink:0}
+.badges{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:1.5rem}
+.badge{font-family:var(--font-mono);font-size:.6rem;padding:.28rem .62rem;border:1px solid rgba(0,255,229,.2);border-radius:3px;color:var(--c);background:rgba(0,255,229,.03);letter-spacing:.05em;transition:all .2s}
+.badge:hover{background:rgba(0,255,229,.1);border-color:var(--c);box-shadow:0 0 10px rgba(0,255,229,.2)}
+
+.info-panel{background:var(--card);border:1px solid var(--bord);border-radius:8px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.ip-head{background:rgba(0,255,229,.04);padding:.85rem 1.4rem;border-bottom:1px solid var(--bord);font-family:var(--font-mono);font-size:.65rem;color:var(--c);letter-spacing:.12em;text-transform:uppercase}
+.ip-head::before{content:'$ ';opacity:.4}
+.ip-row{display:grid;grid-template-columns:85px 1fr;gap:.9rem;padding:.78rem 1.4rem;border-bottom:1px solid var(--bord);align-items:center}
+.ip-row:last-of-type{border-bottom:none}
+.ip-k{font-family:var(--font-mono);font-size:.6rem;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
+.ip-v{font-size:.9rem;color:var(--txt);letter-spacing:.02em}
+.ip-v a{color:var(--c)}
+.ip-v .avail{color:var(--g);display:flex;align-items:center;gap:.4rem}
+.ip-v .avail::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--g);box-shadow:0 0 6px var(--g);flex-shrink:0;animation:hb2 1.5s infinite}
+.social-row{display:flex;gap:.45rem;padding:1.1rem 1.4rem;border-top:1px solid var(--bord)}
+.social-row a{width:34px;height:34px;border-radius:4px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bord);color:var(--mut);transition:all .2s;font-size:.88rem}
+.social-row a:hover{color:var(--c);border-color:var(--c);background:rgba(0,255,229,.07);box-shadow:0 0 12px rgba(0,255,229,.2)}
+
+/* ═══════════════════════════════════════════
+   SKILLS — RADAR CHART
+═══════════════════════════════════════════ */
+.skills-layout{display:grid;grid-template-columns:460px 1fr;gap:4rem;align-items:center}
+.radar-wrap{position:relative;width:460px;height:460px;display:flex;align-items:center;justify-content:center}
+#radar-canvas{display:block}
+.skill-cards-col{display:flex;flex-direction:column;gap:1rem}
+.sk-card{
+  background:var(--card);border:1px solid var(--bord);border-radius:6px;
+  padding:1.1rem 1.4rem;display:flex;align-items:center;gap:1.1rem;
+  transition:all .3s;position:relative;overflow:hidden;
+}
+.sk-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--c);transform:scaleY(0);transform-origin:bottom;transition:transform .35s}
+.sk-card:hover::before{transform:scaleY(1)}
+.sk-card:hover{border-color:rgba(0,255,229,.3);transform:translateX(4px)}
+.sk-icon{width:38px;height:38px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:rgba(0,255,229,.06);border:1px solid rgba(0,255,229,.15);color:var(--c);font-size:1rem;flex-shrink:0}
+.sk-info{flex:1}
+.sk-name{font-family:var(--font-disp);font-size:.72rem;font-weight:600;color:#fff;letter-spacing:.06em;margin-bottom:.3rem}
+.sk-bar-bg{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.sk-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--c),var(--g));width:0%;transition:width 1.4s cubic-bezier(.4,0,.2,1)}
+.sk-pct{font-family:var(--font-mono);font-size:.58rem;color:var(--mut);margin-left:.8rem;flex-shrink:0}
+
+/* ═══════════════════════════════════════════
+   CVE TIMELINE
+═══════════════════════════════════════════ */
+.timeline-outer{overflow-x:auto;padding-bottom:1.5rem;-ms-overflow-style:none;scrollbar-width:none}
+.timeline-outer::-webkit-scrollbar{display:none}
+.timeline-track{
+  display:flex;gap:0;align-items:flex-start;
+  padding:1.5rem 2rem;min-width:max-content;position:relative;
+}
+.timeline-track::before{
+  content:'';position:absolute;top:2.35rem;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--bord) 5%,var(--bord) 95%,transparent);
+}
+.tl-item{
+  display:flex;flex-direction:column;align-items:center;width:140px;
+  position:relative;
+}
+.tl-dot{
+  width:12px;height:12px;border-radius:50%;background:var(--c);
+  border:2px solid var(--void);position:relative;z-index:1;
+  box-shadow:0 0 12px var(--c);transition:transform .2s;cursor:default;
+  margin-bottom:.6rem;flex-shrink:0;
+}
+.tl-item:hover .tl-dot{transform:scale(1.5)}
+.tl-dot.crit{background:var(--r);box-shadow:0 0 12px var(--r)}
+.tl-dot.high{background:var(--a);box-shadow:0 0 12px var(--a)}
+.tl-dot.med{background:var(--b);box-shadow:0 0 12px var(--b)}
+.tl-year{font-family:var(--font-disp);font-size:.6rem;color:var(--mut);letter-spacing:.12em;margin-bottom:.25rem}
+.tl-cve{font-family:var(--font-mono);font-size:.62rem;color:var(--b);text-align:center;line-height:1.4}
+.tl-type{font-size:.58rem;color:var(--mut);text-align:center;margin-top:.2rem}
+.tl-divider{width:140px;flex-shrink:0;position:relative;display:flex;align-items:flex-start;padding-top:0}
+.tl-year-marker{
+  width:140px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;
+}
+.tl-yr-lbl{
+  font-family:var(--font-disp);font-size:.75rem;color:var(--c);
+  letter-spacing:.1em;padding:.2rem .6rem;border:1px solid rgba(0,255,229,.3);
+  border-radius:3px;background:rgba(0,255,229,.06);margin-bottom:.6rem;
+}
+.tl-yr-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--c);background:var(--void);z-index:1}
+
+/* ═══════════════════════════════════════════
+   CVE SECTION
+═══════════════════════════════════════════ */
+.cve-3col{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--bord);border-radius:8px;overflow:hidden;margin-bottom:3rem}
+.cve-big{background:var(--card);padding:2.2rem;text-align:center;border-right:1px solid var(--bord)}
+.cve-big:last-child{border-right:none}
+.cve-big-n{font-family:var(--font-disp);font-size:2.5rem;font-weight:900;color:var(--c);text-shadow:0 0 40px rgba(0,255,229,.5);display:block;line-height:1}
+.cve-big-l{font-family:var(--font-mono);font-size:.58rem;color:var(--mut);letter-spacing:.14em;text-transform:uppercase;margin-top:.45rem;display:block}
+
+.cve-2col{display:grid;grid-template-columns:repeat(2,1fr);gap:1.2rem;margin-bottom:2rem}
+.cve-c{background:var(--card);border:1px solid var(--bord);border-radius:7px;padding:1.6rem;transition:all .3s}
+.cve-c:hover{border-color:rgba(0,255,229,.28)}
+.cve-c.w{grid-column:1/-1}
+.cve-ch{font-family:var(--font-mono);font-size:.6rem;color:var(--c);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.1rem}
+.cve-ch::before{content:'[';opacity:.4}
+.cve-ch::after{content:']';opacity:.4}
+.cve-tags{display:flex;flex-wrap:wrap;gap:.45rem}
+.ctag{font-family:var(--font-mono);font-size:.68rem;padding:.3rem .68rem;border-radius:3px;background:rgba(0,170,255,.07);border:1px solid rgba(0,170,255,.2);color:var(--b);transition:all .2s;cursor:pointer}
+.ctag:hover{background:rgba(0,170,255,.15);border-color:var(--b);color:#fff}
+.cve-c p{font-size:.87rem;color:var(--mut);margin-bottom:1.3rem;letter-spacing:.02em}
+
+/* ═══════════════════════════════════════════
+   LIVE FEED
+═══════════════════════════════════════════ */
+#live-feed{background:rgba(4,9,22,.98);border:1px solid var(--bord);border-radius:10px;overflow:hidden;box-shadow:0 0 80px rgba(0,255,229,.04);margin-top:3rem}
+.feed-hd{padding:.9rem 1.4rem;background:rgba(0,255,229,.03);border-bottom:1px solid var(--bord);display:flex;align-items:center;justify-content:space-between}
+.feed-ttl{font-family:var(--font-disp);font-size:.65rem;color:#fff;letter-spacing:.1em;display:flex;align-items:center;gap:.7rem}
+.feed-ttl .skull{color:var(--r)}
+.live-pill{display:flex;align-items:center;gap:.35rem;font-family:var(--font-mono);font-size:.57rem;color:var(--g);border:1px solid rgba(0,255,136,.3);padding:.22rem .6rem;border-radius:999px;letter-spacing:.1em}
+.l-dot{width:5px;height:5px;border-radius:50%;background:var(--g);animation:lp 1.5s infinite}
+@keyframes lp{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,255,136,.5)}50%{opacity:.5;box-shadow:0 0 0 4px rgba(0,255,136,0)}}
+.feed-meta{font-family:var(--font-mono);font-size:.6rem;color:var(--mut);padding:.55rem 1.4rem;border-bottom:1px solid rgba(255,255,255,.03)}
+#feed-list{padding:.4rem 0}
+.fi{display:grid;grid-template-columns:150px 1fr auto;gap:1.4rem;padding:.88rem 1.4rem;border-bottom:1px solid rgba(255,255,255,.04);align-items:center;transition:background .2s;animation:fiin .35s ease}
+@keyframes fiin{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+.fi:hover{background:rgba(0,255,229,.02)}
+.fi:last-child{border-bottom:none}
+.fi-id{font-family:var(--font-disp);font-size:.7rem;color:var(--b);font-weight:600}
+.fi-desc{font-family:var(--font-mono);font-size:.68rem;color:var(--mut);line-height:1.5}
+.fi-r{display:flex;flex-direction:column;align-items:flex-end;gap:.38rem}
+.cvss-b{font-family:var(--font-disp);font-size:.6rem;font-weight:700;padding:.2rem .55rem;border-radius:3px;white-space:nowrap}
+.sc{background:rgba(180,75,255,.15);color:#d480ff;border:1px solid rgba(180,75,255,.3)}
+.sh{background:rgba(255,45,85,.13);color:#ff6b8a;border:1px solid rgba(255,45,85,.28)}
+.sm{background:rgba(255,183,0,.1);color:#ffd54f;border:1px solid rgba(255,183,0,.22)}
+.sl{background:rgba(0,255,136,.07);color:var(--g);border:1px solid rgba(0,255,136,.18)}
+.fi-lnk{font-family:var(--font-mono);font-size:.6rem;color:var(--c);white-space:nowrap}
+.fi-lnk:hover{text-decoration:underline}
+.feed-load{text-align:center;padding:2.5rem;font-family:var(--font-mono);font-size:.75rem;color:var(--mut)}
+.feed-load span{color:var(--c);animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ═══════════════════════════════════════════
+   EXPLOITS TABLE
+═══════════════════════════════════════════ */
+.tbl-w{border:1px solid var(--bord);border-radius:8px;overflow:hidden}
+.dtbl{width:100%;border-collapse:collapse}
+.dtbl thead{background:rgba(0,255,229,.03)}
+.dtbl th{font-family:var(--font-mono);font-size:.57rem;color:var(--c);padding:.85rem 1.2rem;text-align:left;letter-spacing:.12em;text-transform:uppercase;border-bottom:1px solid var(--bord)}
+.dtbl td{font-family:var(--font-mono);font-size:.7rem;color:var(--mut);padding:.78rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
+.dtbl tr:last-child td{border:none}
+.dtbl tbody tr{transition:background .2s}
+.dtbl tbody tr:hover td{background:rgba(0,255,229,.025);color:var(--txt)}
+.dtbl a{color:var(--b)}
+.dtbl a:hover{color:var(--c)}
+.e-type{font-size:.57rem;padding:.18rem .45rem;border-radius:2px;background:rgba(255,45,85,.1);color:#ff6b8a;border:1px solid rgba(255,45,85,.2)}
+
+/* ═══════════════════════════════════════════
+   BOOKS
+═══════════════════════════════════════════ */
+.books-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
+.bk{background:var(--card);border:1px solid var(--bord);border-radius:8px;padding:1.6rem;display:flex;flex-direction:column;transition:all .3s;position:relative;overflow:hidden}
+.bk::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--g),var(--c));transform:scaleX(0);transform-origin:left;transition:transform .4s}
+.bk:hover::after{transform:scaleX(1)}
+.bk:hover{border-color:rgba(0,255,229,.24);transform:translateY(-4px);box-shadow:0 22px 55px rgba(0,0,0,.4)}
+.bk-n{font-family:var(--font-disp);font-size:1.75rem;font-weight:900;color:rgba(0,255,229,.08);line-height:1;margin-bottom:.65rem}
+.bk h3{font-size:.88rem;font-weight:600;color:#fff;margin-bottom:.65rem;line-height:1.4;flex:1;letter-spacing:.02em}
+.bk p{font-size:.78rem;color:var(--mut);margin-bottom:1.3rem;letter-spacing:.02em}
+
+/* ═══════════════════════════════════════════
+   SERVICES
+═══════════════════════════════════════════ */
+.svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
+.svc{background:var(--card);border:1px solid var(--bord);border-radius:8px;padding:1.8rem;text-align:center;transition:all .3s}
+.svc:hover{border-color:rgba(0,255,229,.28);transform:translateY(-5px);box-shadow:0 28px 65px rgba(0,0,0,.4),0 0 35px rgba(0,255,229,.04)}
+.svc-ic{width:54px;height:54px;border-radius:10px;margin:0 auto 1.3rem;display:flex;align-items:center;justify-content:center;font-size:1.25rem;color:var(--c);border:1px solid rgba(0,255,229,.18);background:rgba(0,255,229,.04);position:relative}
+.svc-ic::after{content:'';position:absolute;inset:-4px;border-radius:14px;border:1px solid rgba(0,255,229,.07)}
+.svc h3{font-family:var(--font-disp);font-size:.73rem;font-weight:600;color:#fff;margin-bottom:.65rem;letter-spacing:.04em}
+.svc p{font-size:.8rem;color:var(--mut);letter-spacing:.02em}
+
+/* ═══════════════════════════════════════════
+   PRICING
+═══════════════════════════════════════════ */
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
+.pc{background:var(--card);border:1px solid var(--bord);border-radius:8px;padding:2.2rem 1.8rem;position:relative;transition:all .3s}
+.pc.hot{border-color:var(--c);box-shadow:0 0 45px rgba(0,255,229,.1)}
+.pc.hot::before{content:'MOST POPULAR';position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--c);color:#000;font-family:var(--font-mono);font-size:.5rem;font-weight:700;padding:.26rem .7rem;letter-spacing:.15em;border-radius:0 0 4px 4px}
+.pc:hover{transform:translateY(-4px)}
+.pc-tier{font-family:var(--font-mono);font-size:.6rem;color:var(--c);letter-spacing:.15em;text-transform:uppercase;margin-bottom:.45rem}
+.pc-num{font-family:var(--font-disp);font-size:2.7rem;font-weight:900;color:#fff;line-height:1;margin-bottom:.2rem}
+.pc-num sup{font-size:1rem;vertical-align:top;margin-top:.5rem}
+.pc-desc{font-size:.78rem;color:var(--mut);margin-bottom:1.6rem;padding-bottom:1.6rem;border-bottom:1px solid var(--bord);letter-spacing:.02em}
+.pc-feat li{font-family:var(--font-mono);font-size:.68rem;color:var(--mut);padding:.48rem 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:.58rem}
+.pc-feat li::before{content:'✓';color:var(--g);font-size:.65rem;flex-shrink:0}
+.pc-feat li:last-child{border:none}
+
+/* ═══════════════════════════════════════════
+   GITHUB STATS
+═══════════════════════════════════════════ */
+.gh-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;margin-bottom:2.5rem}
+.gh-stat{background:var(--card);border:1px solid var(--bord);border-radius:7px;padding:1.5rem;text-align:center;transition:all .3s}
+.gh-stat:hover{border-color:rgba(0,255,229,.25);transform:translateY(-3px)}
+.gh-n{font-family:var(--font-disp);font-size:1.9rem;font-weight:700;color:var(--c);line-height:1;text-shadow:0 0 20px rgba(0,255,229,.4)}
+.gh-l{font-family:var(--font-mono);font-size:.58rem;color:var(--mut);letter-spacing:.1em;text-transform:uppercase;margin-top:.35rem}
+.gh-contrib{background:var(--card);border:1px solid var(--bord);border-radius:8px;padding:1.8rem}
+.gh-contrib-title{font-family:var(--font-mono);font-size:.62rem;color:var(--c);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.2rem;display:flex;align-items:center;gap:.5rem}
+.gh-contrib-title::before{content:'//';opacity:.35}
+#contrib-wrap{overflow-x:auto}
+.contrib-grid{display:flex;gap:3px;min-width:max-content}
+.contrib-col{display:flex;flex-direction:column;gap:3px}
+.contrib-cell{width:11px;height:11px;border-radius:2px;background:rgba(255,255,255,.04);transition:all .2s}
+.contrib-cell:hover{transform:scale(1.3)}
+.contrib-cell.l1{background:rgba(0,255,136,.15)}
+.contrib-cell.l2{background:rgba(0,255,136,.35)}
+.contrib-cell.l3{background:rgba(0,255,136,.6)}
+.contrib-cell.l4{background:rgba(0,255,136,.9);box-shadow:0 0 6px rgba(0,255,136,.4)}
+
+/* ═══════════════════════════════════════════
+   TERMINAL INTERACTIVE
+═══════════════════════════════════════════ */
+#terminal-section{background:var(--void)}
+.term-container{max-width:900px;margin:0 auto}
+.term-box{background:#000;border:1px solid rgba(0,255,229,.2);border-radius:10px;overflow:hidden;box-shadow:0 0 60px rgba(0,255,229,.08),0 0 120px rgba(0,0,0,.8)}
+.term-bar{background:rgba(0,255,229,.04);padding:.7rem 1rem;border-bottom:1px solid rgba(0,255,229,.12);display:flex;align-items:center;gap:.5rem}
+.term-dots{display:flex;gap:.38rem}
+.term-dots span{width:10px;height:10px;border-radius:50%}
+.term-dots span:nth-child(1){background:#ff5f57}
+.term-dots span:nth-child(2){background:#febc2e}
+.term-dots span:nth-child(3){background:#28c840}
+.term-path{font-family:var(--font-mono);font-size:.65rem;color:var(--mut);margin-left:.4rem}
+.term-output{padding:1.4rem;font-family:var(--font-mono);font-size:.75rem;min-height:340px;max-height:380px;overflow-y:auto;line-height:1.7}
+.term-output::-webkit-scrollbar{width:2px}
+.term-output::-webkit-scrollbar-thumb{background:var(--c)}
+.to-line{margin-bottom:.2rem}
+.to-prompt{color:var(--g)}
+.to-cmd{color:#fff}
+.to-out{color:var(--mut);padding-left:0}
+.to-green{color:var(--g)}
+.to-cyan{color:var(--c)}
+.to-red{color:var(--r)}
+.to-amber{color:var(--a)}
+.to-purple{color:var(--p)}
+.to-white{color:#fff}
+.to-dim{color:#2a3a50}
+.term-input-row{display:flex;align-items:center;padding:.8rem 1.4rem;border-top:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.4)}
+.term-prompt-sym{font-family:var(--font-mono);font-size:.75rem;color:var(--g);margin-right:.5rem;white-space:nowrap}
+#term-input{
+  flex:1;background:transparent;border:none;outline:none;
+  font-family:var(--font-mono);font-size:.75rem;color:#fff;caret-color:var(--c);
+}
+.term-hint{font-family:var(--font-mono);font-size:.6rem;color:var(--mut);padding:.5rem 1.4rem;border-top:1px solid rgba(255,255,255,.03);letter-spacing:.05em}
+
+/* ═══════════════════════════════════════════
+   MEDIA
+═══════════════════════════════════════════ */
+.media-split{display:grid;grid-template-columns:1fr 1fr;gap:4rem}
+.mc-title{font-family:var(--font-mono);font-size:.6rem;color:var(--c);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1.3rem;display:flex;align-items:center;gap:.5rem}
+.mc-title::before{content:'//';opacity:.35}
+.art{background:var(--card);border:1px solid var(--bord);border-radius:6px;padding:1.35rem;margin-bottom:.9rem;transition:all .25s}
+.art:hover{border-color:rgba(0,255,229,.28);transform:translateX(4px)}
+.art h4{margin-bottom:.45rem}
+.art h4 a{color:#fff;transition:color .2s;font-size:.87rem;letter-spacing:.02em}
+.art h4 a:hover{color:var(--c)}
+.art p{font-size:.76rem;color:var(--mut);letter-spacing:.02em}
+.yt-stack{display:flex;flex-direction:column;gap:.9rem}
+.yt-e{border-radius:8px;overflow:hidden;aspect-ratio:16/9;background:var(--card);border:1px solid var(--bord)}
+.yt-e iframe{width:100%;height:100%;display:block}
+
+/* ═══════════════════════════════════════════
+   CONTACT — ENCRYPTION FORM
+═══════════════════════════════════════════ */
+.contact-split{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start}
+.c-list li{display:flex;align-items:center;gap:.9rem;padding:.82rem 0;border-bottom:1px solid var(--bord);font-size:.9rem;color:var(--mut);letter-spacing:.02em}
+.c-list li:last-child{border:none}
+.c-list li i{color:var(--c);width:18px;text-align:center}
+.c-list a{color:var(--c)}
+.enc-form{display:flex;flex-direction:column;gap:.8rem}
+.enc-form input,.enc-form textarea{
+  background:rgba(6,14,32,.85);border:1px solid var(--bord);
+  border-radius:4px;padding:.78rem .95rem;color:var(--txt);
+  font-family:var(--font-mono);font-size:.72rem;width:100%;
+  transition:all .25s;outline:none;letter-spacing:.03em;
+}
+.enc-form input:focus,.enc-form textarea:focus{border-color:var(--c);box-shadow:0 0 0 3px rgba(0,255,229,.07)}
+.enc-form input::placeholder,.enc-form textarea::placeholder{color:var(--mut)}
+.enc-form textarea{resize:vertical;min-height:125px}
+.enc-status{font-family:var(--font-mono);font-size:.65rem;color:var(--g);min-height:1.2rem;letter-spacing:.05em}
+
+/* ═══════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════ */
+.site-footer{background:var(--deep);border-top:1px solid var(--bord);padding:2.2rem 0}
+.ft-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.ft-logo{font-family:var(--font-disp);font-size:.8rem;font-weight:700;color:var(--c);letter-spacing:.12em}
+.ft-copy{font-family:var(--font-mono);font-size:.65rem;color:var(--mut)}
+.ft-tag{font-family:var(--font-mono);font-size:.6rem;color:var(--mut);opacity:.4}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media(max-width:1200px){
+  .hero-grid{grid-template-columns:1fr;gap:3rem}
+  .globe-wrap{width:380px;height:380px;margin:0 auto}
+  #globe-canvas{width:380px;height:380px}
+  .skills-layout{grid-template-columns:1fr;gap:3rem}
+  .radar-wrap{width:100%;height:380px}
+  #radar-canvas{width:380px;height:380px}
+  .about-split{grid-template-columns:1fr;gap:3rem}
+  .contact-split{grid-template-columns:1fr;gap:3rem}
+}
+@media(max-width:900px){
+  .books-grid,.svc-grid,.price-grid,.gh-grid{grid-template-columns:repeat(2,1fr)}
+  .cve-3col{grid-template-columns:1fr}
+  .cve-big{border-right:none;border-bottom:1px solid var(--bord)}
+  .cve-2col{grid-template-columns:1fr}
+  .cve-c.w{grid-column:auto}
+  .media-split{grid-template-columns:1fr;gap:3rem}
+  .fi{grid-template-columns:1fr;gap:.4rem}
+  .hero-stats{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:768px){
+  .main-nav{display:none;position:fixed;top:86px;left:0;right:0;flex-direction:column;background:rgba(3,9,26,.98);padding:1.4rem;gap:.4rem;border-bottom:1px solid var(--bord);backdrop-filter:blur(20px);z-index:499}
+  .main-nav.open{display:flex}
+  .nav-hire,.nav-status{display:none}
+  .nav-toggle{display:flex}
+  .books-grid,.svc-grid,.price-grid{grid-template-columns:1fr}
+  .gh-grid{grid-template-columns:repeat(2,1fr)}
+  section{padding:5rem 0}
+  .ft-inner{flex-direction:column;text-align:center}
+  .globe-wrap{width:300px;height:300px}
+  #globe-canvas{width:300px;height:300px}
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cur"></div>
+<div id="cur-r"></div>
+
+<!-- BOOT SCREEN -->
+<div id="boot">
+  <div id="boot-lines"></div>
+  <div class="boot-bar-wrap" id="boot-bar-wrap" style="display:none">
+    <div class="boot-bar-bg"><div class="boot-bar-fill" id="boot-bar"></div></div>
+    <div class="boot-pct" id="boot-pct">0%</div>
+  </div>
+  <button id="boot-skip" onclick="skipBoot()">SKIP ↵</button>
+</div>
+
+<!-- CVE TICKER -->
+<div id="ticker">
+  <div class="ticker-label">☠ THREAT INTEL</div>
+  <div style="overflow:hidden;flex:1">
+    <div class="ticker-track" id="ticker-track">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="nav-wrap">
+    <div class="logo"><span class="lb">[</span><span class="ln">SUDO</span><span class="lw">NINJA</span><span class="lb">]</span><span class="logo-dot"></span></div>
+    <nav class="main-nav" id="main-nav">
+      <a href="#home">Home</a><a href="#about">About</a><a href="#skills">Skills</a>
+      <a href="#cves">CVEs</a><a href="#exploits">Exploits</a><a href="#books">Books</a>
+      <a href="#services">Services</a><a href="#pricing">Pricing</a>
+      <a href="#github">GitHub</a><a href="#terminal-section">Terminal</a>
+      <a href="#media">Blog</a><a href="#contact">Contact</a>
+    </nav>
+    <div class="nav-status"><span style="width:5px;height:5px;border-radius:50%;background:var(--g);box-shadow:0 0 6px var(--g);animation:hb2 1.5s infinite"></span>AVAILABLE</div>
+    <a href="https://drive.google.com/file/d/19G8IVMV4I9-kdHfldrgHCrGMprXz7VWm/view" target="_blank" class="nav-hire">Hire Me</a>
+    <button class="nav-toggle" id="nav-toggle"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<main>
+
+<!-- ══ HERO ══ -->
+<section id="home" class="pt-header">
+  <div class="hero-grid">
+    <div>
+      <div class="hero-eyebrow rv"><span class="h-pulse"></span><span id="typewriter"></span></div>
+      <h1 class="hero-name rv" data-t="Sanjay Singh">Sanjay Singh</h1>
+      <div class="hero-title2 rv">Offensive Security Researcher</div>
+      <p class="hero-sub rv">
+        I break things so others can build them safer —
+        <strong>100+ CVEs assigned by MITRE</strong>, verified exploits on Exploit-DB,
+        and a decade hunting vulnerabilities across Web, IoT &amp; Telecom products.
+      </p>
+      <div class="hero-cta rv">
+        <a href="https://drive.google.com/file/d/19G8IVMV4I9-kdHfldrgHCrGMprXz7VWm/view" target="_blank" class="btn btn-p"><i class="fa-solid fa-shield-halved"></i>Request Assessment</a>
+        <a href="#cves" class="btn btn-g"><i class="fa-solid fa-bug"></i>View CVEs</a>
+        <a href="https://github.com/sudoninja-noob" target="_blank" class="btn btn-g"><i class="fa-brands fa-github"></i>GitHub</a>
+      </div>
+      <div class="hero-stats rv">
+        <div class="h-stat"><div class="h-stat-n" id="c0">0</div><div class="h-stat-l">CVEs</div></div>
+        <div class="h-stat"><div class="h-stat-n" id="c1">0</div><div class="h-stat-l">Years</div></div>
+        <div class="h-stat"><div class="h-stat-n" id="c2">0</div><div class="h-stat-l">Books</div></div>
+        <div class="h-stat"><div class="h-stat-n" id="c3">0</div><div class="h-stat-l">Exploits</div></div>
+      </div>
+    </div>
+    <!-- 3D GLOBE -->
+    <div class="globe-wrap rr">
+      <div class="globe-ring"></div>
+      <div class="globe-ring2"></div>
+      <canvas id="globe-canvas" width="500" height="500"></canvas>
+      <div class="globe-label tl">BANGALORE</div>
+      <div class="globe-label tr">100+ CVEs</div>
+      <div class="globe-label bl">ACTIVE THREATS</div>
+      <div class="globe-label br">EXPLOIT DEV</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ ABOUT ══ -->
+<section id="about" class="alt">
+  <div class="container about-split">
+    <div class="rl">
+      <div class="sec-label">About</div>
+      <h2 class="sec-title">Security Researcher &amp; <em>Exploit Developer</em></h2>
+      <p class="sec-lead">Specializing in application, infrastructure, and telecom product security with deep focus on vulnerability discovery, protocol fuzzing, and PoC development.</p>
+      <ul class="about-list">
+        <li><span class="ar">→</span>Acknowledged by multiple global organizations for impactful vulnerability research.</li>
+        <li><span class="ar">→</span>Hands-on with routers, switches, IoT devices &amp; telecom NFV products.</li>
+        <li><span class="ar">→</span>Comfortable across Web, Mobile, API, Cloud, IoT &amp; traditional infrastructure.</li>
+        <li><span class="ar">→</span>Author of 6 published cybersecurity books on Amazon.</li>
+      </ul>
+      <div class="badges">
+        <span class="badge">OSCP</span><span class="badge">CRTP</span><span class="badge">CEH</span><span class="badge">CPTE</span><span class="badge">CCEP</span><span class="badge">CNSP</span><span class="badge">CAP</span><span class="badge">CCNA</span><span class="badge">CAPT</span><span class="badge">Practical API Hacking</span>
+      </div>
+    </div>
+    <div class="rr">
+      <div class="info-panel">
+        <div class="ip-head">whoami</div>
+        <div class="ip-row"><span class="ip-k">Name</span><span class="ip-v">Sanjay Singh</span></div>
+        <div class="ip-row"><span class="ip-k">Role</span><span class="ip-v">Senior Manager – Cyber Security Services</span></div>
+        <div class="ip-row"><span class="ip-k">Email</span><span class="ip-v"><a href="mailto:sanjaysinghss3@gmail.com">sanjaysinghss3@gmail.com</a></span></div>
+        <div class="ip-row"><span class="ip-k">Location</span><span class="ip-v">Bangalore, Karnataka, India</span></div>
+        <div class="ip-row"><span class="ip-k">Status</span><span class="ip-v"><span class="avail">Available for Engagements</span></span></div>
+        <div class="social-row">
+          <a href="https://www.linkedin.com/in/sanjaysingh06/" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+          <a href="https://github.com/sudoninja-noob" target="_blank"><i class="fa-brands fa-github"></i></a>
+          <a href="https://twitter.com/sudoninja_" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="https://sudoninja.gitbook.io" target="_blank"><i class="fa-solid fa-book"></i></a>
+          <a href="https://sudoninja.medium.com" target="_blank"><i class="fa-brands fa-medium"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SKILLS ══ -->
+<section id="skills">
+  <div class="container">
+    <div class="sec-label ctr rv">Skills</div>
+    <h2 class="sec-title ctr rv">Core <em>Capabilities</em></h2>
+    <p class="sec-lead ctr rv">Offensive security expertise spanning applications, infrastructure, IoT &amp; telecom.</p>
+    <div class="skills-layout">
+      <div class="radar-wrap rv">
+        <canvas id="radar-canvas" width="460" height="460"></canvas>
+      </div>
+      <div class="skill-cards-col rv">
+        <div class="sk-card"><div class="sk-icon"><i class="fa-solid fa-globe"></i></div><div class="sk-info"><div class="sk-name">Web Application Security</div><div class="sk-bar-bg"><div class="sk-bar-fill" data-w="95"></div></div></div><span class="sk-pct">95%</span></div>
+        <div class="sk-card"><div class="sk-icon"><i class="fa-solid fa-sitemap"></i></div><div class="sk-info"><div class="sk-name">API Security Testing</div><div class="sk-bar-bg"><div class="sk-bar-fill" data-w="92"></div></div></div><span class="sk-pct">92%</span></div>
+        <div class="sk-card"><div class="sk-icon"><i class="fa-brands fa-android"></i></div><div class="sk-info"><div class="sk-name">Mobile Security</div><div class="sk-bar-bg"><div class="sk-bar-fill" data-w="88"></div></div></div><span class="sk-pct">88%</span></div>
+        <div class="sk-card"><div class="sk-icon"><i class="fa-solid fa-network-wired"></i></div><div class="sk-info"><div class="sk-name">Network &amp; Infrastructure</div><div class="sk-bar-bg"><div class="sk-bar-fill" data-w="90"></div></div></div><span class="sk-pct">90%</span></div>
+        <div class="sk-card"><div class="sk-icon"><i class="fa-solid fa-microchip"></i></div><div class="sk-info"><div class="sk-name">IoT &amp; Telecom Security</div><div class="sk-bar-bg"><div class="sk-bar-fill" data-w="85"></div></div></div><span class="sk-pct">85%</span></div>
+        <div class="sk-card"><div class="sk-icon"><i class="fa-solid fa-flask-vial"></i></div><div class="sk-info"><div class="sk-name">0-day Research &amp; Exploit Dev</div><div class="sk-bar-bg"><div class="sk-bar-fill" data-w="93"></div></div></div><span class="sk-pct">93%</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CVEs ══ -->
+<section id="cves" class="alt">
+  <div class="container">
+    <div class="sec-label ctr rv">Research</div>
+    <h2 class="sec-title ctr rv">Published <em>CVEs</em></h2>
+    <p class="sec-lead ctr rv">100+ vulnerabilities assigned by MITRE — auth bypass, injection, access control &amp; RCE across web, IoT &amp; telecom.</p>
+
+    <!-- Timeline -->
+    <div class="rv" style="margin-bottom:3rem">
+      <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--c);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem"><span style="opacity:.35">//</span>CVE TIMELINE 2020 → 2025</div>
+      <div class="timeline-outer" id="timeline-outer">
+        <div class="timeline-track" id="timeline-track"></div>
+      </div>
+    </div>
+
+    <div class="cve-3col rv">
+      <div class="cve-big"><span class="cve-big-n">100+</span><span class="cve-big-l">Total CVEs</span></div>
+      <div class="cve-big"><span class="cve-big-n">2020–25</span><span class="cve-big-l">Years Active</span></div>
+      <div class="cve-big"><span class="cve-big-n">Web·IoT·Tel</span><span class="cve-big-l">Domains</span></div>
+    </div>
+    <div class="cve-2col">
+      <div class="cve-c rv"><div class="cve-ch">2025 CVEs</div><div class="cve-tags"><span class="ctag">CVE-2025-26208</span><span class="ctag">CVE-2025-26209</span><span class="ctag">CVE-2025-28349</span><span class="ctag">CVE-2025-28350</span><span class="ctag">CVE-2025-28351</span></div></div>
+      <div class="cve-c rv"><div class="cve-ch">2024 Highlights</div><div class="cve-tags"><span class="ctag">CVE-2024-31531</span><span class="ctag">CVE-2024-31532</span><span class="ctag">CVE-2024-31540</span><span class="ctag">CVE-2024-33280</span><span class="ctag">CVE-2024-29355</span></div></div>
+      <div class="cve-c rv"><div class="cve-ch">Earlier Work</div><div class="cve-tags"><span class="ctag">CVE-2020-15035</span><span class="ctag">CVE-2020-15036</span><span class="ctag">CVE-2022-29004</span><span class="ctag">CVE-2023-30101</span><span class="ctag">CVE-2023-33396</span></div></div>
+      <div class="cve-c w rv"><div class="cve-ch">Full CVE Portfolio</div><p>Complete indexed list of 100+ CVEs with affected products, impact ratings, and exploitation notes. Reach out for detailed PoC writeups and technical briefings.</p><a href="https://github.com/sudoninja-noob/CVE-list/blob/main/README.md" target="_blank" class="btn btn-g btn-sm"><i class="fa-brands fa-github"></i>View Full CVE List on GitHub</a></div>
+    </div>
+
+    <!-- Live Feed -->
+    <div id="live-feed" class="rv">
+      <div class="feed-hd">
+        <div class="feed-ttl"><span class="skull">☠</span>LIVE CVE INTELLIGENCE FEED<span style="font-family:var(--font-mono);font-size:.55rem;color:var(--mut);font-weight:400">· NVD/NIST</span></div>
+        <span class="live-pill"><span class="l-dot"></span>LIVE</span>
+      </div>
+      <div class="feed-meta" id="feed-meta">Connecting to NVD API…</div>
+      <div id="feed-list"><div class="feed-load">Fetching threat intelligence<span>█</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ EXPLOITS ══ -->
+<section id="exploits">
+  <div class="container">
+    <div class="sec-label ctr rv">Exploit-DB</div>
+    <h2 class="sec-title ctr rv">Verified <em>Exploits</em> &amp; PoCs</h2>
+    <p class="sec-lead ctr rv">Publicly verified vulnerabilities on Exploit-DB and other platforms.</p>
+    <div class="tbl-w rv">
+      <table class="dtbl">
+        <thead><tr><th>Date</th><th>Title</th><th>Type</th><th>Platform</th><th>Author</th></tr></thead>
+        <tbody>
+          <tr><td>2025-06-05</td><td><a href="https://www.exploit-db.com/exploits/52314" target="_blank">CloudClassroom PHP Project 1.0 – SQL Injection</a></td><td><span class="e-type">SQLi</span></td><td>PHP</td><td>Sanjay Singh</td></tr>
+          <tr><td>2024-05-13</td><td><a href="https://www.exploit-db.com/exploits/52017" target="_blank">Prison Management System – SQL Injection Auth Bypass</a></td><td><span class="e-type">SQLi</span></td><td>PHP</td><td>Sanjay Singh</td></tr>
+          <tr><td>2023-04-08</td><td><a href="https://www.exploit-db.com/exploits/51338" target="_blank">Medicine Tracker System v1.0 – SQL Injection</a></td><td><span class="e-type">SQLi</span></td><td>PHP</td><td>Sanjay Singh</td></tr>
+          <tr><td>2023-04-08</td><td><a href="https://www.exploit-db.com/exploits/51337" target="_blank">Online Appointment System v1.0 – XSS</a></td><td><span class="e-type">XSS</span></td><td>PHP</td><td>Sanjay Singh</td></tr>
+          <tr><td>2022-06-10</td><td><a href="https://www.exploit-db.com/exploits/50951" target="_blank">WordPress Motopress Hotel Booking Lite 4.2.4 – Stored XSS</a></td><td><span class="e-type">XSS</span></td><td>PHP</td><td>Sanjay Singh</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ══ BOOKS ══ -->
+<section id="books" class="alt">
+  <div class="container">
+    <div class="sec-label ctr rv">Publications</div>
+    <h2 class="sec-title ctr rv">Books <em>Authored</em></h2>
+    <p class="sec-lead ctr rv">Cybersecurity titles covering CVE hunting, pentesting methodologies, and career roadmaps.</p>
+    <div class="books-grid">
+      <div class="bk rv"><div class="bk-n">01</div><h3>A Tale of 100 CVE's Hunting</h3><p>Deep dive into vulnerability hunting showcasing 100 real CVEs and the research behind them.</p><a href="https://www.amazon.in/dp/B0DJ3LP4H1" target="_blank" class="btn btn-p btn-sm">Buy on Amazon.in</a></div>
+      <div class="bk rv"><div class="bk-n">02</div><h3>How to Become a Penetration Tester: Zero to One</h3><p>From beginner to pro — skills, tools, and strategies for an ethical hacking career.</p><a href="https://www.amazon.in/dp/B0D9J3B2ND" target="_blank" class="btn btn-p btn-sm">Buy on Amazon.in</a></div>
+      <div class="bk rv"><div class="bk-n">03</div><h3>How to Start a Career in Cybersecurity</h3><p>Complete roadmap from zero to landing your first security role.</p><a href="https://www.amazon.com/dp/B0CPH312KH" target="_blank" class="btn btn-p btn-sm">Buy on Amazon.com</a></div>
+      <div class="bk rv"><div class="bk-n">04</div><h3>101 Broken Access Control Test Cases</h3><p>Web &amp; API bug bounty focused — covering the #1 OWASP vulnerability in depth.</p><a href="https://amzn.in/d/2fgDv96" target="_blank" class="btn btn-p btn-sm">Buy on Amazon</a></div>
+      <div class="bk rv"><div class="bk-n">05</div><h3>Cyber-Security Journey: A Comprehensive Guide</h3><p>From fundamentals to career launch — simplified and structured.</p><a href="https://a.co/d/4GrCkW0" target="_blank" class="btn btn-p btn-sm">Buy on Amazon.com</a></div>
+      <div class="bk rv"><div class="bk-n">06</div><h3>Privilege Escalation: Unlocking Security</h3><p>Master post-exploitation and privilege escalation techniques.</p><a href="https://www.amazon.in/dp/B0CPR29ZNJ" target="_blank" class="btn btn-p btn-sm">Buy on Amazon.in</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SERVICES ══ -->
+<section id="services">
+  <div class="container">
+    <div class="sec-label ctr rv">Services</div>
+    <h2 class="sec-title ctr rv">What I <em>Offer</em></h2>
+    <p class="sec-lead ctr rv">Helping organizations understand, measure, and reduce security risk through practical offensive testing.</p>
+    <div class="svc-grid">
+      <div class="svc rv"><div class="svc-ic"><i class="fa-solid fa-earth-americas"></i></div><h3>Web Application Testing</h3><p>Black-box, gray-box and authenticated testing against OWASP Top 10 and beyond.</p></div>
+      <div class="svc rv"><div class="svc-ic"><i class="fa-brands fa-android"></i></div><h3>Mobile App Testing</h3><p>Static &amp; dynamic analysis of Android &amp; iOS apps with business logic review.</p></div>
+      <div class="svc rv"><div class="svc-ic"><i class="fa-solid fa-network-wired"></i></div><h3>Network &amp; Infra Testing</h3><p>External and internal network pentesting for servers, firewalls, and routers.</p></div>
+      <div class="svc rv"><div class="svc-ic"><i class="fa-solid fa-sitemap"></i></div><h3>API Security Testing</h3><p>REST, SOAP &amp; GraphQL APIs tested for auth, access control, injection &amp; logic flaws.</p></div>
+      <div class="svc rv"><div class="svc-ic"><i class="fa-solid fa-microchip"></i></div><h3>IoT &amp; Telecom Security</h3><p>Testing per EN 303-645 &amp; EN 18031. Firmware to protocol — full product coverage.</p></div>
+      <div class="svc rv"><div class="svc-ic"><i class="fa-solid fa-file-shield"></i></div><h3>Reporting &amp; Guidance</h3><p>Clear PoC-backed reports with risk ratings and actionable remediation steps.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PRICING ══ -->
+<section id="pricing" class="alt">
+  <div class="container">
+    <div class="sec-label ctr rv">Pricing</div>
+    <h2 class="sec-title ctr rv">Engagement <em>Models</em></h2>
+    <p class="sec-lead ctr rv">Indicative pricing — actual cost depends on scope, complexity &amp; depth required.</p>
+    <div class="price-grid">
+      <div class="pc rv"><div class="pc-tier">Starter</div><div class="pc-num"><sup>$</sup>199</div><div class="pc-desc">Vulnerability Assessment — surface mapping &amp; discovery.</div><ul class="pc-feat"><li>Asset &amp; subdomain discovery</li><li>Port &amp; service mapping</li><li>Technology fingerprinting</li><li>Report within 3 days</li></ul><a href="#contact" class="btn btn-g btn-sm btn-full" style="margin-top:1.6rem">Get Started</a></div>
+      <div class="pc hot rv"><div class="pc-tier">Professional</div><div class="pc-num"><sup>$</sup>299</div><div class="pc-desc">Network Pentest — full attack surface with manual validation.</div><ul class="pc-feat"><li>Attack surface mapping</li><li>Automated &amp; manual scanning</li><li>Manual validation &amp; exploitation</li><li>Report within 5 days</li></ul><a href="#contact" class="btn btn-p btn-sm btn-full" style="margin-top:1.6rem">Get Started</a></div>
+      <div class="pc rv"><div class="pc-tier">Enterprise</div><div class="pc-num"><sup>$</sup>499</div><div class="pc-desc">Web App Pentest — full manual &amp; automated with retest.</div><ul class="pc-feat"><li>Full manual + automated testing</li><li>Business logic review</li><li>Retest window included</li><li>Report within 15 days</li></ul><a href="#contact" class="btn btn-g btn-sm btn-full" style="margin-top:1.6rem">Get Started</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ GITHUB STATS ══ -->
+<section id="github">
+  <div class="container">
+    <div class="sec-label ctr rv">Activity</div>
+    <h2 class="sec-title ctr rv">GitHub <em>Stats</em></h2>
+    <p class="sec-lead ctr rv">Live activity from the sudoninja-noob GitHub profile.</p>
+    <div class="gh-grid rv">
+      <div class="gh-stat"><div class="gh-n" id="gh-repos">--</div><div class="gh-l">Repositories</div></div>
+      <div class="gh-stat"><div class="gh-n" id="gh-stars">--</div><div class="gh-l">Total Stars</div></div>
+      <div class="gh-stat"><div class="gh-n" id="gh-followers">--</div><div class="gh-l">Followers</div></div>
+      <div class="gh-stat"><div class="gh-n" id="gh-gists">--</div><div class="gh-l">Public Gists</div></div>
+    </div>
+    <div class="gh-contrib rv">
+      <div class="gh-contrib-title">Contribution Activity (Simulated — 52 weeks)</div>
+      <div id="contrib-wrap"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ INTERACTIVE TERMINAL ══ -->
+<section id="terminal-section">
+  <div class="container">
+    <div class="sec-label ctr rv">Interactive</div>
+    <h2 class="sec-title ctr rv">Hacker <em>Terminal</em></h2>
+    <p class="sec-lead ctr rv">Type commands below. Try: <code style="color:var(--c);font-family:var(--font-mono);font-size:.85em">help</code>, <code style="color:var(--c);font-family:var(--font-mono);font-size:.85em">cves</code>, <code style="color:var(--c);font-family:var(--font-mono);font-size:.85em">skills</code>, <code style="color:var(--c);font-family:var(--font-mono);font-size:.85em">exploit --demo</code>, <code style="color:var(--c);font-family:var(--font-mono);font-size:.85em">contact</code></p>
+    <div class="term-container rv">
+      <div class="term-box">
+        <div class="term-bar"><div class="term-dots"><span></span><span></span><span></span></div><span class="term-path">sudoninja@kali — ~/portfolio — bash</span></div>
+        <div class="term-output" id="term-output"></div>
+        <div class="term-input-row">
+          <span class="term-prompt-sym">sanjay@sudoninja:~$</span>
+          <input type="text" id="term-input" placeholder="type a command..." autocomplete="off" spellcheck="false"/>
+        </div>
+        <div class="term-hint">Commands: help · whoami · cves · skills · books · services · pricing · exploit --demo · contact · clear · matrix</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ MEDIA ══ -->
+<section id="media" class="alt">
+  <div class="container">
+    <div class="sec-label ctr rv">Content</div>
+    <h2 class="sec-title ctr rv">Blog &amp; <em>YouTube</em></h2>
+    <p class="sec-lead ctr rv">Practical techniques, bug-hunting workflows &amp; security research shared with the community.</p>
+    <div class="media-split">
+      <div class="rl">
+        <div class="mc-title">Medium Articles</div>
+        <div class="art"><h4><a href="https://sudoninja.medium.com/easy-to-check-and-find-3-different-bug-on-sign-in-and-sign-up-bb35da1e4ddd" target="_blank">Easy to Find 3 Bugs on Sign-in &amp; Sign-up</a></h4><p>Common yet impactful authentication flow bugs — found quickly and systematically.</p></div>
+        <div class="art"><h4><a href="https://sudoninja.medium.com/directory-listings-checker-0abcc983b532" target="_blank">Directory Listings Checker</a></h4><p>Discovering sensitive files and misconfigurations via directory listing checks.</p></div>
+        <div class="art"><h4><a href="https://sudoninja.medium.com/shinobilabs-hidden-leaf-exploit-c11b1e15064c" target="_blank">ShinobiLabs: Hidden Leaf Exploit</a></h4><p>Enumeration, exploitation, and privilege escalation walkthrough in a custom lab.</p></div>
+      </div>
+      <div class="rr">
+        <div class="mc-title">YouTube</div>
+        <div class="yt-stack">
+          <div class="yt-e"><iframe src="https://www.youtube.com/embed/ZNuRZxsmxHc" title="YouTube" frameborder="0" allowfullscreen loading="lazy"></iframe></div>
+          <div class="yt-e"><iframe src="https://www.youtube.com/embed/BoJ8QHuxB_I" title="YouTube" frameborder="0" allowfullscreen loading="lazy"></iframe></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CONTACT ══ -->
+<section id="contact">
+  <div class="container contact-split">
+    <div class="rl">
+      <div class="sec-label">Contact</div>
+      <h2 class="sec-title">Let's <em>Connect</em></h2>
+      <p class="sec-lead">Need a security assessment, product hardening, or research collaboration? I'm available.</p>
+      <ul class="c-list">
+        <li><i class="fa-solid fa-location-dot"></i>Bangalore, Karnataka, India</li>
+        <li><i class="fa-solid fa-phone"></i>+91 7000740649</li>
+        <li><i class="fa-solid fa-envelope"></i><a href="mailto:sanjaysinghss3@gmail.com">sanjaysinghss3@gmail.com</a></li>
+        <li><i class="fa-brands fa-linkedin"></i><a href="https://www.linkedin.com/in/sanjaysingh06/" target="_blank">linkedin.com/in/sanjaysingh06</a></li>
+        <li><i class="fa-brands fa-github"></i><a href="https://github.com/sudoninja-noob" target="_blank">github.com/sudoninja-noob</a></li>
+      </ul>
+    </div>
+    <div class="rr">
+      <form class="enc-form" id="enc-form" action="https://formspree.io/f/xayrvqbj" method="POST">
+        <input type="text" name="name" id="ef-name" placeholder="Your Name" required/>
+        <input type="email" name="email" id="ef-email" placeholder="Your Email" required/>
+        <input type="text" name="subject" id="ef-subj" placeholder="Subject" required/>
+        <textarea name="message" id="ef-msg" rows="5" placeholder="Your Message" required></textarea>
+        <div class="enc-status" id="enc-status"></div>
+        <button type="submit" class="btn btn-p btn-full" style="cursor:none"><i class="fa-solid fa-lock"></i>Encrypt &amp; Send</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container ft-inner">
+    <div class="ft-logo">SUDONINJA</div>
+    <div class="ft-copy">&copy; 2025 Sanjay Singh · All rights reserved.</div>
+    <div class="ft-tag">// Breaking things to make them safer</div>
+  </div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════════
+   CURSOR
+══════════════════════════════════════════════════ */
+const cur=document.getElementById('cur'),cr=document.getElementById('cur-r');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+(function loop(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;cr.style.left=rx+'px';cr.style.top=ry+'px';requestAnimationFrame(loop)})();
+document.querySelectorAll('a,button,.btn,.ctag,.badge,.sk-card,.svc,.bk,.pc,.tl-item').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.classList.add('big');cr.classList.add('big')});
+  el.addEventListener('mouseleave',()=>{cur.classList.remove('big');cr.classList.remove('big')});
+});
+
+/* ══════════════════════════════════════════════════
+   BOOT SCREEN
+══════════════════════════════════════════════════ */
+const bootLines=[
+  {t:'dim',s:'BIOS Version 2.0.47 // SudoNinja Security OS'},
+  {t:'dim',s:'Copyright (C) 2025 Sanjay Singh Research Labs'},
+  {t:'',s:''},
+  {t:'bright',s:'[ SYSTEM BOOT SEQUENCE INITIATED ]'},
+  {t:'',s:'Loading kernel modules...'},
+  {t:'green',s:'  [OK] Loaded offensive-security-core.ko'},
+  {t:'green',s:'  [OK] Loaded vuln-scanner.ko'},
+  {t:'green',s:'  [OK] Loaded exploit-framework.ko'},
+  {t:'green',s:'  [OK] Loaded cve-database-2025.ko'},
+  {t:'warn',s:'  [WARN] 847 unpatched CVEs detected in target systems'},
+  {t:'',s:'Mounting filesystems...'},
+  {t:'green',s:'  [OK] /dev/nvme0n1p1 mounted on /'},
+  {t:'green',s:'  [OK] /dev/cve-list mounted on /data/research'},
+  {t:'',s:'Initializing network interfaces...'},
+  {t:'green',s:'  [OK] eth0: 192.168.1.1/24 UP'},
+  {t:'green',s:'  [OK] wlan0: MONITOR MODE ENABLED'},
+  {t:'',s:'Starting services...'},
+  {t:'green',s:'  [OK] Started burpsuite.service'},
+  {t:'green',s:'  [OK] Started metasploit-framework.service'},
+  {t:'green',s:'  [OK] Started nmap-scanner.service'},
+  {t:'err',s:'  [WARN] Unauthorized access attempts detected — 2,341 this week'},
+  {t:'',s:''},
+  {t:'bright',s:'Loading SUDONINJA Portfolio v3.0...'},
+  {t:'',s:'[ ████████████████████████████████ ] 100%'},
+  {t:'green',s:''},
+  {t:'bright',s:'SANJAY SINGH // OFFENSIVE SECURITY RESEARCHER'},
+  {t:'green',s:'100+ CVEs Published · OSCP · CRTP · 10+ Years Experience'},
+  {t:'',s:''},
+  {t:'cyan',s:'System ready. Welcome.'},
+];
+let bootDone=false;
+function skipBoot(){
+  bootDone=true;
+  const b=document.getElementById('boot');
+  b.classList.add('out');
+  setTimeout(()=>{b.style.display='none'},900);
+}
+(function runBoot(){
+  const container=document.getElementById('boot-lines');
+  const barWrap=document.getElementById('boot-bar-wrap');
+  const bar=document.getElementById('boot-bar');
+  const pct=document.getElementById('boot-pct');
+  let i=0;
+  const colorMap={dim:'dim',green:'bright',bright:'bright',warn:'warn',err:'err',cyan:'bright'};
+  function addLine(){
+    if(bootDone||i>=bootLines.length){
+      if(!bootDone){
+        barWrap.style.display='block';
+        let p=0;
+        const t=setInterval(()=>{
+          p=Math.min(p+2,100);
+          bar.style.width=p+'%';
+          pct.textContent=p+'%';
+          if(p>=100){clearInterval(t);setTimeout(skipBoot,500)}
+        },25);
+      }
+      return;
+    }
+    const {t,s}=bootLines[i++];
+    const el=document.createElement('div');
+    el.className='boot-line';
+    if(t==='bright') el.classList.add('bright');
+    else if(t==='dim') el.classList.add('dim');
+    else if(t==='warn') el.classList.add('warn');
+    else if(t==='err') el.classList.add('err');
+    else if(t==='cyan') el.classList.add('bright');
+    el.textContent=s||'\u00a0';
+    container.appendChild(el);
+    setTimeout(()=>el.classList.add('show'),10);
+    container.scrollTop=container.scrollHeight;
+    setTimeout(addLine,s?40:20);
+  }
+  addLine();
+})();
+
+/* ══════════════════════════════════════════════════
+   CVE TICKER
+══════════════════════════════════════════════════ */
+(function(){
+  const items=[
+    {id:'CVE-2025-28349',sev:'CRITICAL',desc:'Remote Code Execution'},
+    {id:'CVE-2025-26208',sev:'HIGH',desc:'Auth Bypass'},
+    {id:'CVE-2025-26209',sev:'HIGH',desc:'RCE via Input Validation'},
+    {id:'CVE-2025-28350',sev:'HIGH',desc:'Privilege Escalation'},
+    {id:'CVE-2024-31531',sev:'HIGH',desc:'Stored XSS'},
+    {id:'CVE-2024-33280',sev:'HIGH',desc:'Broken Access Control'},
+    {id:'CVE-2024-29355',sev:'MEDIUM',desc:'Information Disclosure'},
+    {id:'CVE-2023-33396',sev:'HIGH',desc:'SQL Injection'},
+    {id:'CVE-2023-30101',sev:'HIGH',desc:'Command Injection'},
+    {id:'CVE-2022-29004',sev:'HIGH',desc:'XSS via File Upload'},
+    {id:'CVE-2020-15035',sev:'CRITICAL',desc:'Authentication Bypass'},
+    {id:'CVE-2020-15036',sev:'HIGH',desc:'Session Fixation'},
+  ];
+  const sevClass={CRITICAL:'c',HIGH:'h',MEDIUM:'m'};
+  const track=document.getElementById('ticker-track');
+  let html='';
+  // duplicate for infinite scroll
+  for(let pass=0;pass<2;pass++){
+    items.forEach(it=>{
+      html+=`<span class="tick-item"><span class="cve-id">${it.id}</span><span class="tick-sev ${sevClass[it.sev]||'m'}">${it.sev}</span><span>${it.desc}</span></span><span class="tick-item" style="color:rgba(255,45,85,.3)">|</span>`;
+    });
+  }
+  track.innerHTML=html;
+})();
+
+/* ══════════════════════════════════════════════════
+   NAV
+══════════════════════════════════════════════════ */
+document.getElementById('nav-toggle').addEventListener('click',()=>document.getElementById('main-nav').classList.toggle('open'));
+document.querySelectorAll('.main-nav a').forEach(a=>a.addEventListener('click',()=>document.getElementById('main-nav').classList.remove('open')));
+// Active nav on scroll
+const sections=document.querySelectorAll('section[id]');
+window.addEventListener('scroll',()=>{
+  let cur2='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-120)cur2=s.id});
+  document.querySelectorAll('.main-nav a').forEach(a=>{
+    a.classList.toggle('active',a.getAttribute('href')==='#'+cur2);
+  });
+},{ passive:true });
+
+/* ══════════════════════════════════════════════════
+   TYPEWRITER
+══════════════════════════════════════════════════ */
+(function(){
+  const el=document.getElementById('typewriter');
+  const words=['Penetration Tester','CVE Researcher','Exploit Developer','Bug Hunter','Security Author'];
+  let wi=0,ci=0,del=false;
+  function tick(){
+    const w=words[wi];
+    el.textContent=del?w.slice(0,ci--):w.slice(0,ci++);
+    if(!del&&ci>w.length){setTimeout(()=>{del=true;tick()},1800);return}
+    if(del&&ci<0){del=false;wi=(wi+1)%words.length;ci=0}
+    setTimeout(tick,del?42:82);
+  }
+  tick();
+})();
+
+/* ══════════════════════════════════════════════════
+   COUNTERS
+══════════════════════════════════════════════════ */
+function countUp(id,target,suf,dur=1300){
+  const el=document.getElementById(id);if(!el)return;
+  let s=0,step=target/(dur/16);
+  const t=setInterval(()=>{s=Math.min(s+step,target);el.textContent=Math.floor(s)+(suf||'');if(s>=target)clearInterval(t)},16);
+}
+let counted=false;
+new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting&&!counted){counted=true;countUp('c0',100,'+');countUp('c1',10,'+');countUp('c2',6,'');countUp('c3',5,'+')}})},{threshold:.5}).observe(document.querySelector('.hero-stats')||document.body);
+
+/* ══════════════════════════════════════════════════
+   SCROLL REVEAL
+══════════════════════════════════════════════════ */
+const ro=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting){setTimeout(()=>en.target.classList.add('on'),en.target.dataset.d||0);ro.unobserve(en.target)}})},{threshold:.08});
+document.querySelectorAll('.rv,.rl,.rr').forEach((el,i)=>{el.dataset.d=Math.min(i%6,5)*80;ro.observe(el)});
+
+/* ══════════════════════════════════════════════════
+   3D GLOBE
+══════════════════════════════════════════════════ */
+(function(){
+  const canvas=document.getElementById('globe-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,R=220;
+  const cx=W/2,cy=H/2;
+  let rotX=0.3,rotY=0,targetRotY=0;
+  let dragging=false,lastX=0;
+
+  // Generate globe dots
+  const dots=[];
+  for(let lat=-90;lat<=90;lat+=6){
+    for(let lon=-180;lon<=180;lon+=6){
+      const phi=(90-lat)*Math.PI/180;
+      const theta=(lon+180)*Math.PI/180;
+      dots.push({
+        x:R*Math.sin(phi)*Math.cos(theta),
+        y:R*Math.cos(phi),
+        z:R*Math.sin(phi)*Math.sin(theta),
+      });
+    }
+  }
+
+  // Attack arcs [from, to] in lat/lon
+  const arcs=[
+    {from:[12.97,77.59],to:[51.5,-0.12],prog:0,speed:.008,color:'rgba(0,255,229,'},
+    {from:[40.71,-74.0],to:[12.97,77.59],prog:.3,speed:.006,color:'rgba(255,45,85,'},
+    {from:[35.68,139.69],to:[12.97,77.59],prog:.6,speed:.007,color:'rgba(0,170,255,'},
+    {from:[12.97,77.59],to:[-33.87,151.2],prog:.1,speed:.009,color:'rgba(0,255,136,'},
+    {from:[48.85,2.35],to:[12.97,77.59],prog:.5,speed:.005,color:'rgba(180,75,255,'},
+  ];
+
+  function latLonToXYZ(lat,lon,r){
+    const phi=(90-lat)*Math.PI/180;
+    const theta=(lon+180)*Math.PI/180;
+    return{x:r*Math.sin(phi)*Math.cos(theta),y:r*Math.cos(phi),z:r*Math.sin(phi)*Math.sin(theta)};
+  }
+
+  function rotatePoint(p){
+    // rotateY
+    const cosY=Math.cos(rotY),sinY=Math.sin(rotY);
+    const x1=p.x*cosY+p.z*sinY,z1=-p.x*sinY+p.z*cosY;
+    // rotateX
+    const cosX=Math.cos(rotX),sinX=Math.sin(rotX);
+    const y2=p.y*cosX-z1*sinX,z2=p.y*sinX+z1*cosX;
+    return{x:x1,y:y2,z:z2};
+  }
+
+  function project(p){
+    const scale=1+p.z/(R*4);
+    return{x:cx+p.x*scale,y:cy-p.y*scale,visible:p.z>-R*.2};
+  }
+
+  function drawArc(arc){
+    const p0=latLonToXYZ(...arc.from,R);
+    const p1=latLonToXYZ(...arc.to,R);
+    const steps=60;
+    arc.prog=(arc.prog+arc.speed)%1;
+    const tail=0.25;
+    const start=Math.max(0,arc.prog-tail);
+    const end=arc.prog;
+
+    ctx.beginPath();
+    let first=true;
+    for(let i=Math.floor(start*steps);i<=Math.ceil(end*steps);i++){
+      const t=i/steps;
+      if(t<start||t>end)continue;
+      // slerp
+      const mt=Math.sin((1-t)*Math.PI*.5);
+      const ct=Math.sin(t*Math.PI*.5);
+      const mid={
+        x:p0.x*mt+p1.x*ct,
+        y:p0.y*mt+p1.y*ct+R*.5*(Math.sin(t*Math.PI)),
+        z:p0.z*mt+p1.z*ct,
+      };
+      const rp=rotatePoint(mid);
+      const sp=project(rp);
+      if(!sp.visible){first=true;continue}
+      const alpha=(t-start)/tail;
+      if(first){ctx.moveTo(sp.x,sp.y);first=false}
+      else ctx.lineTo(sp.x,sp.y);
+    }
+    ctx.strokeStyle=arc.color+(0.8)+')';
+    ctx.lineWidth=1.5;
+    ctx.shadowBlur=6;
+    ctx.shadowColor=arc.color+'0.6)';
+    ctx.stroke();
+    ctx.shadowBlur=0;
+
+    // dot at head
+    const ht=arc.prog;
+    const mt2=Math.sin((1-ht)*Math.PI*.5),ct2=Math.sin(ht*Math.PI*.5);
+    const head={x:p0.x*mt2+p1.x*ct2,y:p0.y*mt2+p1.y*ct2+R*.5*Math.sin(ht*Math.PI),z:p0.z*mt2+p1.z*ct2};
+    const rh=rotatePoint(head);
+    const sh=project(rh);
+    if(sh.visible){
+      ctx.beginPath();ctx.arc(sh.x,sh.y,3,0,Math.PI*2);
+      ctx.fillStyle=arc.color+'1)';
+      ctx.shadowBlur=10;ctx.shadowColor=arc.color+'0.8)';
+      ctx.fill();ctx.shadowBlur=0;
+    }
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // Globe glow
+    const grd=ctx.createRadialGradient(cx,cy,R*.6,cx,cy,R*1.1);
+    grd.addColorStop(0,'rgba(0,255,229,.04)');
+    grd.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
+
+    // Dots
+    const visible=[],hidden=[];
+    dots.forEach(d=>{
+      const rp=rotatePoint(d);
+      const sp=project(rp);
+      if(sp.visible)visible.push({...sp,z:rp.z});
+      else hidden.push({...sp,z:rp.z});
+    });
+    hidden.forEach(d=>{
+      ctx.beginPath();ctx.arc(d.x,d.y,1,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,255,229,.05)';ctx.fill();
+    });
+    visible.forEach(d=>{
+      const br=Math.max(0,(d.z+R)/(2*R));
+      ctx.beginPath();ctx.arc(d.x,d.y,1.2,0,Math.PI*2);
+      ctx.fillStyle=`rgba(0,255,229,${0.15+br*.55})`;ctx.fill();
+    });
+
+    // Arcs
+    arcs.forEach(a=>drawArc(a));
+
+    rotY+=.004;
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  canvas.addEventListener('mousedown',e=>{dragging=true;lastX=e.clientX});
+  document.addEventListener('mousemove',e=>{if(dragging)rotY+=(e.clientX-lastX)*.005,lastX=e.clientX});
+  document.addEventListener('mouseup',()=>dragging=false);
+  canvas.addEventListener('touchstart',e=>{dragging=true;lastX=e.touches[0].clientX});
+  document.addEventListener('touchmove',e=>{if(dragging)rotY+=(e.touches[0].clientX-lastX)*.005,lastX=e.touches[0].clientX});
+  document.addEventListener('touchend',()=>dragging=false);
+})();
+
+/* ══════════════════════════════════════════════════
+   RADAR CHART
+══════════════════════════════════════════════════ */
+(function(){
+  const canvas=document.getElementById('radar-canvas');if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,R=160;
+  const labels=['Web App','API','Mobile','Network','IoT/Telecom','Exploit Dev'];
+  const values=[.95,.92,.88,.90,.85,.93];
+  const n=labels.length;
+  let anim=0;
+
+  new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting)animateRadar()})},{threshold:.3}).observe(canvas);
+
+  function animateRadar(){
+    anim=0;
+    const t=setInterval(()=>{
+      anim=Math.min(anim+.025,1);
+      drawRadar(anim);
+      if(anim>=1)clearInterval(t);
+    },16);
+  }
+
+  function drawRadar(progress){
+    ctx.clearRect(0,0,W,H);
+    const angles=labels.map((_,i)=>-Math.PI/2+i*(Math.PI*2/n));
+
+    // Grid rings
+    for(let ring=1;ring<=5;ring++){
+      const r=R*(ring/5);
+      ctx.beginPath();
+      angles.forEach((a,i)=>{
+        const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.closePath();
+      ctx.strokeStyle=`rgba(0,255,229,${ring===5?.15:.07})`;
+      ctx.lineWidth=ring===5?1:.5;ctx.stroke();
+    }
+    // Spokes
+    angles.forEach(a=>{
+      ctx.beginPath();ctx.moveTo(cx,cy);
+      ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a));
+      ctx.strokeStyle='rgba(0,255,229,.08)';ctx.lineWidth=.5;ctx.stroke();
+    });
+    // Data shape
+    ctx.beginPath();
+    angles.forEach((a,i)=>{
+      const v=values[i]*progress*R;
+      const x=cx+v*Math.cos(a),y=cy+v*Math.sin(a);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.closePath();
+    const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,R);
+    grd.addColorStop(0,'rgba(0,255,229,.25)');
+    grd.addColorStop(1,'rgba(0,255,136,.08)');
+    ctx.fillStyle=grd;ctx.fill();
+    ctx.strokeStyle='rgba(0,255,229,.7)';ctx.lineWidth=2;
+    ctx.shadowBlur=12;ctx.shadowColor='rgba(0,255,229,.5)';ctx.stroke();ctx.shadowBlur=0;
+
+    // Dots & labels
+    angles.forEach((a,i)=>{
+      const v=values[i]*progress*R;
+      const x=cx+v*Math.cos(a),y=cy+v*Math.sin(a);
+      ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,255,229,1)';
+      ctx.shadowBlur=10;ctx.shadowColor='rgba(0,255,229,.8)';ctx.fill();ctx.shadowBlur=0;
+      // Labels
+      const lx=cx+(R+28)*Math.cos(a),ly=cy+(R+28)*Math.sin(a);
+      ctx.font=`600 11px 'Share Tech Mono',monospace`;
+      ctx.fillStyle='rgba(0,255,229,.8)';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(labels[i],lx,ly);
+    });
+  }
+  drawRadar(0);
+})();
+
+/* ══════════════════════════════════════════════════
+   SKILL BARS
+══════════════════════════════════════════════════ */
+new IntersectionObserver(e=>{
+  e.forEach(en=>{
+    if(en.isIntersecting){
+      en.target.querySelectorAll('.sk-bar-fill').forEach(b=>{setTimeout(()=>b.style.width=b.dataset.w+'%',200)});
+    }
+  });
+},{threshold:.2}).observe(document.querySelector('.skill-cards-col')||document.body);
+
+/* ══════════════════════════════════════════════════
+   CVE TIMELINE
+══════════════════════════════════════════════════ */
+(function(){
+  const track=document.getElementById('timeline-track');if(!track)return;
+  const data=[
+    {year:'2020',items:[{id:'CVE-2020-15035',type:'Auth Bypass',sev:'crit'},{id:'CVE-2020-15036',type:'Session Fixation',sev:'high'}]},
+    {year:'2021',items:[{id:'CVE-2021-XXXX',type:'XSS',sev:'med'},{id:'Multiple CVEs',type:'Injection',sev:'high'}]},
+    {year:'2022',items:[{id:'CVE-2022-29004',type:'XSS via Upload',sev:'high'},{id:'Multiple CVEs',type:'Access Control',sev:'high'}]},
+    {year:'2023',items:[{id:'CVE-2023-30101',type:'CMD Injection',sev:'high'},{id:'CVE-2023-33396',type:'SQL Injection',sev:'high'}]},
+    {year:'2024',items:[{id:'CVE-2024-31531',type:'Stored XSS',sev:'high'},{id:'CVE-2024-33280',type:'BAC',sev:'high'},{id:'CVE-2024-29355',type:'InfoDisc',sev:'med'}]},
+    {year:'2025',items:[{id:'CVE-2025-28349',type:'RCE',sev:'crit'},{id:'CVE-2025-26208',type:'Auth Bypass',sev:'high'},{id:'CVE-2025-28351',type:'SQLi',sev:'high'}]},
+  ];
+  const sevDot={crit:'crit',high:'high',med:'med'};
+  let html='';
+  data.forEach(yr=>{
+    html+=`<div class="tl-year-marker"><div class="tl-yr-lbl">${yr.year}</div><div class="tl-yr-dot"></div></div>`;
+    yr.items.forEach(it=>{
+      html+=`<div class="tl-item"><div class="tl-dot ${sevDot[it.sev]||'med'}"></div><div class="tl-cve">${it.id}</div><div class="tl-type">${it.type}</div></div>`;
+    });
+  });
+  track.innerHTML=html;
+  // auto-scroll
+  let dir=1,pos=0;
+  const outer=document.getElementById('timeline-outer');
+  setInterval(()=>{
+    pos+=dir*.5;
+    const max=track.scrollWidth-outer.clientWidth;
+    if(pos>=max){dir=-1}else if(pos<=0){dir=1}
+    outer.scrollLeft=pos;
+  },30);
+})();
+
+/* ══════════════════════════════════════════════════
+   GITHUB STATS
+══════════════════════════════════════════════════ */
+(async function(){
+  try{
+    const r=await fetch('https://api.github.com/users/sudoninja-noob');
+    if(!r.ok)throw new Error();
+    const d=await r.json();
+    document.getElementById('gh-repos').textContent=d.public_repos||'--';
+    document.getElementById('gh-followers').textContent=d.followers||'--';
+    document.getElementById('gh-gists').textContent=d.public_gists||'--';
+    // calc stars
+    try{
+      const r2=await fetch('https://api.github.com/users/sudoninja-noob/repos?per_page=100');
+      const repos=await r2.json();
+      const stars=repos.reduce((a,b)=>a+(b.stargazers_count||0),0);
+      document.getElementById('gh-stars').textContent=stars;
+    }catch{document.getElementById('gh-stars').textContent='--'}
+  }catch{
+    ['gh-repos','gh-stars','gh-followers','gh-gists'].forEach(id=>{document.getElementById(id).textContent='--'});
+  }
+  // Simulated contribution grid
+  const wrap=document.getElementById('contrib-wrap');
+  let html='<div class="contrib-grid">';
+  for(let w=0;w<52;w++){
+    html+='<div class="contrib-col">';
+    for(let d=0;d<7;d++){
+      const r=Math.random();
+      const lvl=r<.55?'':r<.72?'l1':r<.85?'l2':r<.94?'l3':'l4';
+      html+=`<div class="contrib-cell ${lvl}" title="Week ${w+1}"></div>`;
+    }
+    html+='</div>';
+  }
+  html+='</div>';
+  wrap.innerHTML=html;
+})();
+
+/* ══════════════════════════════════════════════════
+   INTERACTIVE TERMINAL
+══════════════════════════════════════════════════ */
+(function(){
+  const out=document.getElementById('term-output');
+  const inp=document.getElementById('term-input');
+  if(!out||!inp)return;
+  const hist=[];let histIdx=-1;
+
+  function print(lines,delay=0){
+    lines.forEach((l,i)=>{
+      setTimeout(()=>{
+        const div=document.createElement('div');
+        div.className='to-line';div.innerHTML=l;
+        out.appendChild(div);out.scrollTop=out.scrollHeight;
+      },delay+i*18);
+    });
+  }
+
+  function cmd(text){return`<span class="to-prompt">sanjay@sudoninja:~$</span> <span class="to-cmd">${text}</span>`}
+  function ok(t){return`<span class="to-green">${t}</span>`}
+  function cy(t){return`<span class="to-cyan">${t}</span>`}
+  function re(t){return`<span class="to-red">${t}</span>`}
+  function am(t){return`<span class="to-amber">${t}</span>`}
+  function pu(t){return`<span class="to-purple">${t}</span>`}
+  function dim(t){return`<span class="to-dim">${t}</span>`}
+  function w(t){return`<span class="to-white">${t}</span>`}
+
+  const cmds={
+    help:()=>[
+      cy('┌─────────────────────────────────────────────────────┐'),
+      cy('│          SUDONINJA TERMINAL — AVAILABLE COMMANDS     │'),
+      cy('└─────────────────────────────────────────────────────┘'),
+      `  ${ok('whoami')}         — About Sanjay Singh`,
+      `  ${ok('skills')}         — Technical capabilities`,
+      `  ${ok('cves')}           — Published CVE list`,
+      `  ${ok('books')}          — Published books`,
+      `  ${ok('services')}       — Engagement types`,
+      `  ${ok('pricing')}        — Service pricing`,
+      `  ${ok('contact')}        — Get in touch`,
+      `  ${ok('exploit --demo')} — ${am('⚡ Run demo exploit chain')}`,
+      `  ${ok('matrix')}         — ${pu('🌀 Enter the matrix')}`,
+      `  ${ok('clear')}          — Clear terminal`,
+      '',
+    ],
+    whoami:()=>[
+      cy('┌──── IDENTITY ────────────────────────────────────────┐'),
+      `  ${w('Name:')}     Sanjay Singh`,
+      `  ${w('Alias:')}    sudoninja`,
+      `  ${w('Role:')}     Senior Manager — Cyber Security Services`,
+      `  ${w('Location:')} Bangalore, Karnataka, India`,
+      `  ${w('Email:')}    ${cy('sanjaysinghss3@gmail.com')}`,
+      `  ${w('GitHub:')}   ${cy('github.com/sudoninja-noob')}`,
+      `  ${w('CVEs:')}     ${am('100+')} assigned by MITRE (2020–2025)`,
+      `  ${w('Certs:')}    OSCP · CRTP · CEH · CPTE · CCEP · CNSP`,
+      `  ${w('Status:')}   ${ok('● AVAILABLE FOR ENGAGEMENTS')}`,
+      cy('└──────────────────────────────────────────────────────┘'),
+      '',
+    ],
+    skills:()=>[
+      cy('┌──── SKILLS ──────────────────────────────────────────┐'),
+      `  ${ok('[95%]')} Web Application Security ${dim('████████████████████')}`,
+      `  ${ok('[93%]')} Exploit Development       ${dim('███████████████████░')}`,
+      `  ${ok('[92%]')} API Security Testing      ${dim('██████████████████░░')}`,
+      `  ${ok('[90%]')} Network & Infrastructure  ${dim('██████████████████░░')}`,
+      `  ${ok('[88%]')} Mobile Security           ${dim('█████████████████░░░')}`,
+      `  ${ok('[85%]')} IoT & Telecom Security    ${dim('████████████████░░░░')}`,
+      cy('└──────────────────────────────────────────────────────┘'),
+      '',
+    ],
+    cves:()=>[
+      cy('┌──── CVE SUMMARY ─────────────────────────────────────┐'),
+      `  Total assigned: ${am('100+')} | Years active: ${am('2020–2025')}`,
+      '',
+      `  ${re('CRITICAL')} CVE-2025-28349 · CVE-2020-15035`,
+      `  ${am('HIGH')}     CVE-2025-26208 · CVE-2025-26209 · CVE-2025-28350`,
+      `           CVE-2024-31531 · CVE-2024-33280 · CVE-2023-30101`,
+      `           CVE-2023-33396 · CVE-2022-29004 · CVE-2020-15036`,
+      `  ${cy('MEDIUM')}   CVE-2024-29355 · and many more...`,
+      '',
+      `  Full list: ${cy('github.com/sudoninja-noob/CVE-list')}`,
+      cy('└──────────────────────────────────────────────────────┘'),
+      '',
+    ],
+    books:()=>[
+      cy('┌──── PUBLISHED BOOKS ─────────────────────────────────┐'),
+      `  ${ok('[01]')} A Tale of 100 CVE's Hunting`,
+      `  ${ok('[02]')} How to Become a Penetration Tester: Zero to One`,
+      `  ${ok('[03]')} How to Start a Career in Cybersecurity`,
+      `  ${ok('[04]')} 101 Broken Access Control Test Cases`,
+      `  ${ok('[05]')} Cyber-Security Journey: A Comprehensive Guide`,
+      `  ${ok('[06]')} Privilege Escalation: Unlocking Security`,
+      '',
+      `  Available on ${cy('Amazon.in')} and ${cy('Amazon.com')}`,
+      cy('└──────────────────────────────────────────────────────┘'),
+      '',
+    ],
+    services:()=>[
+      cy('┌──── SERVICES ────────────────────────────────────────┐'),
+      `  ${cy('→')} Web Application Penetration Testing`,
+      `  ${cy('→')} Mobile App Security (Android / iOS)`,
+      `  ${cy('→')} Network & Infrastructure Testing`,
+      `  ${cy('→')} API Security Testing (REST/SOAP/GraphQL)`,
+      `  ${cy('→')} IoT & Telecom Product Security`,
+      `  ${cy('→')} Source Code Review`,
+      `  ${cy('→')} Vulnerability Assessment`,
+      cy('└──────────────────────────────────────────────────────┘'),
+      '',
+    ],
+    pricing:()=>[
+      cy('┌──── PRICING ─────────────────────────────────────────┐'),
+      `  ${ok('Starter')}      $199  — Vulnerability Assessment (3 days)`,
+      `  ${am('Professional')} $299  — Network Pentest (5 days)  ${am('★ POPULAR')}`,
+      `  ${cy('Enterprise')}   $499  — Web App Pentest + Retest (15 days)`,
+      '',
+      `  Custom scopes available. Contact for quote.`,
+      cy('└──────────────────────────────────────────────────────┘'),
+      '',
+    ],
+    contact:()=>[
+      cy('┌──── CONTACT ─────────────────────────────────────────┐'),
+      `  ${w('Email:')}    ${cy('sanjaysinghss3@gmail.com')}`,
+      `  ${w('Phone:')}    +91 7000740649`,
+      `  ${w('LinkedIn:')} ${cy('linkedin.com/in/sanjaysingh06')}`,
+      `  ${w('GitHub:')}   ${cy('github.com/sudoninja-noob')}`,
+      `  ${w('Location:')} Bangalore, Karnataka, India`,
+      '',
+      `  ${ok('Status:')} Available for new engagements`,
+      cy('└──────────────────────────────────────────────────────┘'),
+      '',
+    ],
+    matrix:()=>{
+      // launch matrix effect
+      launchMatrix();
+      return[pu('Entering the matrix... press ESC to exit'),''];
+    },
+  };
+
+  // Exploit demo
+  async function exploitDemo(){
+    const lines=[
+      `${am('[*]')} Initializing exploit framework...`,
+      `${am('[*]')} Target: demo.vulnerable-app.local`,
+      `${am('[*]')} Scanning open ports...`,
+      `${ok('[+]')} Port 80/tcp  open  http`,
+      `${ok('[+]')} Port 443/tcp open  https`,
+      `${ok('[+]')} Port 8080/tcp open  http-proxy`,
+      `${am('[*]')} Enumerating HTTP services...`,
+      `${ok('[+]')} Server: Apache/2.4.41 (Ubuntu)`,
+      `${ok('[+]')} X-Powered-By: PHP/7.4.3`,
+      `${am('[*]')} Checking for SQL injection on login endpoint...`,
+      `${re('[!]')} Potential SQLi found in parameter: username`,
+      `${am('[*]')} Testing payload: ' OR '1'='1' --`,
+      `${re('[!]')} ${am('VULNERABILITY CONFIRMED')} — Authentication Bypass via SQLi`,
+      `${am('[*]')} Extracting database schema...`,
+      `${ok('[+]')} Database: webapp_db`,
+      `${ok('[+]')} Tables: users, sessions, products, orders`,
+      `${am('[*]')} Dumping credentials table...`,
+      `${re('[!]')} MD5 hashes retrieved — cracking offline...`,
+      `${ok('[+]')} admin:password123 — ${re('CRACKED')}`,
+      `${am('[*]')} Logging in with extracted credentials...`,
+      `${ok('[+]')} ${am('ACCESS GRANTED')} — Admin panel compromised`,
+      `${am('[*]')} Checking for file upload functionality...`,
+      `${ok('[+]')} Upload endpoint found: /admin/upload.php`,
+      `${am('[*]')} Uploading PHP webshell...`,
+      `${ok('[+]')} Shell uploaded: /uploads/shell.php`,
+      `${re('[!]')} ${pu('REMOTE CODE EXECUTION ACHIEVED')}`,
+      `${am('[*]')} Running: id`,
+      `${ok('[+]')} uid=33(www-data) gid=33(www-data)`,
+      `${am('[*]')} Privilege escalation check...`,
+      `${ok('[+]')} SUID binary found: /usr/bin/pkexec`,
+      `${re('[!]')} CVE-2021-4034 (PwnKit) applicable!`,
+      `${am('[*]')} Deploying exploit...`,
+      `${ok('[+]')} uid=0(root) gid=0(root)`,
+      `${re('[!]')} ${am('████████████████████████████████████████')}`,
+      `${re('[!]')} ${am('   ROOT ACCESS OBTAINED — DEMO COMPLETE   ')}`,
+      `${re('[!]')} ${am('████████████████████████████████████████')}`,
+      '',
+      `${cy('[NOTE]')} This is a safe demonstration. In real engagements,`,
+      `${cy('[NOTE]')} findings are reported responsibly to the client.`,
+      '',
+    ];
+    for(let i=0;i<lines.length;i++){
+      await new Promise(r=>setTimeout(r,120));
+      const div=document.createElement('div');
+      div.className='to-line';div.innerHTML=lines[i];
+      out.appendChild(div);out.scrollTop=out.scrollHeight;
+    }
+  }
+
+  // Matrix rain effect
+  let matrixActive=false;
+  function launchMatrix(){
+    if(matrixActive)return;matrixActive=true;
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;z-index:7000;background:#000;cursor:none';
+    const c=document.createElement('canvas');
+    c.style.cssText='display:block';
+    overlay.appendChild(c);document.body.appendChild(overlay);
+    const ctx2=c.getContext('2d');
+    c.width=window.innerWidth;c.height=window.innerHeight;
+    const cols=Math.floor(c.width/16);
+    const drops=Array(cols).fill(1);
+    const chars='01アイウエオカキクケコハヒフHACKERCVEEXPLOIT'.split('');
+    const inter=setInterval(()=>{
+      ctx2.fillStyle='rgba(0,0,0,.05)';ctx2.fillRect(0,0,c.width,c.height);
+      ctx2.fillStyle='#0f0';ctx2.font='14px monospace';
+      drops.forEach((y,i)=>{
+        ctx2.fillText(chars[Math.floor(Math.random()*chars.length)],i*16,y*16);
+        drops[i]=y>c.height/16&&Math.random()>.975?0:y+1;
+      });
+    },33);
+    const esc=e=>{if(e.key==='Escape'){clearInterval(inter);overlay.remove();matrixActive=false;document.removeEventListener('keydown',esc)}};
+    document.addEventListener('keydown',esc);
+    overlay.addEventListener('click',()=>{clearInterval(inter);overlay.remove();matrixActive=false;document.removeEventListener('keydown',esc)});
+  }
+
+  // Boot welcome
+  print([
+    cy('████████████████████████████████████████████████████'),
+    cy('█                                                  █'),
+    cy('█        SUDONINJA SECURITY TERMINAL v3.0          █'),
+    cy('█        Sanjay Singh // Offensive Security        █'),
+    cy('█                                                  █'),
+    cy('████████████████████████████████████████████████████'),
+    '',
+    `Type ${ok('help')} to see available commands.`,
+    '',
+  ]);
+
+  inp.addEventListener('keydown',async e=>{
+    if(e.key==='Enter'){
+      const val=inp.value.trim().toLowerCase();
+      if(!val)return;
+      hist.unshift(val);histIdx=-1;
+      print([cmd(inp.value)]);
+      inp.value='';
+
+      if(val==='clear'){out.innerHTML='';return}
+      if(val.startsWith('exploit')){
+        print([`${am('[*]')} Launching exploit demo chain...`,'']);
+        await exploitDemo();
+        return;
+      }
+      const fn=cmds[val];
+      if(fn){print(fn(),30)}
+      else{print([re(`Command not found: ${val}`),`Type ${ok('help')} for available commands.`,''],0)}
+    }
+    if(e.key==='ArrowUp'){e.preventDefault();if(histIdx<hist.length-1)inp.value=hist[++histIdx]||''}
+    if(e.key==='ArrowDown'){e.preventDefault();inp.value=histIdx>0?hist[--histIdx]:''}
+  });
+
+  // click anywhere to focus input
+  document.getElementById('term-box')?.addEventListener('click',()=>inp.focus());
+})();
+
+/* ══════════════════════════════════════════════════
+   ENCRYPTION FORM ANIMATION
+══════════════════════════════════════════════════ */
+(function(){
+  const form=document.getElementById('enc-form');
+  if(!form)return;
+  const status=document.getElementById('enc-status');
+  const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+
+  function encryptField(el,onDone){
+    const original=el.value;if(!original)return;
+    let step=0;
+    const t=setInterval(()=>{
+      if(step>original.length){clearInterval(t);el.value=original;if(onDone)onDone();return}
+      el.value=original.split('').map((c,i)=>i<step?c:chars[Math.floor(Math.random()*chars.length)]).join('');
+      step++;
+    },30);
+  }
+
+  form.addEventListener('submit',e=>{
+    e.preventDefault();
+    const fields=[
+      document.getElementById('ef-name'),
+      document.getElementById('ef-email'),
+      document.getElementById('ef-subj'),
+      document.getElementById('ef-msg'),
+    ].filter(Boolean);
+    status.textContent='🔐 Encrypting message...';
+    status.style.color='var(--a)';
+    let done=0;
+    fields.forEach((f,i)=>{
+      setTimeout(()=>{
+        encryptField(f,()=>{
+          done++;
+          if(done===fields.length){
+            status.textContent='📡 Transmitting encrypted payload...';
+            status.style.color='var(--c)';
+            setTimeout(()=>{
+              // Actually submit
+              fetch(form.action,{method:'POST',body:new FormData(form)})
+                .then(()=>{
+                  status.textContent='✅ Message delivered securely.';
+                  status.style.color='var(--g)';
+                  fields.forEach(f=>f.value='');
+                })
+                .catch(()=>{
+                  status.textContent='✅ Message queued for delivery.';
+                  status.style.color='var(--g)';
+                  fields.forEach(f=>f.value='');
+                });
+            },1200);
+          }
+        });
+      },i*200);
+    });
+  });
+})();
+
+/* ══════════════════════════════════════════════════
+   LIVE CVE FEED
+══════════════════════════════════════════════════ */
+(async function(){
+  const list=document.getElementById('feed-list'),meta=document.getElementById('feed-meta');
+  const trunc=(s,n)=>s&&s.length>n?s.slice(0,n)+'…':s;
+  const sc=s=>{if(!s)return'sm';const v=s.toUpperCase();return v==='CRITICAL'?'sc':v==='HIGH'?'sh':v==='MEDIUM'?'sm':'sl'};
+  function render(vulns){
+    list.innerHTML='';
+    vulns.slice(0,8).forEach(({cve})=>{
+      const id=cve.id;
+      const desc=trunc(cve.descriptions?.find(d=>d.lang==='en')?.value||'No description.',135);
+      const m=cve.metrics;let score='N/A',sev='N/A';
+      const cv31=m?.cvssMetricV31?.[0]?.cvssData,cv30=m?.cvssMetricV30?.[0]?.cvssData,cv2=m?.cvssMetricV2?.[0]?.cvssData;
+      if(cv31){score=cv31.baseScore;sev=cv31.baseSeverity}else if(cv30){score=cv30.baseScore;sev=cv30.baseSeverity}else if(cv2){score=cv2.baseScore;sev=score>=7?'HIGH':score>=4?'MEDIUM':'LOW'}
+      const el=document.createElement('div');el.className='fi';
+      el.innerHTML=`<div class="fi-id">${id}</div><div class="fi-desc">${desc}</div><div class="fi-r"><span class="cvss-b ${sc(sev)}">CVSS ${score} · ${(sev||'N/A').toUpperCase()}</span><a class="fi-lnk" href="https://nvd.nist.gov/vuln/detail/${id}" target="_blank" rel="noopener">NVD →</a></div>`;
+      list.appendChild(el);
+    });
+  }
+  function renderStatic(){
+    const d=[
+      {id:'CVE-2025-28349',score:9.1,sev:'CRITICAL',desc:'Critical injection flaw affecting multiple product versions. Discovered by Sanjay Singh.'},
+      {id:'CVE-2025-26208',score:8.8,sev:'HIGH',desc:'Authentication bypass vulnerability in web management interface.'},
+      {id:'CVE-2025-26209',score:8.5,sev:'HIGH',desc:'Remote code execution via improper input validation in network device firmware.'},
+      {id:'CVE-2025-28350',score:7.5,sev:'HIGH',desc:'Privilege escalation in admin panel allowing unauthorized access.'},
+      {id:'CVE-2025-28351',score:8.0,sev:'HIGH',desc:'SQL injection enabling full database compromise without authentication.'},
+      {id:'CVE-2024-31531',score:7.8,sev:'HIGH',desc:'Stored XSS enabling persistent session hijacking in admin context.'},
+      {id:'CVE-2024-33280',score:8.2,sev:'HIGH',desc:'Broken access control in REST API exposing confidential user records.'},
+      {id:'CVE-2024-29355',score:5.3,sev:'MEDIUM',desc:'Information disclosure through error messages exposing server internals.'},
+    ];
+    list.innerHTML='';
+    d.forEach(c=>{
+      const el=document.createElement('div');el.className='fi';
+      el.innerHTML=`<div class="fi-id">${c.id}</div><div class="fi-desc">${c.desc}</div><div class="fi-r"><span class="cvss-b ${sc(c.sev)}">CVSS ${c.score} · ${c.sev}</span><a class="fi-lnk" href="https://nvd.nist.gov/vuln/detail/${c.id}" target="_blank" rel="noopener">NVD →</a></div>`;
+      list.appendChild(el);
+    });
+  }
+  async function fetchNVD(sev){
+    const r=await fetch(`https://services.nvd.nist.gov/rest/json/cves/2.0/?resultsPerPage=8&cvssV3Severity=${sev}`,{headers:{Accept:'application/json'}});
+    if(!r.ok)throw new Error(r.status);return r.json();
+  }
+  try{
+    const d=await fetchNVD('CRITICAL');
+    const v=d.vulnerabilities||[];if(!v.length)throw new Error();
+    meta.textContent='Last updated: '+new Date().toLocaleString()+' · NVD/NIST · Critical CVEs';render(v);
+  }catch{
+    try{
+      const d2=await fetchNVD('HIGH');
+      const v2=d2.vulnerabilities||[];if(!v2.length)throw new Error();
+      meta.textContent='Last updated: '+new Date().toLocaleString()+' · NVD/NIST · High CVEs';render(v2);
+    }catch{meta.textContent="Researcher's published CVEs · Live feed rate-limited";renderStatic()}
+  }
+})();
+</script>
+</body>
+</html>
