@@ -2245,7 +2245,7 @@ const cveObs = new IntersectionObserver(entries=>{
   entries.forEach(e=>{
     if(e.isIntersecting){
       animateCounter(document.getElementById('cveCounter'),100,'+');
-      animateCounter(document.getElementById('yearCounter'),9,'+');
+      animateCounter(document.getElementById('yearCounter'),10,'+');
       cveObs.disconnect();
     }
   });
