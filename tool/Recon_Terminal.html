@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recon Terminal • SudoNinja</title>
+  <meta name="description" content="A client-side recon terminal for authorized security testing." />
+  <style>
+    :root{
+  --bg0:#020507;
+  --bg1:#000000;
+  --card:rgba(0,255,140,.06);
+  --card2:rgba(0,255,140,.035);
+  --stroke:rgba(0,255,140,.14);
+  --stroke2:rgba(0,255,140,.35);
+  --text:#d8ffe9;
+  --muted:#79cfa6;
+  --accent:#00ff8c;
+  --accent2:#00d7ff;
+  --good:#38d27a;
+  --bad:#ff4d6d;
+  --shadow: 0 18px 48px rgba(0,0,0,.55);
+  --r:18px;
+
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+[data-theme="light"]{
+  /* Keep a usable light mode, but still "cyber" */
+  --bg0:#f4fff9;
+  --bg1:#e8fff2;
+  --card:rgba(0,0,0,.05);
+  --card2:rgba(0,0,0,.03);
+  --stroke:rgba(0,0,0,.10);
+  --stroke2:rgba(0,255,140,.35);
+  --text:#06120b;
+  --muted:#2f6b4f;
+  --accent:#0aa35c;
+  --accent2:#007bd1;
+  --shadow: 0 10px 30px rgba(0,0,0,.12);
+}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family: var(--mono);
+      background: linear-gradient(180deg, var(--bg0), var(--bg1));
+      color:var(--text);
+      min-height:100vh;
+    }
+    a{color:inherit}
+    .wrap{max-width:1400px;margin:0 auto;padding:22px}
+    header{
+      display:flex;gap:16px;align-items:center;justify-content:space-between;
+      padding:18px 18px;
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:var(--r);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      position: sticky; top: 12px; z-index: 20;
+    }
+    .brand{display:flex;gap:14px;align-items:center;min-width:260px}
+    .logo{
+      width:44px;height:44px;border-radius:14px;
+      background: linear-gradient(135deg, rgba(0,245,255,.25), rgba(43,124,255,.20));
+      border:1px solid var(--stroke2);
+      display:grid;place-items:center;
+      box-shadow: 0 8px 20px rgba(0,245,255,.12);
+      font-size:22px;
+    }
+    h1{font-size:18px;letter-spacing:.2px;margin-bottom:2px}
+    .sub{color:var(--muted);font-size:12.5px}
+    .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+    .pill{
+      display:flex;align-items:center;gap:8px;
+      background:var(--card2);
+      border:1px solid var(--stroke);
+      border-radius:999px;
+      padding:8px 10px;
+    }
+    select,input[type="text"]{background:transparent;border:0;outline:0;color:var(--text);font-size:13px}
+    select option{color:#111}
+    .btn{
+      border:1px solid var(--stroke2);
+      background: linear-gradient(135deg, rgba(0,245,255,.10), rgba(43,124,255,.10));
+      color:var(--text);
+      padding:9px 12px;border-radius:12px;
+      cursor:pointer;
+      transition:.2s ease;
+      display:inline-flex;align-items:center;gap:8px;
+      font-weight:600;font-size:13px;
+    }
+    .btn:hover{transform: translateY(-1px); box-shadow: 0 10px 22px rgba(0,0,0,.20); border-color: rgba(0,245,255,.6);}
+    .btn:active{transform: translateY(0px) scale(.98)}
+    .btn.ghost{background:transparent;border:1px solid var(--stroke);font-weight:600}
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:16px;margin-top:16px}
+    @media (max-width: 980px){.grid{grid-template-columns:1fr} header{position:static} .brand{min-width:auto}}
+    .panel{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:var(--r);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .panel h2{font-size:14px;letter-spacing:.3px}
+    .panelHead{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:14px 14px;
+      border-bottom:1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), transparent);
+    }
+    .panelBody{padding:14px}
+    .field{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+    label{font-size:12px;color:var(--muted)}
+    .input{
+      display:flex;align-items:center;gap:10px;
+      padding:11px 12px;border-radius:14px;
+      border:1px solid var(--stroke2);
+      background: rgba(0,0,0,.15);
+    }
+    [data-theme="light"] .input{background: rgba(255,255,255,.55)}
+    .input input{width:100%}
+    .hint{font-size:12px;color:var(--muted);line-height:1.35}
+    .kbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+    .tag{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:7px 10px;border-radius:999px;
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.15);
+      font-size:12px;color:var(--muted);
+    }
+    [data-theme="light"] .tag{background: rgba(255,255,255,.55)}
+    .tag b{color:var(--text);font-weight:700}
+    .divider{height:1px;background:var(--stroke);margin:14px 0}
+    .toast{
+      position: fixed; left: 50%; transform: translateX(-50%);
+      bottom: 18px;
+      background: rgba(0,0,0,.82);
+      border:1px solid rgba(255,255,255,.14);
+      color:#fff;
+      padding:10px 12px;
+      border-radius:14px;
+      display:none;
+      max-width: min(720px, calc(100vw - 24px));
+      box-shadow: var(--shadow);
+      z-index: 50;
+      font-size: 13px;
+    }
+    .toast.show{display:block; animation: pop .18s ease-out}
+    @keyframes pop{from{opacity:0; transform: translateX(-50%) translateY(8px)} to{opacity:1; transform: translateX(-50%) translateY(0)}}
+
+    .topRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .searchBox{
+      flex:1; min-width: 220px;
+      display:flex;align-items:center;gap:10px;
+      padding:10px 12px;border-radius:14px;
+      border:1px solid var(--stroke);
+      background: var(--card2);
+    }
+    .searchBox input{width:100%}
+    .statsRow{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+    .stat{
+      flex:1; min-width: 140px;
+      background: var(--card2);
+      border:1px solid var(--stroke);
+      border-radius:14px;
+      padding:12px 12px;
+    }
+    .stat .n{font-size:18px;font-weight:800;color:var(--accent)}
+    .stat .l{font-size:12px;color:var(--muted)}
+    .cats{display:grid; gap:12px; margin-top:14px}
+    .cat{border:1px solid var(--stroke);background: rgba(255,255,255,.03);border-radius:16px;overflow:hidden}
+    .catHead{padding:12px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+    .catHead .title{display:flex;align-items:center;gap:10px;font-weight:800;font-size:13px;letter-spacing:.2px}
+    .catHead .title span{color:var(--accent)}
+    .catHead .meta{font-size:12px;color:var(--muted)}
+    .catBody{padding:10px 10px 12px 10px; display:none}
+    .cat.open .catBody{display:block}
+    .btnGrid{display:grid;grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));gap:10px}
+    .qbtn{
+      position:relative;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid rgba(0,245,255,.22);
+      background: linear-gradient(135deg, rgba(0,245,255,.08), rgba(43,124,255,.07));
+      cursor:pointer;
+      transition:.2s ease;
+      text-align:left;
+      min-height: 46px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+    }
+    .qbtn:hover{transform: translateY(-1px);box-shadow: 0 12px 24px rgba(0,245,255,.12);border-color: rgba(0,245,255,.55)}
+    .qbtn .t{font-weight:700;font-size:13px;color:var(--text)}
+    .qbtn .s{font-size:12px;color:var(--muted);display:none}
+    .qbtn .right{display:flex;gap:8px;align-items:center;flex-shrink:0}
+    .mini{
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.18);
+      color:var(--text);
+      padding:7px 9px;border-radius:12px;
+      cursor:pointer;
+      font-weight:800;
+      font-size:12px;
+      transition:.15s ease;
+    }
+    [data-theme="light"] .mini{background: rgba(255,255,255,.65)}
+    .mini:hover{border-color: rgba(0,245,255,.55); transform: translateY(-1px)}
+    .mini.star.on{border-color: rgba(255, 210, 66, .55)}
+    .mini.star.on::after{content:"★"; margin-left:6px; color:#ffd242}
+    .qbtn .left{display:flex;flex-direction:column;gap:2px}
+    .qbtn[data-desc] .s{display:block}
+    .table{
+      width:100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      color: var(--text);
+      overflow:hidden;
+      border-radius: 14px;
+      border:1px solid var(--stroke);
+    }
+    .table th,.table td{padding:10px 10px;border-bottom:1px solid var(--stroke);vertical-align:top}
+    .table th{color:var(--muted);font-weight:800;text-align:left;background: rgba(255,255,255,.03)}
+    .table tr:last-child td{border-bottom:0}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    .small{font-size:12px;color:var(--muted);line-height:1.35}
+    .callout{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding:12px 12px;
+    }
+    [data-theme="light"] .callout{background: rgba(255,255,255,.60)}
+    .warn{border-color: rgba(255,99,99,.35)}
+    .good{border-color: rgba(56,210,122,.35)}
+    .row2{display:grid;grid-template-columns:1fr;gap:12px}
+  /* --- Hacker terminal vibe --- */
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,.18) 50%, rgba(0,0,0,0) 100%),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0,255,140,.06) 0px,
+      rgba(0,255,140,.06) 1px,
+      rgba(0,0,0,0) 3px,
+      rgba(0,0,0,0) 6px
+    );
+  mix-blend-mode: screen;
+  opacity:.55;
+  z-index:1;
+}
+#matrix{
+  position:fixed; inset:0;
+  width:100%; height:100%;
+  z-index:0;
+  opacity:.35;
+}
+.wrap{position:relative; z-index:2}
+header{
+  border-color: rgba(0,255,140,.28);
+  background: rgba(0,0,0,.55);
+  box-shadow: 0 22px 60px rgba(0,0,0,.65);
+}
+.panel{
+  background: rgba(0,0,0,.55);
+  border-color: rgba(0,255,140,.18);
+}
+.panelHead{
+  background: linear-gradient(180deg, rgba(0,255,140,.07), transparent);
+}
+.logo{
+  border-radius:10px;
+  background: radial-gradient(circle at 30% 30%, rgba(0,255,140,.28), rgba(0,0,0,.1) 60%),
+              linear-gradient(135deg, rgba(0,255,140,.12), rgba(0,215,255,.10));
+  border:1px solid rgba(0,255,140,.55);
+  box-shadow: 0 10px 28px rgba(0,255,140,.10);
+  font-family: var(--mono);
+}
+h1{
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: .9px;
+}
+.sub{font-family: var(--mono)}
+.btn{
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+}
+.btn:hover{border-color: rgba(0,255,140,.9)}
+.input{
+  background: rgba(0,0,0,.55);
+  border-color: rgba(0,255,140,.35);
+}
+.qbtn{
+  background: rgba(0,0,0,.55);
+  border-color: rgba(0,255,140,.28);
+}
+.qbtn:hover{box-shadow: 0 18px 34px rgba(0,255,140,.12)}
+.table th{background: rgba(0,255,140,.05)}
+.mini{
+  font-family: var(--mono);
+  text-transform: uppercase;
+}
+.mini.danger{
+  border-color: rgba(255,77,109,.45);
+}
+.mini.danger:hover{
+  border-color: rgba(255,77,109,.9);
+  box-shadow: 0 10px 22px rgba(255,77,109,.12);
+}
+.glitch{
+  position:relative;
+  display:inline-block;
+}
+.glitch::before,.glitch::after{
+  content: attr(data-text);
+  position:absolute; left:0; top:0;
+  width:100%;
+  opacity:.55;
+  clip-path: inset(0 0 0 0);
+}
+.glitch::before{ transform: translate(1px,-1px); color: rgba(0,215,255,.85); mix-blend-mode: screen; }
+.glitch::after{  transform: translate(-1px,1px); color: rgba(0,255,140,.85); mix-blend-mode: screen; }
+@media (prefers-reduced-motion: no-preference){
+  .glitch::before{ animation: glitch1 2.6s infinite linear; }
+  .glitch::after{  animation: glitch2 2.2s infinite linear; }
+}
+@keyframes glitch1{
+  0%{clip-path: inset(10% 0 85% 0)}
+  10%{clip-path: inset(60% 0 15% 0)}
+  20%{clip-path: inset(30% 0 45% 0)}
+  30%{clip-path: inset(80% 0 5% 0)}
+  40%{clip-path: inset(20% 0 55% 0)}
+  50%{clip-path: inset(65% 0 18% 0)}
+  60%{clip-path: inset(15% 0 70% 0)}
+  70%{clip-path: inset(75% 0 10% 0)}
+  80%{clip-path: inset(35% 0 40% 0)}
+  90%{clip-path: inset(55% 0 25% 0)}
+  100%{clip-path: inset(10% 0 85% 0)}
+}
+@keyframes glitch2{
+  0%{clip-path: inset(85% 0 8% 0)}
+  12%{clip-path: inset(35% 0 45% 0)}
+  24%{clip-path: inset(70% 0 12% 0)}
+  36%{clip-path: inset(25% 0 55% 0)}
+  48%{clip-path: inset(60% 0 20% 0)}
+  60%{clip-path: inset(15% 0 70% 0)}
+  72%{clip-path: inset(80% 0 10% 0)}
+  84%{clip-path: inset(40% 0 40% 0)}
+  100%{clip-path: inset(85% 0 8% 0)}
+}
+  </style>
+</head>
+<body>
+  <canvas id="matrix" aria-hidden="true"></canvas>
+  <div class="wrap" id="app">
+    <header>
+      <div class="brand">
+        <div class="logo">>$</div>
+        <div>
+          <h1 class="glitch" data-text="Bug Bounty Recon Terminal">Bug Bounty Recon Terminal</h1>
+          <div class="sub">Client‑side recon terminal • authorized testing only</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="pill" title="Search engine">
+          <span style="color:var(--muted);font-size:12px">Engine</span>
+          <select id="engine">
+            <option value="google">Google</option>
+            <option value="bing">Bing</option>
+            <option value="duckduckgo">DuckDuckGo</option>
+            <option value="yandex">Yandex</option>
+          </select>
+        </div>
+
+        <div class="pill" title="Action mode">
+          <span style="color:var(--muted);font-size:12px">Mode</span>
+          <select id="mode">
+            <option value="open">Open</option>
+            <option value="copy">Copy</option>
+          </select>
+        </div>
+
+        <button class="btn ghost" id="themeBtn" title="Toggle theme">🌗 Theme</button>
+
+<button id="clearHistoryBtn" class="btn danger">🧹 Clear Recent History</button>
+
+        <button class="btn ghost" id="exportBtn" title="Export your settings">⬇️ Export</button>
+        <button class="btn ghost" id="importBtn" title="Import settings">⬆️ Import</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT -->
+      <div class="panel">
+        <div class="panelHead">
+          <h2>Workspace</h2>
+          <button class="btn ghost" id="clearBtn" title="Clear history & favorites">🧹 Reset</button>
+        </div>
+        <div class="panelBody">
+          <div class="field">
+            <label for="target">Target (domain / IP / keyword)</label>
+            <div class="input">
+              <span style="color:var(--accent);font-weight:900">🎯</span>
+              <input id="target" type="text" placeholder="example.com" autocomplete="off"/>
+              <button class="mini" id="pasteBtn" title="Paste from clipboard">📋</button>
+              <button class="mini danger" id="clearTargetBtn" title="Clear target">✖</button>
+            </div>
+            <div class="hint">
+              Tip: you can enter a domain (example.com) or keyword; queries will use <span class="mono">site:</span> when applicable.
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Shortcuts</label>
+            <div class="kbar">
+              <span class="tag"><b>Enter</b> → focus filter</span>
+              <span class="tag"><b>/</b> → jump to filter</span>
+              <span class="tag"><b>Ctrl/Cmd</b> + click → new tab</span>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="field">
+            <label for="customQuery">Custom query builder</label>
+            <div class="input" style="gap:8px">
+              <span style="color:var(--accent);font-weight:900">🧩</span>
+              <input id="customQuery" type="text" placeholder='e.g., intitle:"index of" ext:sql'/>
+              <button class="mini" id="runCustomBtn" title="Run custom query">Run</button>
+            </div>
+            <div class="small">
+              Preview: <span class="mono" id="preview">(waiting…)</span>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="row2">
+            <div class="callout warn">
+              <div style="font-weight:900;margin-bottom:6px">⚠️ Authorization reminder</div>
+              <div class="small">
+                Use these queries only on targets you own or have explicit written permission to test.
+                This page only launches search queries; it does not exploit anything.
+              </div>
+            </div>
+
+            <div class="callout good">
+              <div style="font-weight:900;margin-bottom:6px">✅ Credits & licensing</div>
+              <div class="small">
+                If you adapt someone else’s work, keep attribution and respect their license.
+                You can add your own features and still credit the original author.
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="field">
+            <label>Recent targets</label>
+            <table class="table" id="recentTable" aria-label="Recent targets">
+              <thead>
+                <tr><th style="width:30%">When</th><th>Target</th><th style="width:20%">Action</th></tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="3" class="small">No recent targets yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="panel">
+        <div class="panelHead">
+          <h2>Query Library</h2>
+          <div class="small" id="libMeta">Loading…</div>
+        </div>
+        <div class="panelBody">
+          <div class="topRow">
+            <div class="searchBox" title="Filter queries (press /)">
+              <span style="color:var(--muted);font-weight:900">🔎</span>
+              <input id="filter" type="text" placeholder="Filter by category / query name / description…" />
+            </div>
+            <button class="btn ghost" id="toggleAllBtn">📂 Expand all</button>
+            <button class="btn" id="favoritesOnlyBtn">⭐ Favorites</button>
+          </div>
+
+          <div class="statsRow">
+            <div class="stat"><div class="n" id="qCount">—</div><div class="l">Queries</div></div>
+            <div class="stat"><div class="n" id="catCount">—</div><div class="l">Categories</div></div>
+            <div class="stat"><div class="n" id="favCount">—</div><div class="l">Favorites</div></div>
+          </div>
+
+          <div class="cats" id="cats"></div>
+
+          <div class="divider"></div>
+          <div class="small">
+            Built as a single static HTML file. Favorites & recent targets are stored locally in your browser (localStorage).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+<script>
+const $ = (q) => document.querySelector(q);
+const $$ = (q) => Array.from(document.querySelectorAll(q));
+
+const STORAGE_KEY = "sudoninja_recon_console_v2";
+const nowISO = () => new Date().toISOString();
+
+const state = {
+  theme: "dark",
+  engine: "google",
+  mode: "open",
+  favorites: {},
+  recent: []
+};
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      Object.assign(state, parsed || {});
+    }
+  }catch(e){}
+}
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+// --- Matrix background (lightweight) ---
+(function matrixRain(){
+  const c = document.getElementById("matrix");
+  if(!c) return;
+  const ctx = c.getContext("2d");
+  let w, h, cols, drops, fontSize = 16;
+  const chars = "01#$%&@*+-=<>[]{}()^~;:abcdefghijklmnopqrstuvwxyz";
+  function resize(){
+    w = c.width = window.innerWidth;
+    h = c.height = window.innerHeight;
+    cols = Math.floor(w / fontSize);
+    drops = new Array(cols).fill(0).map(()=>Math.random()*h/fontSize);
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  function frame(){
+    // Fade to black
+    ctx.fillStyle = "rgba(0,0,0,0.08)";
+    ctx.fillRect(0,0,w,h);
+
+    ctx.font = fontSize + "px monospace";
+    for(let i=0;i<cols;i++){
+      const text = chars[Math.floor(Math.random()*chars.length)];
+      const x = i * fontSize;
+      const y = drops[i] * fontSize;
+
+      ctx.fillStyle = "rgba(0,255,140,0.85)";
+      ctx.fillText(text, x, y);
+
+      if(y > h && Math.random() > 0.975) drops[i] = 0;
+      drops[i] += 1;
+    }
+    requestAnimationFrame(frame);
+  }
+  // Respect reduced motion
+  if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+    ctx.clearRect(0,0,c.width,c.height);
+    return;
+  }
+  frame();
+})();
+
+function toast(msg){
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._tm);
+  toast._tm = setTimeout(()=>t.classList.remove("show"), 1400);
+}
+
+function setTheme(theme){
+  state.theme = theme;
+  document.documentElement.setAttribute("data-theme", theme === "light" ? "light" : "dark");
+  saveState();
+}
+function toggleTheme(){ setTheme(state.theme === "light" ? "dark" : "light"); }
+
+function engineUrl(engine, query){
+  const q = encodeURIComponent(query);
+  switch(engine){
+    case "bing": return "https://www.bing.com/search?q=" + q;
+    case "duckduckgo": return "https://duckduckgo.com/?q=" + q;
+    case "yandex": return "https://yandex.com/search/?text=" + q;
+    default: return "https://www.google.com/search?q=" + q;
+  }
+}
+
+function openOrCopy(query, ev){
+  if(state.mode === "copy"){
+    navigator.clipboard.writeText(query)
+      .then(()=>toast("Copied query ✅"))
+      .catch(()=>toast("Copy failed"));
+    return;
+  }
+  const url = engineUrl(state.engine, query);
+  window.open(url, "_blank");
+}
+
+function addRecentTarget(target){
+  const item = { t: nowISO(), target };
+  state.recent.unshift(item);
+  state.recent = state.recent.slice(0, 10);
+  saveState();
+  renderRecent();
+}
+
+function normalizeTarget(raw){
+  let t = (raw || "").trim();
+  t = t.replace(/^https?:\/\//i, "");
+  t = t.split("/")[0];
+  return t.trim();
+}
+
+const LIB = [
+  { cat:"File & Directory Discovery", icon:"🗂️", queries:[
+    { id:"dir_index", name:"Directory listing (Index of)", desc:"Find open directories", build:t=>`site:${t} intitle:index.of` },
+    { id:"conf_files", name:"Exposed config files", desc:"xml/conf/ini/cfg…", build:t=>`site:${t} (ext:xml OR ext:conf OR ext:cnf OR ext:reg OR ext:inf OR ext:rdp OR ext:cfg OR ext:txt OR ext:ora OR ext:ini)` },
+    { id:"db_files", name:"Exposed DB files", desc:"sql/mdb/dbf…", build:t=>`site:${t} (ext:sql OR ext:dbf OR ext:mdb)` },
+    { id:"log_files", name:"Exposed log files", desc:"log files", build:t=>`site:${t} ext:log` },
+    { id:"backup_old", name:"Backup & old files", desc:"bak/old/backup…", build:t=>`site:${t} (ext:bkf OR ext:bkp OR ext:bak OR ext:old OR ext:backup)` },
+    { id:"docs_public", name:"Public documents", desc:"pdf/docx/pptx/csv…", build:t=>`site:${t} (ext:doc OR ext:docx OR ext:odt OR ext:pdf OR ext:rtf OR ext:ppt OR ext:pptx OR ext:pps OR ext:csv)` },
+    { id:"conf_php", name:"Sensitive conf.php", desc:"Index of conf.php", build:t=>`site:${t} intitle:"index of" conf.php` },
+    { id:"download_php", name:"download.php?file=", desc:"Potential file download endpoints", build:t=>`site:${t} intitle:"index of" "download.php?file="` },
+    { id:"yaml_users", name:"users.yml/admin.yml/config.yml", desc:"YAML secrets/config", build:t=>`site:${t} intitle:"index of" ("users.yml" OR "admin.yml" OR "config.yml")` },
+    { id:"index_etc", name:"Index of /etc", desc:"Leaky filesystem listing", build:t=>`site:${t} "Index of" "/etc"` },
+  ]},
+  { cat:"CMS (WordPress/Drupal/Joomla)", icon:"🧩", queries:[
+    { id:"wp_find", name:"Find WordPress sites", desc:"wp-content/wp-includes…", build:t=>`site:${t} (inurl:wp- OR inurl:wp-content OR inurl:plugins OR inurl:uploads OR inurl:themes OR inurl:download)` },
+    { id:"wp_find2", name:"WordPress #2", desc:"wp-content/wp-includes", build:t=>`site:${t} (inurl:wp-content OR inurl:wp-includes)` },
+    { id:"wp_config_backup", name:"WP config backup", desc:"wp-config backups", build:t=>`site:${t} inurl:"wp-content" intitle:"index of" intext:wp-config.php` },
+    { id:"wp_backups", name:"WordPress backup files", desc:"backup in wp-content", build:t=>`site:${t} inurl:"wp-content" intitle:"index of" intext:backup` },
+    { id:"drupal_login", name:"Drupal login pages", desc:"Drupal log in", build:t=>`site:${t} inurl:user intitle:"Drupal" intext:"Log in" -"powered by"` },
+    { id:"joomla_db", name:"Joomla database path", desc:"libraries/joomla/database", build:t=>`site:${t} inurl:/libraries/joomla/database/` },
+    { id:"wp_plugin_cf7", name:"WP plugin path (CF7)", desc:"contact-form-7 discovery", build:t=>`site:${t} inurl:*/wp-content/plugins/contact-form-7/` },
+  ]},
+  { cat:"Database & SQL Signals", icon:"🧮", queries:[
+    { id:"sql_errors", name:"SQL error messages", desc:"Leak clues from error strings", build:t=>`site:${t} (intext:"sql syntax near" OR intext:"syntax error has occurred" OR intext:"incorrect syntax near" OR intext:"unexpected end of SQL command" OR intext:"Warning: mysql_connect()" OR intext:"Warning: mysql_query()" OR intext:"Warning: pg_connect()")` },
+    { id:"sql_query_files", name:"SQL query files", desc:"php?sql=select", build:t=>`site:${t} inurl:"php?sql=select" ext:php` },
+    { id:"mysql_conf", name:"MySQL config files", desc:"conf.mysql", build:t=>`site:${t} intitle:"index of" conf.mysql` },
+    { id:"sql_dirs", name:"SQL directories & databases", desc:"index of sql dirs", build:t=>`site:${t} "sql" "parent" intitle:"index of" -injection` },
+  ]},
+  { cat:"Authentication & Admin", icon:"🔐", queries:[
+    { id:"login_pages", name:"Login pages", desc:"inurl:login", build:t=>`site:${t} inurl:login` },
+    { id:"admin_aspx", name:"Admin portal (admin.aspx)", desc:"Common admin path", build:t=>`site:${t} inurl:/admin.aspx` },
+    { id:"admin_backups", name:"Sensitive admin backups", desc:"Index of admin.zip", build:t=>`site:${t} intitle:"Index of" inurl:/backup/ "admin.zip"` },
+  ]},
+  { cat:"Vulnerabilities & Exposure", icon:"🧨", queries:[
+    { id:"phpinfo", name:"phpinfo() pages", desc:"phpinfo exposure", build:t=>`site:${t} ext:php intitle:phpinfo "published by the PHP Group"` },
+    { id:"backdoors", name:"Backdoor indicators", desc:"shell/wso/passwd…", build:t=>`site:${t} (inurl:shell OR inurl:backdoor OR inurl:wso OR inurl:cmd OR shadow OR passwd OR boot.ini)` },
+    { id:"install_setup", name:"Install / setup files", desc:"readme/license/install", build:t=>`site:${t} (inurl:readme OR inurl:license OR inurl:install OR inurl:setup OR inurl:config)` },
+    { id:"open_redirect", name:"Open redirect patterns", desc:"redir/redirect/return…", build:t=>`site:${t} (inurl:redir OR inurl:url OR inurl:redirect OR inurl:return OR inurl:src=http OR inurl:r=http)` },
+    { id:"struts", name:"Apache Struts paths", desc:"action/struts/do", build:t=>`site:${t} (ext:action OR ext:struts OR ext:do)` },
+    { id:"file_upload_script", name:"File upload scripts", desc:"uploadimage.php", build:t=>`site:${t} inurl:uploadimage.php` },
+    { id:"geoserver_wfs", name:"GeoServer WFS endpoints", desc:"geoserver ows wfs", build:t=>`site:${t} inurl:"/geoserver/ows?service=wfs"` },
+    { id:"arcgis_rest", name:"ArcGIS REST services", desc:"ArcGIS REST Services Directory", build:t=>`site:${t} intext:"ArcGIS REST Services Directory" intitle:"Folder: /"` },
+  ]},
+  { cat:"Subdomain & Asset Discovery", icon:"🛰️", queries:[
+    { id:"subdomains_google", name:"Subdomains (search)", desc:"site:*.domain", raw:t=>`site:*.${t}` },
+    { id:"subsub_google", name:"Sub-subdomains (search)", desc:"site:*.*.domain", raw:t=>`site:*.*.${t}` },
+    { id:"crtsh", name:"Certificate Transparency (crt.sh)", desc:"Find certs & SANs", action:t=>window.open(`https://crt.sh/?q=%25.${encodeURIComponent(t)}`, "_blank") },
+    { id:"censys_hosts", name:"Censys hosts", desc:"Censys hosts search", action:t=>window.open(`https://search.censys.io/search?resource=hosts&q=${encodeURIComponent(t)}`, "_blank") },
+    { id:"censys_certs", name:"Censys certificates", desc:"Censys cert search", action:t=>window.open(`https://search.censys.io/search?resource=certificates&q=${encodeURIComponent(t)}`, "_blank") },
+    { id:"shodan", name:"Shodan search", desc:"Internet-facing assets", action:t=>window.open(`https://www.shodan.io/search?query=${encodeURIComponent(t)}`, "_blank") },
+  ]},
+  { cat:"Archive & Historical", icon:"🕰️", queries:[
+    { id:"wayback_domain", name:"Wayback snapshots", desc:"Archive history", action:t=>window.open(`https://web.archive.org/web/*/${encodeURIComponent(t)}/*`, "_blank") },
+    { id:"wayback_swfs", name:"Wayback SWF links (CDX)", desc:"Legacy flash URLs", action:t=>window.open(`https://web.archive.org/cdx/search?url=${encodeURIComponent(t)}/&matchType=domain&collapse=urlkey&output=text&fl=original&filter=urlkey:.*swf&limit=100000`, "_blank") },
+  ]},
+  { cat:"OSINT & Social", icon:"🧠", queries:[
+    { id:"pastebin", name:"Pastebin entries", desc:"pastebin mentions", action:t=>window.open(engineUrl(state.engine, `site:pastebin.com ${t}`), "_blank") },
+    { id:"linkedin", name:"LinkedIn employees", desc:"employees mentions", action:t=>window.open(engineUrl(state.engine, `site:linkedin.com employees ${t}`), "_blank") },
+    { id:"github_code", name:"GitHub code search", desc:"code references", action:t=>window.open(`https://github.com/search?q=${encodeURIComponent(`"*."${t}"`)}&type=code`, "_blank") },
+    { id:"openbugbounty", name:"OpenBugBounty", desc:"host search", action:t=>window.open(`https://www.openbugbounty.org/search/?search=${encodeURIComponent(t)}&type=host`, "_blank") },
+    { id:"reddit", name:"Reddit mentions", desc:"recent posts", action:t=>window.open(`https://www.reddit.com/search/?q=${encodeURIComponent(t)}&sort=new`, "_blank") },
+  ]},
+  { cat:"Configuration & API", icon:"⚙️", queries:[
+    { id:"main_yml", name:"main.yml files", desc:"index of main.yml", build:t=>`site:${t} intitle:"index of" "main.yml"` },
+    { id:"json_rpc", name:"JSON-RPC endpoints", desc:"index of json-rpc", build:t=>`site:${t} "index of" inurl:json-rpc` },
+    { id:"jwks", name:"jwks-rsa files", desc:"JWKS in index", build:t=>`site:${t} "index of" inurl:jwks-rsa` },
+    { id:"docker_compose", name:"docker-compose.yml", desc:"compose files", build:t=>`site:${t} intitle:"index of" "docker-compose.yml"` },
+    { id:"pom_xml", name:"pom.xml", desc:"Maven pom.xml", build:t=>`site:${t} intext:pom.xml intitle:"index of /"` },
+  ]},
+];
+
+function allQueries(){ return LIB.flatMap(c => c.queries.map(q => ({...q, cat:c.cat, icon:c.icon}))); }
+function isFav(id){ return !!(state.favorites && state.favorites[id]); }
+
+function renderStats(){
+  const qs = allQueries();
+  $("#qCount").textContent = qs.length;
+  $("#catCount").textContent = LIB.length;
+  $("#favCount").textContent = Object.keys(state.favorites || {}).length;
+  $("#libMeta").textContent = `${qs.length} queries • ${LIB.length} categories`;
+}
+
+function toggleFav(id){
+  state.favorites = state.favorites || {};
+  if(state.favorites[id]) delete state.favorites[id];
+  else state.favorites[id] = true;
+  saveState();
+  renderLibrary();
+}
+
+let showFavOnly = false;
+let allExpanded = false;
+
+function buildQuery(q, target){
+  if(q.build) return q.build(target);
+  if(q.raw) return q.raw(target);
+  return `site:${target}`;
+}
+
+function runQuery(q, ev){
+  const target = normalizeTarget($("#target").value);
+  if(!target){ toast("⚠️ Please enter a target first."); return; }
+
+  if(typeof q.action === "function"){
+    q.action(target);
+    addRecentTarget(target);
+    return;
+  }
+  const query = buildQuery(q, target);
+  openOrCopy(query, ev);
+  addRecentTarget(target);
+}
+
+function renderLibrary(){
+  const filter = ($("#filter").value || "").trim().toLowerCase();
+  const catsEl = $("#cats");
+  catsEl.innerHTML = "";
+
+  const activeCats = LIB.map(cat => {
+    const qFiltered = cat.queries.filter(q => {
+      if(showFavOnly && !isFav(q.id)) return false;
+      if(!filter) return true;
+      const hay = `${cat.cat} ${q.name} ${q.desc||""}`.toLowerCase();
+      return hay.includes(filter);
+    });
+    return {...cat, queries:qFiltered};
+  }).filter(c => c.queries.length > 0);
+
+  activeCats.forEach((cat, idx) => {
+    const catEl = document.createElement("div");
+    catEl.className = "cat" + ((allExpanded || (idx===0 && !filter && !showFavOnly)) ? " open" : "");
+    const head = document.createElement("div");
+    head.className = "catHead";
+    head.innerHTML = `
+      <div class="title"><span>${cat.icon}</span> ${cat.cat}</div>
+      <div class="meta">${cat.queries.length} items</div>
+    `;
+    head.addEventListener("click", ()=>catEl.classList.toggle("open"));
+
+    const body = document.createElement("div");
+    body.className = "catBody";
+    const grid = document.createElement("div");
+    grid.className = "btnGrid";
+
+    cat.queries.forEach(q => {
+      const btn = document.createElement("div");
+      btn.className = "qbtn";
+      if(q.desc) btn.setAttribute("data-desc", "1");
+      btn.innerHTML = `
+        <div class="left">
+          <div class="t">${q.name}</div>
+          <div class="s">${q.desc || ""}</div>
+        </div>
+        <div class="right">
+          <button class="mini star ${isFav(q.id) ? "on":""}" title="Toggle favorite">${isFav(q.id) ? "Fav" : "Star"}</button>
+          <button class="mini" title="Copy query">Copy</button>
+        </div>
+      `;
+
+      btn.addEventListener("click", (ev)=>{
+        if(ev.target && ev.target.classList && ev.target.classList.contains("mini")) return;
+        runQuery(q, ev);
+      });
+
+      const starBtn = btn.querySelector(".mini.star");
+      starBtn.addEventListener("click", (ev)=>{
+        ev.stopPropagation();
+        toggleFav(q.id);
+        toast(isFav(q.id) ? "Added to favorites ⭐" : "Removed from favorites");
+      });
+
+      const copyBtn = btn.querySelectorAll(".mini")[1];
+      copyBtn.addEventListener("click", async (ev)=>{
+        ev.stopPropagation();
+        const target = normalizeTarget($("#target").value);
+        if(!target){ toast("Enter a target first"); return; }
+        const query = buildQuery(q, target);
+        try{ await navigator.clipboard.writeText(query); toast("Copied query ✅"); addRecentTarget(target); }
+        catch(e){ toast("Copy failed"); }
+      });
+
+      grid.appendChild(btn);
+    });
+
+    body.appendChild(grid);
+    catEl.appendChild(head);
+    catEl.appendChild(body);
+    catsEl.appendChild(catEl);
+  });
+
+  if(activeCats.length === 0){
+    catsEl.innerHTML = `<div class="small">No queries match your filter.</div>`;
+  }
+  renderStats();
+}
+
+function renderRecent(){
+  const tbody = $("#recentTable tbody");
+  if(!state.recent || state.recent.length === 0){
+    tbody.innerHTML = `<tr><td colspan="3" class="small">No recent targets yet.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = "";
+  state.recent.forEach(item => {
+    const tr = document.createElement("tr");
+    const d = new Date(item.t);
+    const when = isNaN(d.getTime()) ? item.t : d.toLocaleString();
+    tr.innerHTML = `
+      <td class="small">${when}</td>
+      <td class="mono">${escapeHtml(item.target)}</td>
+      <td><button class="mini">Use</button></td>
+    `;
+    tr.querySelector("button").addEventListener("click", ()=>{
+      $("#target").value = item.target;
+      updateCustomPreview();
+      toast("Target set 🎯");
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function updateCustomPreview(){
+  const t = normalizeTarget($("#target").value);
+  const custom = ($("#customQuery").value || "").trim();
+  const base = t ? `site:${t} ` : "";
+  $("#preview").textContent = custom ? (base + custom) : "(waiting…)";
+}
+function runCustom(){
+  const t = normalizeTarget($("#target").value);
+  const custom = ($("#customQuery").value || "").trim();
+  if(!t){ toast("Enter a target first"); return; }
+  if(!custom){ toast("Enter a custom query first"); return; }
+  const query = `site:${t} ${custom}`;
+  openOrCopy(query);
+  addRecentTarget(t);
+}
+
+function exportSettings(){
+  const data = { version:2, exportedAt: nowISO(), state };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "recon-console-settings.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+  toast("Exported settings ⬇️");
+}
+function importSettings(){
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json";
+  input.onchange = async () => {
+    const file = input.files && input.files[0];
+    if(!file) return;
+    try{
+      const txt = await file.text();
+      const parsed = JSON.parse(txt);
+      if(parsed && parsed.state){
+        Object.assign(state, parsed.state);
+        saveState();
+        applyStateToUI();
+        renderRecent();
+        renderLibrary();
+        toast("Imported ✅");
+      }else toast("Invalid file");
+    }catch(e){ toast("Import failed"); }
+  };
+  input.click();
+}
+
+function resetAll(){
+  if(!confirm("Reset favorites & recent targets?")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+function applyStateToUI(){
+  setTheme(state.theme || "dark");
+  $("#engine").value = state.engine || "google";
+  $("#mode").value = state.mode || "open";
+}
+
+function init(){
+  loadState();
+  applyStateToUI();
+  renderRecent();
+  renderLibrary();
+  updateCustomPreview();
+
+  $("#themeBtn").addEventListener("click", toggleTheme);
+  $("#engine").addEventListener("change", e=>{ state.engine = e.target.value; saveState(); toast("Engine: " + state.engine); });
+  $("#mode").addEventListener("change", e=>{ state.mode = e.target.value; saveState(); toast("Mode: " + state.mode); });
+
+  $("#filter").addEventListener("input", renderLibrary);
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "/" && document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "TEXTAREA"){
+      e.preventDefault(); $("#filter").focus();
+    }
+  });
+
+  $("#toggleAllBtn").addEventListener("click", ()=>{
+    allExpanded = !allExpanded;
+    $("#toggleAllBtn").textContent = allExpanded ? "📁 Collapse all" : "📂 Expand all";
+    $$(".cat").forEach(c => c.classList.toggle("open", allExpanded));
+  });
+
+  $("#favoritesOnlyBtn").addEventListener("click", ()=>{
+    showFavOnly = !showFavOnly;
+    $("#favoritesOnlyBtn").textContent = showFavOnly ? "⭐ All queries" : "⭐ Favorites";
+    renderLibrary();
+  });
+
+  $("#runCustomBtn").addEventListener("click", runCustom);
+  $("#customQuery").addEventListener("input", updateCustomPreview);
+  $("#target").addEventListener("input", updateCustomPreview);
+
+  $("#exportBtn").addEventListener("click", exportSettings);
+  $("#importBtn").addEventListener("click", importSettings);
+  $("#clearBtn").addEventListener("click", resetAll);
+
+  $("#clearTargetBtn").addEventListener("click", ()=>{
+    $("#target").value = "";
+    updateCustomPreview();
+    toast("Target cleared ✖");
+  });
+
+  $("#pasteBtn").addEventListener("click", async ()=>{
+    try{
+      const txt = await navigator.clipboard.readText();
+      if(txt){
+        $("#target").value = normalizeTarget(txt);
+        updateCustomPreview();
+        toast("Pasted 🎯");
+      }
+    }catch(e){ toast("Clipboard blocked by browser"); }
+  });
+
+  $("#target").addEventListener("keypress", (e)=>{
+    if(e.key === "Enter"){ e.preventDefault(); $("#filter").focus(); }
+  });
+}
+
+init();
+
+// Clear Recent History
+document.getElementById("clearHistoryBtn").addEventListener("click", () => {
+    if (!confirm("Clear all recent target history?")) return;
+    localStorage.removeItem("recentTargets");
+    const list = document.getElementById("recentList");
+    if (list) list.innerHTML = "<li class='muted'>No recent history</li>";
+});
+
+</script>
+
+<!--
+Attribution / licensing:
+- If your original file was adapted from someone else (e.g., Sudoninja), keep the credit line
+  and include the license terms (MIT, GPL, etc.) as required by that project.
+- Removing attribution to "avoid detection" can violate licenses and community norms.
+-->
+</body>
+</html>

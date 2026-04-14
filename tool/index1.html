@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Sanjay Singh // Offensive Security</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="description" content="Sanjay Singh — Penetration Tester, CVE Researcher, Exploit Developer. 100+ CVEs, 10+ Years."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous"/>
+<style>
+:root{
+  --void:#00000a;
+  --deep:#020818;
+  --panel:#060d1f;
+  --card:#091428;
+  --g1:#00ffe5;
+  --g2:#00ff88;
+  --g3:#22aaff;
+  --red:#ff2d55;
+  --amber:#ffb700;
+  --text:#c8d8f0;
+  --muted:#4a6080;
+  --border:rgba(0,255,229,.1);
+  --glow-c:rgba(0,255,229,.6);
+  --glow-g:rgba(0,255,136,.5);
+  --font-mono:'Share Tech Mono',monospace;
+  --font-display:'Orbitron',sans-serif;
+  --font-body:'Exo 2',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--void);color:var(--text);font-family:var(--font-body);line-height:1.7;overflow-x:hidden;cursor:none}
+a{color:inherit;text-decoration:none}
+ul{list-style:none}
+
+/* CURSOR */
+#cursor{position:fixed;width:12px;height:12px;border-radius:50%;background:var(--g1);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 20px var(--g1),0 0 40px rgba(0,255,229,.4);transition:width .15s,height .15s;mix-blend-mode:screen}
+#cursor-ring{position:fixed;width:36px;height:36px;border-radius:50%;border:1px solid rgba(0,255,229,.5);pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
+
+/* CANVAS */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.7}
+
+/* SCANLINES */
+body::before{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,229,.015) 2px,rgba(0,255,229,.015) 4px)}
+body::after{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,10,.8) 100%)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--void)}
+::-webkit-scrollbar-thumb{background:var(--g1);border-radius:2px}
+
+/* HEADER */
+.site-header{position:fixed;top:0;left:0;right:0;z-index:500;height:64px;display:flex;align-items:center;background:rgba(2,8,24,.9);backdrop-filter:blur(24px);border-bottom:1px solid var(--border)}
+.nav-wrap{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:1300px;margin:0 auto;padding:0 2rem}
+.logo{font-family:var(--font-display);font-size:.95rem;font-weight:900;letter-spacing:.15em;color:var(--text);display:flex;align-items:center;gap:.4rem}
+.logo .br{color:var(--g1);opacity:.6}
+.logo .nm{color:var(--g1);text-shadow:0 0 20px var(--g1)}
+.logo-tag{font-family:var(--font-mono);font-size:.55rem;color:var(--muted);margin-left:.5rem;letter-spacing:.1em}
+.main-nav{display:flex;gap:.1rem;align-items:center}
+.main-nav a{font-family:var(--font-mono);font-size:.63rem;color:var(--muted);padding:.4rem .65rem;border-radius:3px;letter-spacing:.08em;text-transform:uppercase;transition:all .2s;position:relative}
+.main-nav a::after{content:'';position:absolute;bottom:0;left:50%;right:50%;height:1px;background:var(--g1);transition:all .25s}
+.main-nav a:hover{color:var(--g1)}
+.main-nav a:hover::after{left:10%;right:10%}
+.nav-hire{font-family:var(--font-mono);font-size:.63rem;padding:.42rem .9rem;border:1px solid var(--g1);color:var(--g1);border-radius:3px;letter-spacing:.1em;text-transform:uppercase;transition:all .25s;background:transparent;cursor:none;text-decoration:none;display:inline-block}
+.nav-hire:hover{background:var(--g1);color:#000;box-shadow:0 0 20px var(--glow-g)}
+.nav-toggle{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:none;padding:.5rem}
+.nav-toggle span{width:22px;height:1px;background:var(--g1);display:block;transition:all .3s}
+
+/* LAYOUT */
+.container{max-width:1300px;margin:0 auto;padding:0 2rem;position:relative;z-index:10}
+section{padding:7rem 0;position:relative}
+section.alt{background:rgba(6,13,31,.65)}
+
+.section-label{font-family:var(--font-mono);font-size:.62rem;color:var(--g1);letter-spacing:.2em;text-transform:uppercase;margin-bottom:.75rem;display:flex;align-items:center;gap:.75rem}
+.section-label::before{content:'';width:24px;height:1px;background:var(--g1)}
+.section-label.center{justify-content:center}
+.section-label.center::before{display:none}
+.section-label.center::after{content:'';width:24px;height:1px;background:var(--g1)}
+.section-title{font-family:var(--font-display);font-weight:700;font-size:clamp(1.8rem,3.5vw,3rem);line-height:1.05;margin-bottom:1rem;letter-spacing:-.02em;color:#fff}
+.section-title.center{text-align:center}
+.section-title em{color:var(--g1);font-style:normal;text-shadow:0 0 30px var(--glow-g)}
+.section-lead{color:var(--muted);font-size:.97rem;max-width:580px;margin-bottom:3rem;font-weight:300}
+.section-lead.center{text-align:center;margin-left:auto;margin-right:auto}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:none}
+.reveal-left{opacity:0;transform:translateX(-36px);transition:opacity .7s ease,transform .7s ease}
+.reveal-left.visible{opacity:1;transform:none}
+.reveal-right{opacity:0;transform:translateX(36px);transition:opacity .7s ease,transform .7s ease}
+.reveal-right.visible{opacity:1;transform:none}
+
+/* HERO */
+#home{min-height:100vh;display:flex;align-items:center;padding-top:100px;padding-bottom:4rem;overflow:hidden}
+.hero-wrap{display:grid;grid-template-columns:1fr 420px;gap:5rem;align-items:center;width:100%;max-width:1300px;margin:0 auto;padding:0 2rem;position:relative;z-index:10}
+.hero-eyebrow{font-family:var(--font-mono);font-size:.78rem;color:var(--g1);letter-spacing:.18em;text-transform:uppercase;margin-bottom:1.4rem;display:flex;align-items:center;gap:.75rem}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--g1);flex-shrink:0;box-shadow:0 0 0 0 var(--glow-g);animation:hb 2s infinite}
+@keyframes hb{0%{box-shadow:0 0 0 0 rgba(0,255,136,.6)}70%{box-shadow:0 0 0 8px rgba(0,255,136,0)}100%{box-shadow:0 0 0 0 rgba(0,255,136,0)}}
+.hero-name{font-family:var(--font-display);font-size:clamp(2.8rem,6.5vw,5.2rem);font-weight:900;line-height:1;letter-spacing:-.04em;color:#fff;position:relative;display:inline-block;margin-bottom:1.4rem}
+.hero-name::before,.hero-name::after{content:attr(data-text);position:absolute;top:0;left:0;right:0;font-family:inherit;font-size:inherit;font-weight:inherit}
+.hero-name::before{color:var(--g1);clip-path:polygon(0 0,100% 0,100% 35%,0 35%);animation:gt 5s infinite;opacity:0}
+.hero-name::after{color:var(--red);clip-path:polygon(0 65%,100% 65%,100% 100%,0 100%);animation:gb 5s infinite;opacity:0}
+@keyframes gt{0%,88%,100%{transform:none;opacity:0}89%{transform:translate(-3px);opacity:.8}91%{transform:translate(3px);opacity:.8}93%{transform:none;opacity:.8}}
+@keyframes gb{0%,90%,100%{transform:none;opacity:0}91%{transform:translate(3px);opacity:.6}93%{transform:translate(-2px);opacity:.6}95%{transform:none;opacity:.6}}
+.hero-sub{font-size:1.05rem;color:var(--muted);font-weight:300;max-width:520px;margin-bottom:2.5rem;font-style:italic}
+.hero-sub strong{color:var(--text);font-weight:400;font-style:normal}
+.hero-cta{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:3rem}
+.btn{font-family:var(--font-mono);font-size:.73rem;letter-spacing:.1em;text-transform:uppercase;padding:.78rem 1.7rem;border-radius:3px;display:inline-flex;align-items:center;gap:.6rem;cursor:none;transition:all .25s;border:none}
+.btn-primary{background:var(--g1);color:#000;font-weight:700;box-shadow:0 0 28px rgba(0,255,229,.4);position:relative;overflow:hidden}
+.btn-primary::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);transform:translateX(-100%);transition:transform .5s}
+.btn-primary:hover::before{transform:translateX(100%)}
+.btn-primary:hover{box-shadow:0 0 50px rgba(0,255,229,.7);transform:translateY(-2px)}
+.btn-ghost{background:transparent;color:var(--g1);border:1px solid rgba(0,255,229,.4)}
+.btn-ghost:hover{background:rgba(0,255,229,.07);border-color:var(--g1);box-shadow:0 0 20px rgba(0,255,229,.15);transform:translateY(-2px)}
+.btn-sm{padding:.48rem 1rem;font-size:.65rem}
+.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.stat{padding:1rem .75rem;text-align:center;border-right:1px solid var(--border);background:rgba(0,255,229,.02)}
+.stat:last-child{border-right:none}
+.stat-n{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--g1);text-shadow:0 0 20px var(--glow-g);line-height:1}
+.stat-l{font-family:var(--font-mono);font-size:.58rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:.3rem}
+
+/* TERMINAL */
+.terminal{background:rgba(4,12,28,.97);border:1px solid rgba(0,255,229,.2);border-radius:10px;overflow:hidden;box-shadow:0 0 60px rgba(0,255,229,.08),0 40px 100px rgba(0,0,0,.6);animation:float 6s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.term-bar{background:rgba(0,255,229,.05);padding:.75rem 1rem;border-bottom:1px solid rgba(0,255,229,.12);display:flex;align-items:center;gap:.5rem}
+.term-dots{display:flex;gap:.4rem}
+.term-dots span{width:11px;height:11px;border-radius:50%}
+.term-dots span:nth-child(1){background:#ff5f57}
+.term-dots span:nth-child(2){background:#febc2e}
+.term-dots span:nth-child(3){background:#28c840}
+.term-path{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);margin-left:.5rem}
+.term-body{padding:1.4rem;font-family:var(--font-mono);font-size:.75rem}
+.term-line{margin-bottom:.45rem;display:flex;align-items:baseline;gap:.5rem}
+.term-prompt{color:var(--g2);flex-shrink:0}
+.term-cmd{color:#fff}
+.term-out{color:var(--muted);padding-left:1.2rem;display:block;margin-bottom:.35rem}
+.tg{color:var(--g1)}
+.tc{color:var(--g3)}
+.tr{color:var(--red)}
+.ta{color:var(--amber)}
+.term-cursor{display:inline-block;width:8px;height:13px;background:var(--g1);vertical-align:text-bottom;animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ABOUT */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start}
+.about-list li{padding:.78rem 0;border-bottom:1px solid var(--border);display:flex;gap:1rem;font-size:.9rem;color:var(--muted)}
+.about-list li .ar{color:var(--g1);font-family:var(--font-mono);flex-shrink:0}
+.badges{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:1.75rem}
+.badge{font-family:var(--font-mono);font-size:.62rem;padding:.28rem .65rem;border:1px solid rgba(0,255,229,.22);border-radius:3px;color:var(--g1);background:rgba(0,255,229,.04);letter-spacing:.05em;transition:all .2s}
+.badge:hover{background:rgba(0,255,229,.1);border-color:var(--g1);box-shadow:0 0 10px rgba(0,255,229,.2)}
+.info-panel{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.info-panel-head{background:rgba(0,255,229,.04);padding:.9rem 1.4rem;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:.68rem;color:var(--g1);letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:.5rem}
+.info-panel-head::before{content:'$ ';opacity:.5}
+.info-row{display:grid;grid-template-columns:90px 1fr;gap:1rem;padding:.82rem 1.4rem;border-bottom:1px solid var(--border);align-items:center}
+.info-row:last-of-type{border-bottom:none}
+.ik{font-family:var(--font-mono);font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.iv{font-size:.86rem;color:var(--text)}
+.iv a{color:var(--g1)}
+.social-row{display:flex;gap:.45rem;padding:1.2rem 1.4rem;border-top:1px solid var(--border)}
+.social-row a{width:35px;height:35px;border-radius:4px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);color:var(--muted);transition:all .2s;font-size:.9rem}
+.social-row a:hover{color:var(--g1);border-color:var(--g1);background:rgba(0,255,229,.07);box-shadow:0 0 15px rgba(0,255,229,.2)}
+
+/* SKILLS */
+.skills-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.skill-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.9rem;position:relative;overflow:hidden;transition:all .35s}
+.skill-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--g1),transparent);transform:scaleX(0);transition:transform .4s}
+.skill-card:hover::before{transform:scaleX(1)}
+.skill-card:hover{border-color:rgba(0,255,229,.3);transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,.4),0 0 30px rgba(0,255,229,.06)}
+.skill-icon{font-size:1.4rem;margin-bottom:1.2rem;width:46px;height:46px;border:1px solid rgba(0,255,229,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(0,255,229,.05);color:var(--g1)}
+.skill-card h3{font-family:var(--font-display);font-size:.78rem;font-weight:600;color:#fff;margin-bottom:.9rem;letter-spacing:.05em}
+.skill-card li{font-family:var(--font-mono);font-size:.7rem;color:var(--muted);padding:.32rem 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:.5rem}
+.skill-card li::before{content:'>';color:var(--g1);font-size:.62rem}
+.skill-card li:last-child{border:none}
+
+/* CVE */
+.cve-hero{display:grid;grid-template-columns:repeat(3,1fr);margin-bottom:3rem;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.cve-big-stat{padding:2.5rem;text-align:center;background:var(--card);border-right:1px solid var(--border)}
+.cve-big-stat:last-child{border-right:none}
+.cve-big-num{font-family:var(--font-display);font-size:2.6rem;font-weight:900;color:var(--g1);text-shadow:0 0 40px var(--glow-g);display:block;line-height:1}
+.cve-big-lbl{font-family:var(--font-mono);font-size:.6rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-top:.5rem;display:block}
+.cve-cards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;margin-bottom:2rem}
+.cve-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.75rem;transition:all .3s}
+.cve-card:hover{border-color:rgba(0,255,229,.3)}
+.cve-card.wide{grid-column:1/-1}
+.cve-card-head{font-family:var(--font-mono);font-size:.62rem;color:var(--g1);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.2rem;display:flex;align-items:center;gap:.5rem}
+.cve-card-head::before{content:'[';opacity:.4}
+.cve-card-head::after{content:']';opacity:.4}
+.cve-tag-list{display:flex;flex-wrap:wrap;gap:.5rem}
+.cve-tag{font-family:var(--font-mono);font-size:.7rem;padding:.32rem .72rem;border-radius:3px;background:rgba(0,170,255,.08);border:1px solid rgba(0,170,255,.22);color:var(--g3);transition:all .2s;cursor:default}
+.cve-tag:hover{background:rgba(0,170,255,.15);border-color:var(--g3);color:#fff}
+.cve-card p{font-size:.86rem;color:var(--muted);margin-bottom:1.4rem;font-weight:300}
+
+/* LIVE FEED */
+#live-feed{background:rgba(4,10,22,.98);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 0 80px rgba(0,255,229,.05);margin-top:3rem}
+.feed-header{padding:1rem 1.5rem;background:rgba(0,255,229,.04);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.feed-title{font-family:var(--font-display);font-size:.7rem;color:#fff;letter-spacing:.12em;display:flex;align-items:center;gap:.75rem}
+.skull{color:var(--red);font-size:.9rem}
+.live-pill{display:flex;align-items:center;gap:.4rem;font-family:var(--font-mono);font-size:.58rem;color:var(--g1);border:1px solid rgba(0,255,136,.35);padding:.25rem .65rem;border-radius:999px;letter-spacing:.12em}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--g2);animation:lp 1.5s infinite}
+@keyframes lp{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,255,136,.5)}50%{opacity:.6;box-shadow:0 0 0 5px rgba(0,255,136,0)}}
+.feed-meta{font-family:var(--font-mono);font-size:.63rem;color:var(--muted);padding:.58rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.04)}
+#feed-list{padding:.5rem 0}
+.feed-item{display:grid;grid-template-columns:155px 1fr auto;gap:1.5rem;padding:.95rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.04);align-items:center;transition:background .2s;animation:si .4s ease}
+@keyframes si{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.feed-item:hover{background:rgba(0,255,229,.02)}
+.feed-item:last-child{border-bottom:none}
+.feed-id{font-family:var(--font-display);font-size:.72rem;color:var(--g3);font-weight:600;letter-spacing:.02em}
+.feed-desc{font-family:var(--font-mono);font-size:.7rem;color:var(--muted);line-height:1.5}
+.feed-right{display:flex;flex-direction:column;align-items:flex-end;gap:.4rem}
+.cvss-badge{font-family:var(--font-display);font-size:.62rem;font-weight:700;padding:.22rem .6rem;border-radius:3px;letter-spacing:.04em;white-space:nowrap}
+.sev-c{background:rgba(255,45,85,.15);color:#ff6b8a;border:1px solid rgba(255,45,85,.3)}
+.sev-h{background:rgba(255,183,0,.12);color:#ffd54f;border:1px solid rgba(255,183,0,.25)}
+.sev-m{background:rgba(0,170,255,.1);color:#64b5f6;border:1px solid rgba(0,170,255,.2)}
+.sev-l{background:rgba(0,255,136,.08);color:var(--g2);border:1px solid rgba(0,255,136,.2)}
+.feed-link{font-family:var(--font-mono);font-size:.63rem;color:var(--g1);white-space:nowrap}
+.feed-link:hover{text-decoration:underline}
+.feed-loading{text-align:center;padding:2.5rem;font-family:var(--font-mono);font-size:.78rem;color:var(--muted)}
+.feed-loading span{color:var(--g1);animation:blink 1s step-end infinite}
+
+/* EXPLOITS TABLE */
+.tbl-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.data-table{width:100%;border-collapse:collapse}
+.data-table thead{background:rgba(0,255,229,.04)}
+.data-table th{font-family:var(--font-mono);font-size:.58rem;color:var(--g1);padding:.88rem 1.2rem;text-align:left;letter-spacing:.12em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.data-table td{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);padding:.82rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.data-table tr:last-child td{border:none}
+.data-table tbody tr{transition:background .2s}
+.data-table tbody tr:hover td{background:rgba(0,255,229,.03);color:var(--text)}
+.data-table a{color:var(--g3)}
+.data-table a:hover{color:var(--g1)}
+.exploit-type{font-size:.58rem;padding:.2rem .48rem;border-radius:2px;background:rgba(255,45,85,.1);color:#ff6b8a;border:1px solid rgba(255,45,85,.2)}
+
+/* BOOKS */
+.books-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.book-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.7rem;display:flex;flex-direction:column;transition:all .3s;position:relative;overflow:hidden}
+.book-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--g2),var(--g1));transform:scaleX(0);transform-origin:left;transition:transform .4s}
+.book-card:hover::after{transform:scaleX(1)}
+.book-card:hover{border-color:rgba(0,255,229,.25);transform:translateY(-4px);box-shadow:0 25px 60px rgba(0,0,0,.4)}
+.book-num{font-family:var(--font-display);font-size:1.9rem;font-weight:900;color:rgba(0,255,229,.1);line-height:1;margin-bottom:.7rem}
+.book-card h3{font-size:.87rem;font-weight:600;color:#fff;margin-bottom:.7rem;line-height:1.4;flex:1}
+.book-card p{font-size:.78rem;color:var(--muted);margin-bottom:1.4rem;font-weight:300}
+
+/* SERVICES */
+.svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.svc-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.9rem;text-align:center;transition:all .35s}
+.svc-card:hover{border-color:rgba(0,255,229,.3);transform:translateY(-6px);box-shadow:0 30px 70px rgba(0,0,0,.5),0 0 40px rgba(0,255,229,.05)}
+.svc-icon{width:56px;height:56px;border-radius:10px;margin:0 auto 1.4rem;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:var(--g1);border:1px solid rgba(0,255,229,.2);background:rgba(0,255,229,.05);position:relative}
+.svc-icon::after{content:'';position:absolute;inset:-4px;border-radius:14px;border:1px solid rgba(0,255,229,.08)}
+.svc-card h3{font-family:var(--font-display);font-size:.76rem;font-weight:600;color:#fff;margin-bottom:.7rem;letter-spacing:.04em}
+.svc-card p{font-size:.78rem;color:var(--muted);font-weight:300}
+
+/* PRICING */
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.price-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:2.4rem 1.9rem;position:relative;transition:all .3s}
+.price-card.hot{border-color:var(--g1);box-shadow:0 0 50px rgba(0,255,229,.12),0 0 120px rgba(0,255,229,.04)}
+.price-card.hot::before{content:'MOST POPULAR';position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--g1);color:#000;font-family:var(--font-mono);font-size:.52rem;font-weight:700;padding:.28rem .75rem;letter-spacing:.15em;border-radius:0 0 4px 4px}
+.price-card:hover{transform:translateY(-4px)}
+.price-tier{font-family:var(--font-mono);font-size:.62rem;color:var(--g1);letter-spacing:.15em;text-transform:uppercase;margin-bottom:.5rem}
+.price-num{font-family:var(--font-display);font-size:2.8rem;font-weight:900;color:#fff;line-height:1;margin-bottom:.25rem}
+.price-num sup{font-size:1.1rem;vertical-align:top;margin-top:.5rem}
+.price-desc{font-size:.78rem;color:var(--muted);margin-bottom:1.75rem;padding-bottom:1.75rem;border-bottom:1px solid var(--border)}
+.price-features li{font-family:var(--font-mono);font-size:.7rem;color:var(--muted);padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:.6rem}
+.price-features li::before{content:'✓';color:var(--g2);font-size:.68rem;flex-shrink:0}
+.price-features li:last-child{border:none}
+.price-btn{display:block;width:100%;margin-top:1.75rem;text-align:center}
+
+/* MEDIA */
+.media-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem}
+.media-col-title{font-family:var(--font-mono);font-size:.62rem;color:var(--g1);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1.4rem;display:flex;align-items:center;gap:.5rem}
+.media-col-title::before{content:'//';opacity:.4}
+.article-card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:1.4rem;margin-bottom:1rem;transition:all .25s}
+.article-card:hover{border-color:rgba(0,255,229,.3);transform:translateX(4px)}
+.article-card h4{margin-bottom:.5rem}
+.article-card h4 a{color:#fff;transition:color .2s;font-size:.86rem}
+.article-card h4 a:hover{color:var(--g1)}
+.article-card p{font-size:.76rem;color:var(--muted);font-weight:300}
+.yt-list{display:flex;flex-direction:column;gap:1rem}
+.yt-embed{border-radius:8px;overflow:hidden;aspect-ratio:16/9;background:var(--card);border:1px solid var(--border)}
+.yt-embed iframe{width:100%;height:100%;display:block}
+
+/* CONTACT */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start}
+.contact-list li{display:flex;align-items:center;gap:1rem;padding:.86rem 0;border-bottom:1px solid var(--border);font-size:.88rem;color:var(--muted)}
+.contact-list li:last-child{border:none}
+.contact-list li i{color:var(--g1);width:20px;text-align:center}
+.contact-list a{color:var(--g1)}
+.cf{display:flex;flex-direction:column;gap:.82rem}
+.cf input,.cf textarea{background:rgba(6,13,31,.8);border:1px solid var(--border);border-radius:4px;padding:.82rem 1rem;color:var(--text);font-family:var(--font-mono);font-size:.76rem;width:100%;transition:all .25s;outline:none}
+.cf input:focus,.cf textarea:focus{border-color:var(--g1);box-shadow:0 0 0 3px rgba(0,255,229,.08)}
+.cf input::placeholder,.cf textarea::placeholder{color:var(--muted)}
+.cf textarea{resize:vertical;min-height:130px}
+
+/* FOOTER */
+.site-footer{background:var(--deep);border-top:1px solid var(--border);padding:2.5rem 0}
+.footer-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.footer-logo{font-family:var(--font-display);font-size:.82rem;font-weight:700;color:var(--g1);letter-spacing:.12em}
+.footer-copy{font-family:var(--font-mono);font-size:.68rem;color:var(--muted)}
+.footer-tagline{font-family:var(--font-mono);font-size:.62rem;color:var(--muted);opacity:.45}
+
+/* RESPONSIVE */
+@media(max-width:1024px){
+  .hero-wrap,.about-grid,.contact-grid{grid-template-columns:1fr}
+  .terminal{max-width:480px}
+  .skills-grid,.svc-grid,.pricing-grid,.books-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:768px){
+  .main-nav{display:none;position:fixed;top:64px;left:0;right:0;flex-direction:column;background:rgba(2,8,24,.98);padding:1.5rem;gap:.5rem;border-bottom:1px solid var(--border);backdrop-filter:blur(20px)}
+  .main-nav.open{display:flex}
+  .nav-hire{display:none}
+  .nav-toggle{display:flex}
+  .skills-grid,.svc-grid,.pricing-grid,.books-grid,.cve-cards-grid,.media-grid{grid-template-columns:1fr}
+  .cve-hero{grid-template-columns:1fr}
+  .cve-big-stat{border-right:none;border-bottom:1px solid var(--border)}
+  .feed-item{grid-template-columns:1fr;gap:.5rem}
+  .hero-stats{grid-template-columns:repeat(2,1fr)}
+  .cve-card.wide{grid-column:auto}
+  .footer-inner{flex-direction:column;text-align:center}
+  section{padding:5rem 0}
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<canvas id="bg-canvas"></canvas>
+
+<header class="site-header">
+  <div class="nav-wrap">
+    <div class="logo">
+      <span class="br">[</span><span class="nm">SUDO<span style="color:#fff;text-shadow:none">NINJA</span></span><span class="br">]</span>
+      <span class="logo-tag">v2.0 // OFFENSIVE SEC</span>
+    </div>
+    <nav class="main-nav" id="main-nav">
+      <a href="#home">Home</a><a href="#about">About</a><a href="#skills">Skills</a>
+      <a href="#cves">CVEs</a><a href="#exploits">Exploits</a><a href="#books">Books</a>
+      <a href="#services">Services</a><a href="#pricing">Pricing</a>
+      <a href="#media">Blog</a><a href="#contact">Contact</a>
+    </nav>
+    <a href="https://drive.google.com/file/d/19G8IVMV4I9-kdHfldrgHCrGMprXz7VWm/view" target="_blank" class="nav-hire">Hire Me</a>
+    <button class="nav-toggle" id="nav-toggle"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<main>
+
+<!-- HERO -->
+<section id="home">
+  <div class="hero-wrap">
+    <div>
+      <div class="hero-eyebrow reveal"><span class="pulse"></span><span id="typewriter"></span></div>
+      <h1 class="hero-name reveal" data-text="Sanjay Singh">Sanjay Singh</h1>
+      <p class="hero-sub reveal">I break things so others can build them safer — <strong>100+ CVEs</strong>, verified exploits on Exploit-DB, and a decade hunting vulnerabilities across Web, IoT &amp; Telecom.</p>
+      <div class="hero-cta reveal">
+        <a href="https://drive.google.com/file/d/19G8IVMV4I9-kdHfldrgHCrGMprXz7VWm/view" target="_blank" class="btn btn-primary"><i class="fa-solid fa-shield-halved"></i>Request Assessment</a>
+        <a href="#cves" class="btn btn-ghost"><i class="fa-solid fa-bug"></i>View CVEs</a>
+        <a href="https://github.com/sudoninja-noob" target="_blank" class="btn btn-ghost"><i class="fa-brands fa-github"></i>GitHub</a>
+      </div>
+      <div class="hero-stats reveal">
+        <div class="stat"><div class="stat-n" id="ctr-cve">0</div><div class="stat-l">CVEs</div></div>
+        <div class="stat"><div class="stat-n" id="ctr-yr">0</div><div class="stat-l">Years</div></div>
+        <div class="stat"><div class="stat-n" id="ctr-bk">0</div><div class="stat-l">Books</div></div>
+        <div class="stat"><div class="stat-n" id="ctr-ex">0</div><div class="stat-l">Exploits</div></div>
+      </div>
+    </div>
+    <div class="terminal reveal-right">
+      <div class="term-bar"><div class="term-dots"><span></span><span></span><span></span></div><span class="term-path">~/sudoninja — bash — 80×24</span></div>
+      <div class="term-body">
+        <div class="term-line"><span class="term-prompt">sanjay@kali:~$</span><span class="term-cmd">whoami --verbose</span></div>
+        <span class="term-out"><span class="tg">Name:</span>      Sanjay Singh</span>
+        <span class="term-out"><span class="tg">Role:</span>      Sr. Manager, Cyber Security</span>
+        <span class="term-out"><span class="tg">CVEs:</span>      <span class="ta">100+</span> assigned by MITRE</span>
+        <span class="term-out"><span class="tg">Certs:</span>     OSCP · CRTP · CEH · CPTE</span>
+        <span class="term-out"><span class="tg">Location:</span>  Bangalore, India</span>
+        <br/>
+        <div class="term-line"><span class="term-prompt">sanjay@kali:~$</span><span class="term-cmd">cat skills.txt</span></div>
+        <span class="term-out"><span class="tc">[✓]</span> Web App &amp; API Penetration Testing</span>
+        <span class="term-out"><span class="tc">[✓]</span> Mobile Security (Android/iOS)</span>
+        <span class="term-out"><span class="tc">[✓]</span> Network &amp; Infrastructure Testing</span>
+        <span class="term-out"><span class="tc">[✓]</span> IoT &amp; Telecom Product Security</span>
+        <span class="term-out"><span class="tc">[✓]</span> 0-day Research &amp; Exploit Dev</span>
+        <br/>
+        <div class="term-line"><span class="term-prompt">sanjay@kali:~$</span><span class="term-cmd">status<span class="term-cursor"></span></span></div>
+        <span class="term-out"><span class="tg">● AVAILABLE FOR ENGAGEMENTS</span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" class="alt">
+  <div class="container about-grid">
+    <div class="reveal-left">
+      <div class="section-label">About</div>
+      <h2 class="section-title">Security Researcher &amp; <em>Exploit Developer</em></h2>
+      <p class="section-lead">Specializing in application, infrastructure, and telecom product security — with a deep focus on vulnerability discovery, protocol fuzzing, and PoC development.</p>
+      <ul class="about-list">
+        <li><span class="ar">→</span>Acknowledged by multiple global organizations for impactful vulnerability research.</li>
+        <li><span class="ar">→</span>Hands-on with routers, switches, IoT devices, telecom NFV products.</li>
+        <li><span class="ar">→</span>Comfortable across Web, Mobile, API, Cloud, IoT &amp; traditional infrastructure.</li>
+        <li><span class="ar">→</span>Author of 6 published cybersecurity books on Amazon.</li>
+      </ul>
+      <div class="badges">
+        <span class="badge">OSCP</span><span class="badge">CRTP</span><span class="badge">CEH</span><span class="badge">CPTE</span><span class="badge">CCEP</span><span class="badge">CNSP</span><span class="badge">CAP</span><span class="badge">CCNA</span><span class="badge">CAPT</span><span class="badge">Practical API Hacking</span>
+      </div>
+    </div>
+    <div class="reveal-right">
+      <div class="info-panel">
+        <div class="info-panel-head">whoami</div>
+        <div class="info-row"><span class="ik">Name</span><span class="iv">Sanjay Singh</span></div>
+        <div class="info-row"><span class="ik">Role</span><span class="iv">Senior Manager – Cyber Security Services</span></div>
+        <div class="info-row"><span class="ik">Email</span><span class="iv"><a href="mailto:sanjaysinghss3@gmail.com">sanjaysinghss3@gmail.com</a></span></div>
+        <div class="info-row"><span class="ik">Location</span><span class="iv">Bangalore, Karnataka, India</span></div>
+        <div class="info-row"><span class="ik">Status</span><span class="iv" style="color:var(--g2)">● Available for Engagements</span></div>
+        <div class="social-row">
+          <a href="https://www.linkedin.com/in/sanjaysingh06/" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+          <a href="https://github.com/sudoninja-noob" target="_blank"><i class="fa-brands fa-github"></i></a>
+          <a href="https://twitter.com/sudoninja_" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="https://sudoninja.gitbook.io" target="_blank"><i class="fa-solid fa-book"></i></a>
+          <a href="https://sudoninja.medium.com" target="_blank"><i class="fa-brands fa-medium"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="container">
+    <div class="section-label center reveal">Skills</div>
+    <h2 class="section-title center reveal">Core <em>Capabilities</em></h2>
+    <p class="section-lead center reveal">Offensive security expertise spanning applications, infrastructure, IoT &amp; telecom products.</p>
+    <div class="skills-grid">
+      <div class="skill-card reveal"><div class="skill-icon"><i class="fa-solid fa-globe"></i></div><h3>Web Application</h3><ul><li>OWASP Top 10 Testing</li><li>Business Logic Flaws</li><li>Auth &amp; Session Attacks</li><li>File Upload / XXE / SSRF</li></ul></div>
+      <div class="skill-card reveal"><div class="skill-icon"><i class="fa-solid fa-sitemap"></i></div><h3>API Security</h3><ul><li>REST / SOAP / GraphQL</li><li>BOLA / BFLA Testing</li><li>Mass Assignment Flaws</li><li>JWT &amp; OAuth Attacks</li></ul></div>
+      <div class="skill-card reveal"><div class="skill-icon"><i class="fa-brands fa-android"></i></div><h3>Mobile Security</h3><ul><li>Android / iOS SAST+DAST</li><li>Reverse Engineering</li><li>Traffic Interception</li><li>Storage &amp; Crypto Flaws</li></ul></div>
+      <div class="skill-card reveal"><div class="skill-icon"><i class="fa-solid fa-network-wired"></i></div><h3>Network &amp; Infra</h3><ul><li>External / Internal Pentest</li><li>AD &amp; Domain Attacks</li><li>Firewall &amp; Router Audits</li><li>Virtualized Environments</li></ul></div>
+      <div class="skill-card reveal"><div class="skill-icon"><i class="fa-solid fa-microchip"></i></div><h3>IoT &amp; Telecom</h3><ul><li>EN 303-645 / EN 18031</li><li>Protocol Fuzzing</li><li>Firmware Analysis</li><li>NFV Product Security</li></ul></div>
+      <div class="skill-card reveal"><div class="skill-icon"><i class="fa-solid fa-flask-vial"></i></div><h3>Offensive R&amp;D</h3><ul><li>0-day Vulnerability Research</li><li>CVE Assignment &amp; PoC</li><li>Exploit Development</li><li>Robustness Testing</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- CVEs -->
+<section id="cves" class="alt">
+  <div class="container">
+    <div class="section-label center reveal">Research</div>
+    <h2 class="section-title center reveal">Published <em>CVEs</em></h2>
+    <p class="section-lead center reveal">100+ vulnerabilities assigned by MITRE spanning auth bypass, injection, access control &amp; RCE across web, IoT &amp; telecom products.</p>
+    <div class="cve-hero reveal">
+      <div class="cve-big-stat"><span class="cve-big-num">100+</span><span class="cve-big-lbl">Total CVEs</span></div>
+      <div class="cve-big-stat"><span class="cve-big-num">2020–25</span><span class="cve-big-lbl">Years Active</span></div>
+      <div class="cve-big-stat"><span class="cve-big-num">Web·IoT·Tel</span><span class="cve-big-lbl">Domains</span></div>
+    </div>
+    <div class="cve-cards-grid">
+      <div class="cve-card reveal"><div class="cve-card-head">2025 CVEs</div><div class="cve-tag-list"><span class="cve-tag">CVE-2025-26208</span><span class="cve-tag">CVE-2025-26209</span><span class="cve-tag">CVE-2025-28349</span><span class="cve-tag">CVE-2025-28350</span><span class="cve-tag">CVE-2025-28351</span></div></div>
+      <div class="cve-card reveal"><div class="cve-card-head">2024 Highlights</div><div class="cve-tag-list"><span class="cve-tag">CVE-2024-31531</span><span class="cve-tag">CVE-2024-31532</span><span class="cve-tag">CVE-2024-31540</span><span class="cve-tag">CVE-2024-33280</span><span class="cve-tag">CVE-2024-29355</span></div></div>
+      <div class="cve-card reveal"><div class="cve-card-head">Earlier Work</div><div class="cve-tag-list"><span class="cve-tag">CVE-2020-15035</span><span class="cve-tag">CVE-2020-15036</span><span class="cve-tag">CVE-2022-29004</span><span class="cve-tag">CVE-2023-30101</span><span class="cve-tag">CVE-2023-33396</span></div></div>
+      <div class="cve-card wide reveal"><div class="cve-card-head">Full CVE Portfolio</div><p>The complete indexed list of 100+ CVEs is on GitHub with affected products, impact ratings, and exploitation notes. Reach out for detailed PoC writeups and technical briefings.</p><a href="https://github.com/sudoninja-noob/CVE-list/blob/main/README.md" target="_blank" class="btn btn-ghost btn-sm"><i class="fa-brands fa-github"></i>View Full CVE List on GitHub</a></div>
+    </div>
+
+    <!-- LIVE FEED -->
+    <div id="live-feed" class="reveal">
+      <div class="feed-header">
+        <div class="feed-title"><span class="skull">☠</span>LIVE CVE INTELLIGENCE FEED<span style="font-family:var(--font-mono);font-size:.58rem;color:var(--muted);font-weight:400;letter-spacing:.05em">· NVD / NIST</span></div>
+        <span class="live-pill"><span class="live-dot"></span>LIVE</span>
+      </div>
+      <div class="feed-meta" id="feed-meta">Connecting to NVD API…</div>
+      <div id="feed-list"><div class="feed-loading">Fetching threat intelligence<span>█</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPLOITS -->
+<section id="exploits">
+  <div class="container">
+    <div class="section-label center reveal">Exploit-DB</div>
+    <h2 class="section-title center reveal">Verified <em>Exploits</em> &amp; PoCs</h2>
+    <p class="section-lead center reveal">Publicly verified vulnerabilities published on Exploit-DB and other platforms.</p>
+    <div class="tbl-wrap reveal">
+      <table class="data-table">
+        <thead><tr><th>Date</th><th>Title</th><th>Type</th><th>Platform</th><th>Author</th></tr></thead>
+        <tbody>
+          <tr><td>2025-06-05</td><td><a href="https://www.exploit-db.com/exploits/52314" target="_blank">CloudClassroom PHP Project 1.0 – SQL Injection</a></td><td><span class="exploit-type">SQLi</span></td><td>PHP</td><td>Sanjay Singh</td></tr>
+          <tr><td>2024-05-13</td><td><a href="https://www.exploit-db.com/exploits/52017" target="_blank">Prison Management System – SQL Injection Auth Bypass</a></td><td><span class="exploit-type">SQLi</span></td><td>PHP</td><td>Sanjay Singh</td></tr>
+          <tr><td>2023-04-08</td><td><a href="https://www.exploit-db.com/exploits/51338" target="_blank">Medicine Tracker System v1.0 – SQL Injection</a></td><td><span class="exploit-type">SQLi</span></td><td>PHP</td><td>Sanjay Singh</td></tr>
+          <tr><td>2023-04-08</td><td><a href="https://www.exploit-db.com/exploits/51337" target="_blank">Online Appointment System v1.0 – XSS</a></td><td><span class="exploit-type">XSS</span></td><td>PHP</td><td>Sanjay Singh</td></tr>
+          <tr><td>2022-06-10</td><td><a href="https://www.exploit-db.com/exploits/50951" target="_blank">WordPress Motopress Hotel Booking Lite 4.2.4 – Stored XSS</a></td><td><span class="exploit-type">XSS</span></td><td>PHP</td><td>Sanjay Singh</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- BOOKS -->
+<section id="books" class="alt">
+  <div class="container">
+    <div class="section-label center reveal">Publications</div>
+    <h2 class="section-title center reveal">Books <em>Authored</em></h2>
+    <p class="section-lead center reveal">Cybersecurity titles covering CVE hunting, penetration testing methodologies, and career roadmaps.</p>
+    <div class="books-grid">
+      <div class="book-card reveal"><div class="book-num">01</div><h3>A Tale of 100 CVE's Hunting</h3><p>Deep dive into vulnerability hunting showcasing 100 real CVEs and the research behind them.</p><a href="https://www.amazon.in/dp/B0DJ3LP4H1" target="_blank" class="btn btn-primary btn-sm">Buy on Amazon.in</a></div>
+      <div class="book-card reveal"><div class="book-num">02</div><h3>How to Become a Penetration Tester: Zero to One</h3><p>From beginner to pro — skills, tools, and strategies for an ethical hacking career.</p><a href="https://www.amazon.in/dp/B0D9J3B2ND" target="_blank" class="btn btn-primary btn-sm">Buy on Amazon.in</a></div>
+      <div class="book-card reveal"><div class="book-num">03</div><h3>How to Start a Career in Cybersecurity</h3><p>Complete roadmap from zero to landing your first security role — simple and actionable.</p><a href="https://www.amazon.com/dp/B0CPH312KH" target="_blank" class="btn btn-primary btn-sm">Buy on Amazon.com</a></div>
+      <div class="book-card reveal"><div class="book-num">04</div><h3>101 Broken Access Control Test Cases</h3><p>Web &amp; API bug bounty focused — covering the #1 OWASP vulnerability in exhaustive depth.</p><a href="https://amzn.in/d/2fgDv96" target="_blank" class="btn btn-primary btn-sm">Buy on Amazon</a></div>
+      <div class="book-card reveal"><div class="book-num">05</div><h3>Cyber-Security Journey: A Comprehensive Guide</h3><p>From fundamentals to career launch — simplified and structured for new entrants.</p><a href="https://a.co/d/4GrCkW0" target="_blank" class="btn btn-primary btn-sm">Buy on Amazon.com</a></div>
+      <div class="book-card reveal"><div class="book-num">06</div><h3>Privilege Escalation: Unlocking Security</h3><p>Master post-exploitation and privilege escalation techniques used by real-world hackers.</p><a href="https://www.amazon.in/dp/B0CPR29ZNJ" target="_blank" class="btn btn-primary btn-sm">Buy on Amazon.in</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="container">
+    <div class="section-label center reveal">Services</div>
+    <h2 class="section-title center reveal">What I <em>Offer</em></h2>
+    <p class="section-lead center reveal">Helping organizations understand, measure, and reduce security risk through practical offensive testing.</p>
+    <div class="svc-grid">
+      <div class="svc-card reveal"><div class="svc-icon"><i class="fa-solid fa-earth-americas"></i></div><h3>Web Application Testing</h3><p>Black-box, gray-box and authenticated testing of web apps against OWASP Top 10 and beyond.</p></div>
+      <div class="svc-card reveal"><div class="svc-icon"><i class="fa-brands fa-android"></i></div><h3>Mobile App Testing</h3><p>Static &amp; dynamic analysis of Android &amp; iOS apps with business logic and traffic review.</p></div>
+      <div class="svc-card reveal"><div class="svc-icon"><i class="fa-solid fa-network-wired"></i></div><h3>Network &amp; Infra Testing</h3><p>External and internal network penetration testing for servers, firewalls, and routers.</p></div>
+      <div class="svc-card reveal"><div class="svc-icon"><i class="fa-solid fa-sitemap"></i></div><h3>API Security Testing</h3><p>REST, SOAP &amp; GraphQL APIs tested for auth, access control, injection, and logic flaws.</p></div>
+      <div class="svc-card reveal"><div class="svc-icon"><i class="fa-solid fa-microchip"></i></div><h3>IoT &amp; Telecom Security</h3><p>Testing per EN 303-645 &amp; EN 18031. From firmware to protocol — full product coverage.</p></div>
+      <div class="svc-card reveal"><div class="svc-icon"><i class="fa-solid fa-file-shield"></i></div><h3>Reporting &amp; Guidance</h3><p>Clear PoC-backed reports with risk ratings and actionable remediation your team can execute.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" class="alt">
+  <div class="container">
+    <div class="section-label center reveal">Pricing</div>
+    <h2 class="section-title center reveal">Engagement <em>Models</em></h2>
+    <p class="section-lead center reveal">Indicative pricing — actual cost depends on scope, complexity, and depth required.</p>
+    <div class="pricing-grid">
+      <div class="price-card reveal"><div class="price-tier">Starter</div><div class="price-num"><sup>$</sup>199</div><div class="price-desc">Vulnerability Assessment — asset discovery and surface mapping.</div><ul class="price-features"><li>Asset &amp; subdomain discovery</li><li>Port &amp; service mapping</li><li>Technology fingerprinting</li><li>Report within 3 days</li></ul><a href="#contact" class="btn btn-ghost btn-sm price-btn">Get Started</a></div>
+      <div class="price-card hot reveal"><div class="price-tier">Professional</div><div class="price-num"><sup>$</sup>299</div><div class="price-desc">Network Pentest — full attack surface with manual validation.</div><ul class="price-features"><li>Attack surface mapping</li><li>Automated &amp; manual scanning</li><li>Manual validation &amp; exploitation</li><li>Report within 5 days</li></ul><a href="#contact" class="btn btn-primary btn-sm price-btn">Get Started</a></div>
+      <div class="price-card reveal"><div class="price-tier">Enterprise</div><div class="price-num"><sup>$</sup>499</div><div class="price-desc">Web App Pentest — full manual &amp; automated with retest included.</div><ul class="price-features"><li>Full manual + automated testing</li><li>Business logic review</li><li>Retest window included</li><li>Report within 15 days</li></ul><a href="#contact" class="btn btn-ghost btn-sm price-btn">Get Started</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- MEDIA -->
+<section id="media">
+  <div class="container">
+    <div class="section-label center reveal">Content</div>
+    <h2 class="section-title center reveal">Blog &amp; <em>YouTube</em></h2>
+    <p class="section-lead center reveal">Practical techniques, bug-hunting workflows &amp; security research shared with the community.</p>
+    <div class="media-grid">
+      <div class="reveal-left">
+        <div class="media-col-title">Medium Articles</div>
+        <div class="article-card"><h4><a href="https://sudoninja.medium.com/easy-to-check-and-find-3-different-bug-on-sign-in-and-sign-up-bb35da1e4ddd" target="_blank">Easy to Find 3 Different Bugs on Sign-in &amp; Sign-up</a></h4><p>Identifying common yet impactful bugs in authentication flows — quickly and systematically.</p></div>
+        <div class="article-card"><h4><a href="https://sudoninja.medium.com/directory-listings-checker-0abcc983b532" target="_blank">Directory Listings Checker</a></h4><p>Practical approach to discovering sensitive files and misconfigurations via directory listing checks.</p></div>
+        <div class="article-card"><h4><a href="https://sudoninja.medium.com/shinobilabs-hidden-leaf-exploit-c11b1e15064c" target="_blank">ShinobiLabs: Hidden Leaf Exploit</a></h4><p>Walkthrough focused on enumeration, exploitation, and privilege escalation in a custom lab.</p></div>
+      </div>
+      <div class="reveal-right">
+        <div class="media-col-title">YouTube</div>
+        <div class="yt-list">
+          <div class="yt-embed"><iframe src="https://www.youtube.com/embed/ZNuRZxsmxHc" title="YouTube" frameborder="0" allowfullscreen loading="lazy"></iframe></div>
+          <div class="yt-embed"><iframe src="https://www.youtube.com/embed/BoJ8QHuxB_I" title="YouTube" frameborder="0" allowfullscreen loading="lazy"></iframe></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="alt">
+  <div class="container contact-grid">
+    <div class="reveal-left">
+      <div class="section-label">Contact</div>
+      <h2 class="section-title">Let's <em>Connect</em></h2>
+      <p class="section-lead">Need a security assessment, product hardening, or research collaboration? I'm available.</p>
+      <ul class="contact-list">
+        <li><i class="fa-solid fa-location-dot"></i>Bangalore, Karnataka, India</li>
+        <li><i class="fa-solid fa-phone"></i>+91 7000740649</li>
+        <li><i class="fa-solid fa-envelope"></i><a href="mailto:sanjaysinghss3@gmail.com">sanjaysinghss3@gmail.com</a></li>
+        <li><i class="fa-brands fa-linkedin"></i><a href="https://www.linkedin.com/in/sanjaysingh06/" target="_blank">linkedin.com/in/sanjaysingh06</a></li>
+        <li><i class="fa-brands fa-github"></i><a href="https://github.com/sudoninja-noob" target="_blank">github.com/sudoninja-noob</a></li>
+      </ul>
+    </div>
+    <div class="reveal-right">
+      <form class="cf" action="https://formspree.io/f/xayrvqbj" method="POST">
+        <input type="text" name="name" placeholder="Your Name" required/>
+        <input type="email" name="email" placeholder="Your Email" required/>
+        <input type="text" name="subject" placeholder="Subject" required/>
+        <textarea name="message" rows="5" placeholder="Your Message" required></textarea>
+        <button type="submit" class="btn btn-primary" style="cursor:none"><i class="fa-solid fa-paper-plane"></i>Send Message</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-logo">SUDONINJA</div>
+    <div class="footer-copy">&copy; 2025 Sanjay Singh · All rights reserved.</div>
+    <div class="footer-tagline">// Breaking things to make them safer</div>
+  </div>
+</footer>
+
+<script>
+/* CURSOR */
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+(function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim)})();
+document.querySelectorAll('a,button,.btn,.cve-tag,.badge,.skill-card,.svc-card,.book-card,.price-card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='20px';cur.style.height='20px';ring.style.width='52px';ring.style.height='52px';ring.style.borderColor='rgba(0,255,229,.9)'});
+  el.addEventListener('mouseleave',()=>{cur.style.width='12px';cur.style.height='12px';ring.style.width='36px';ring.style.height='36px';ring.style.borderColor='rgba(0,255,229,.5)'});
+});
+
+/* PARTICLE NETWORK */
+(function(){
+  const c=document.getElementById('bg-canvas'),ctx=c.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight}
+  resize();window.addEventListener('resize',()=>{resize();init()});
+  function init(){pts=[];const n=Math.min(80,Math.floor(W*H/12000));for(let i=0;i<n;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,r:Math.random()*1.5+.5})}
+  init();
+  const MD=150;
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1});
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+        if(d<MD){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(0,255,229,${.15*(1-d/MD)})`;ctx.lineWidth=.5;ctx.stroke()}
+      }
+      ctx.beginPath();ctx.arc(pts[i].x,pts[i].y,pts[i].r,0,Math.PI*2);ctx.fillStyle='rgba(0,255,229,.45)';ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* NAV */
+document.getElementById('nav-toggle').addEventListener('click',()=>document.getElementById('main-nav').classList.toggle('open'));
+document.querySelectorAll('.main-nav a').forEach(a=>a.addEventListener('click',()=>document.getElementById('main-nav').classList.remove('open')));
+
+/* TYPEWRITER */
+(function(){
+  const el=document.getElementById('typewriter');
+  const words=['Penetration Tester','CVE Researcher','Exploit Developer','Bug Hunter','Security Author'];
+  let wi=0,ci=0,del=false;
+  function tick(){
+    const w=words[wi];
+    el.textContent=del?w.slice(0,ci--):w.slice(0,ci++);
+    if(!del&&ci>w.length){setTimeout(()=>{del=true;tick()},1900);return}
+    if(del&&ci<0){del=false;wi=(wi+1)%words.length;ci=0}
+    setTimeout(tick,del?45:85);
+  }
+  tick();
+})();
+
+/* COUNTERS */
+function countUp(id,target,suf,dur){
+  const el=document.getElementById(id);if(!el)return;
+  let s=0,step=target/((dur||1400)/16);
+  const t=setInterval(()=>{s=Math.min(s+step,target);el.textContent=Math.floor(s)+(suf||'');if(s>=target)clearInterval(t)},16);
+}
+let counted=false;
+new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting&&!counted){counted=true;countUp('ctr-cve',100,'+');countUp('ctr-yr',10,'+');countUp('ctr-bk',6,'');countUp('ctr-ex',5,'+')}})},{threshold:.5}).observe(document.querySelector('.hero-stats')||document.body);
+
+/* SCROLL REVEAL */
+const ro=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('visible'),e.target.dataset.d||0);ro.unobserve(e.target)}})},{threshold:.1});
+document.querySelectorAll('.reveal,.reveal-left,.reveal-right').forEach((el,i)=>{el.dataset.d=Math.min(i%5,4)*90;ro.observe(el)});
+
+/* LIVE CVE FEED */
+(async function(){
+  const list=document.getElementById('feed-list'),meta=document.getElementById('feed-meta');
+  const trunc=(s,n)=>s&&s.length>n?s.slice(0,n)+'…':s;
+  const sc=s=>{if(!s)return'sev-m';const v=s.toUpperCase();return v==='CRITICAL'?'sev-c':v==='HIGH'?'sev-h':v==='MEDIUM'?'sev-m':'sev-l'};
+  function render(vulns){
+    list.innerHTML='';
+    vulns.slice(0,7).forEach(({cve})=>{
+      const id=cve.id;
+      const desc=trunc(cve.descriptions?.find(d=>d.lang==='en')?.value||'No description.',138);
+      const m=cve.metrics;
+      let score='N/A',sev='N/A';
+      const cv31=m?.cvssMetricV31?.[0]?.cvssData,cv30=m?.cvssMetricV30?.[0]?.cvssData,cv2=m?.cvssMetricV2?.[0]?.cvssData;
+      if(cv31){score=cv31.baseScore;sev=cv31.baseSeverity}else if(cv30){score=cv30.baseScore;sev=cv30.baseSeverity}else if(cv2){score=cv2.baseScore;sev=score>=7?'HIGH':score>=4?'MEDIUM':'LOW'}
+      const el=document.createElement('div');el.className='feed-item';
+      el.innerHTML=`<div class="feed-id">${id}</div><div class="feed-desc">${desc}</div><div class="feed-right"><span class="cvss-badge ${sc(sev)}">CVSS ${score} · ${(sev||'N/A').toUpperCase()}</span><a class="feed-link" href="https://nvd.nist.gov/vuln/detail/${id}" target="_blank" rel="noopener">View on NVD →</a></div>`;
+      list.appendChild(el);
+    });
+  }
+  function renderStatic(){
+    const d=[
+      {id:'CVE-2025-28349',score:9.1,sev:'CRITICAL',desc:'Critical injection flaw discovered by Sanjay Singh affecting multiple product versions.'},
+      {id:'CVE-2025-26208',score:8.8,sev:'HIGH',desc:'Authentication bypass vulnerability in web management interface.'},
+      {id:'CVE-2025-26209',score:8.5,sev:'HIGH',desc:'Remote code execution via improper input validation in network device firmware.'},
+      {id:'CVE-2025-28350',score:7.5,sev:'HIGH',desc:'Privilege escalation in admin panel allowing unauthorized access.'},
+      {id:'CVE-2025-28351',score:8.0,sev:'HIGH',desc:'SQL injection enabling full database compromise without authentication.'},
+      {id:'CVE-2024-31531',score:7.8,sev:'HIGH',desc:'Stored XSS enabling persistent session hijacking in admin context.'},
+      {id:'CVE-2024-33280',score:8.2,sev:'HIGH',desc:'Broken access control in REST API exposing confidential user records.'},
+    ];
+    list.innerHTML='';
+    d.forEach(c=>{
+      const el=document.createElement('div');el.className='feed-item';
+      el.innerHTML=`<div class="feed-id">${c.id}</div><div class="feed-desc">${c.desc}</div><div class="feed-right"><span class="cvss-badge ${sc(c.sev)}">CVSS ${c.score} · ${c.sev}</span><a class="feed-link" href="https://nvd.nist.gov/vuln/detail/${c.id}" target="_blank" rel="noopener">View on NVD →</a></div>`;
+      list.appendChild(el);
+    });
+  }
+  async function fetchNVD(sev){
+    const r=await fetch(`https://services.nvd.nist.gov/rest/json/cves/2.0/?resultsPerPage=8&cvssV3Severity=${sev}`,{headers:{Accept:'application/json'}});
+    if(!r.ok)throw new Error(r.status);
+    return r.json();
+  }
+  try{
+    const d=await fetchNVD('CRITICAL');
+    const v=d.vulnerabilities||[];if(!v.length)throw new Error('empty');
+    meta.textContent='Last updated: '+new Date().toLocaleString()+' · Source: NVD/NIST · Critical CVEs';
+    render(v);
+  }catch(e){
+    try{
+      const d2=await fetchNVD('HIGH');
+      const v2=d2.vulnerabilities||[];if(!v2.length)throw new Error('empty');
+      meta.textContent='Last updated: '+new Date().toLocaleString()+' · Source: NVD/NIST · High CVEs';
+      render(v2);
+    }catch(e2){
+      meta.textContent='Showing researcher\'s published CVEs · Live feed temporarily rate-limited';
+      renderStatic();
+    }
+  }
+})();
+</script>
+</body>
+</html>
