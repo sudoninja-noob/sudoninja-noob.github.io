@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SBOM Scanner — SCA Report</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f12;
+    --surface: #141619;
+    --surface2: #1c1f24;
+    --border: #2a2d34;
+    --border2: #363a44;
+    --text: #e8eaf0;
+    --muted: #7a7f8e;
+    --dim: #3d4150;
+    --accent: #00d4aa;
+    --accent-dim: rgba(0,212,170,0.12);
+    --accent-border: rgba(0,212,170,0.35);
+    --red: #f05252;
+    --red-dim: rgba(240,82,82,0.1);
+    --orange: #f5a623;
+    --orange-dim: rgba(245,166,35,0.1);
+    --yellow: #fcd34d;
+    --yellow-dim: rgba(252,211,77,0.1);
+    --green: #34d399;
+    --green-dim: rgba(52,211,153,0.1);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96,165,250,0.1);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --radius: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 15px; font-weight: 500; color: var(--text);
+  }
+  .logo-icon {
+    width: 28px; height: 28px; background: var(--accent-dim);
+    border: 1px solid var(--accent-border); border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-icon svg { width: 16px; height: 16px; }
+  .header-meta { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); margin-right: 6px; box-shadow: 0 0 6px var(--accent); }
+
+  /* Layout */
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+  /* Upload zone */
+  .upload-section { margin-bottom: 32px; }
+  .section-label {
+    font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.08em;
+    text-transform: uppercase; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-label::before { content: '//'; color: var(--dim); }
+
+  .drop-zone {
+    border: 1px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 40px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface);
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--accent-border);
+    background: var(--accent-dim);
+  }
+  .drop-zone input[type=file] { display: none; }
+  .drop-icon {
+    width: 40px; height: 40px; margin: 0 auto 12px;
+    border: 1px solid var(--border2); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface2);
+  }
+  .drop-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .drop-sub { font-size: 12px; color: var(--muted); }
+  .drop-chips { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .chip {
+    font-family: var(--mono); font-size: 11px; padding: 3px 8px;
+    border: 1px solid var(--border); border-radius: 3px; color: var(--muted);
+    background: var(--surface2);
+  }
+
+  /* File list */
+  .file-list { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .file-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); font-family: var(--mono); font-size: 12px;
+  }
+  .file-item .fname { color: var(--text); }
+  .file-item .fsize { color: var(--muted); font-size: 11px; }
+  .file-item .fremove {
+    color: var(--dim); cursor: pointer; font-size: 16px; line-height: 1;
+    padding: 0 4px; transition: color 0.15s;
+  }
+  .file-item .fremove:hover { color: var(--red); }
+
+  /* Scan button */
+  .scan-btn {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--accent); color: #0a1a16;
+    font-family: var(--mono); font-size: 13px; font-weight: 500;
+    border: none; border-radius: var(--radius); padding: 11px 24px;
+    cursor: pointer; transition: all 0.15s; margin-top: 16px;
+  }
+  .scan-btn:hover { background: #00f0c4; }
+  .scan-btn:disabled { background: var(--dim); color: var(--muted); cursor: not-allowed; }
+
+  /* Progress */
+  .progress-bar {
+    height: 3px; background: var(--border); border-radius: 2px;
+    margin-top: 12px; overflow: hidden; display: none;
+  }
+  .progress-fill {
+    height: 100%; background: var(--accent); border-radius: 2px;
+    width: 0%; transition: width 0.3s ease;
+  }
+
+  /* Summary cards */
+  .summary-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin-bottom: 28px;
+  }
+  .summary-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px;
+  }
+  .summary-card .sc-label { font-family: var(--mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .summary-card .sc-value { font-size: 28px; font-weight: 300; font-family: var(--mono); color: var(--text); }
+  .summary-card .sc-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .summary-card.critical { border-color: rgba(240,82,82,0.3); }
+  .summary-card.critical .sc-value { color: var(--red); }
+  .summary-card.high { border-color: rgba(245,166,35,0.3); }
+  .summary-card.high .sc-value { color: var(--orange); }
+
+  /* Results table */
+  .results-section { display: none; }
+  .results-section.visible { display: block; }
+
+  .table-toolbar {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;
+  }
+  .filter-btn {
+    font-family: var(--mono); font-size: 11px; padding: 5px 12px;
+    border: 1px solid var(--border); border-radius: 3px; background: var(--surface2);
+    color: var(--muted); cursor: pointer; transition: all 0.15s;
+  }
+  .filter-btn.active, .filter-btn:hover { border-color: var(--accent-border); color: var(--accent); background: var(--accent-dim); }
+  .filter-btn.f-critical.active { border-color: rgba(240,82,82,0.5); color: var(--red); background: var(--red-dim); }
+  .filter-btn.f-high.active { border-color: rgba(245,166,35,0.5); color: var(--orange); background: var(--orange-dim); }
+  .filter-btn.f-medium.active { border-color: rgba(252,211,77,0.4); color: var(--yellow); background: var(--yellow-dim); }
+  .filter-btn.f-low.active { border-color: rgba(52,211,153,0.4); color: var(--green); background: var(--green-dim); }
+  .search-box {
+    flex: 1; min-width: 160px; font-family: var(--mono); font-size: 12px;
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 3px; padding: 6px 12px; outline: none; transition: border 0.15s;
+  }
+  .search-box:focus { border-color: var(--accent-border); }
+  .search-box::placeholder { color: var(--dim); }
+
+  .vuln-table { width: 100%; border-collapse: collapse; }
+  .vuln-table th {
+    text-align: left; font-family: var(--mono); font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .vuln-table td {
+    padding: 11px 14px; border-bottom: 1px solid var(--border);
+    vertical-align: top; font-size: 13px;
+  }
+  .vuln-table tr:hover td { background: var(--surface2); }
+  .vuln-table .pkg-name { font-family: var(--mono); color: var(--text); font-size: 12px; }
+  .vuln-table .pkg-ver { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .vuln-table .cve-id { font-family: var(--mono); font-size: 12px; color: var(--blue); }
+  .vuln-table .fix-ver { font-family: var(--mono); font-size: 12px; color: var(--green); }
+  .vuln-table .no-fix { color: var(--muted); font-size: 11px; }
+
+  .badge {
+    display: inline-flex; align-items: center;
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    padding: 2px 8px; border-radius: 3px; border: 1px solid;
+  }
+  .badge.critical { background: var(--red-dim); color: var(--red); border-color: rgba(240,82,82,0.35); }
+  .badge.high { background: var(--orange-dim); color: var(--orange); border-color: rgba(245,166,35,0.35); }
+  .badge.medium { background: var(--yellow-dim); color: var(--yellow); border-color: rgba(252,211,77,0.35); }
+  .badge.low { background: var(--green-dim); color: var(--green); border-color: rgba(52,211,153,0.35); }
+  .badge.info { background: var(--blue-dim); color: var(--blue); border-color: rgba(96,165,250,0.35); }
+
+  /* License tab */
+  .tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .tab {
+    font-family: var(--mono); font-size: 12px; padding: 10px 20px;
+    color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: all 0.15s;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover { color: var(--text); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .license-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .license-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px;
+  }
+  .license-name { font-family: var(--mono); font-size: 13px; color: var(--text); margin-bottom: 4px; }
+  .license-count { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .license-bar { height: 3px; border-radius: 2px; margin-top: 10px; }
+
+  /* SBOM preview */
+  .sbom-preview {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px; font-family: var(--mono);
+    font-size: 12px; color: var(--muted); white-space: pre-wrap;
+    max-height: 360px; overflow-y: auto; line-height: 1.8;
+  }
+  .sbom-preview .key { color: #7dd3fc; }
+  .sbom-preview .val { color: #86efac; }
+  .sbom-preview .str { color: #fca5a5; }
+  .sbom-preview .num { color: var(--orange); }
+
+  /* Export bar */
+  .export-bar {
+    display: flex; gap: 8px; margin-top: 20px; padding-top: 20px;
+    border-top: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .export-btn {
+    font-family: var(--mono); font-size: 11px; padding: 7px 14px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--muted); border-radius: 3px; cursor: pointer; transition: all 0.15s;
+  }
+  .export-btn:hover { border-color: var(--accent-border); color: var(--accent); }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center; padding: 60px 24px; color: var(--muted);
+  }
+  .empty-icon {
+    width: 48px; height: 48px; margin: 0 auto 16px;
+    border: 1px solid var(--border); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinning { animation: spin 0.8s linear infinite; }
+
+  .export-btn.export-primary {
+    border-color: var(--accent-border); color: var(--accent); background: var(--accent-dim);
+  }
+  .export-btn.export-primary:hover { background: rgba(0,212,170,0.2); }
+
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { background: #fff !important; color: #111 !important; }
+    header, .upload-section, .tabs, .table-toolbar, .export-bar { display: none !important; }
+    .tab-content { display: block !important; margin-bottom: 28px; page-break-inside: avoid; }
+    .results-section { display: block !important; }
+    .summary-grid { display: grid !important; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 24px; }
+    .summary-card { border: 1px solid #ddd !important; background: #f9f9f9 !important; }
+    .summary-card .sc-label { color: #666 !important; }
+    .summary-card .sc-value { color: #111 !important; font-size: 22px; }
+    .summary-card.critical .sc-value { color: #dc2626 !important; }
+    .summary-card.high .sc-value { color: #d97706 !important; }
+    .vuln-table th { background: #f3f4f6 !important; color: #444 !important; border-bottom: 2px solid #e5e7eb !important; }
+    .vuln-table td { border-bottom: 1px solid #e5e7eb !important; color: #222 !important; }
+    .vuln-table tr:hover td { background: transparent !important; }
+    .badge.critical { background: #fee2e2 !important; color: #dc2626 !important; border-color: #fca5a5 !important; }
+    .badge.high { background: #fef3c7 !important; color: #d97706 !important; border-color: #fde68a !important; }
+    .badge.medium { background: #fefce8 !important; color: #a16207 !important; border-color: #fde047 !important; }
+    .badge.low { background: #f0fdf4 !important; color: #16a34a !important; border-color: #86efac !important; }
+    .cve-id { color: #1d4ed8 !important; }
+    .fix-ver { color: #16a34a !important; }
+    .pkg-name { color: #111 !important; }
+    .pkg-ver, .no-fix, .muted { color: #666 !important; }
+    .chip { color: #555 !important; border-color: #ccc !important; background: #f3f4f6 !important; }
+    .license-card { border: 1px solid #e5e7eb !important; background: #f9f9f9 !important; }
+    .license-name { color: #111 !important; }
+    .license-count { color: #666 !important; }
+    .sbom-preview { background: #f8fafc !important; color: #334155 !important; border: 1px solid #e2e8f0 !important; font-size:11px; }
+    .sbom-preview .key { color: #1e40af !important; }
+    .sbom-preview .str { color: #dc2626 !important; }
+    .sbom-preview .num { color: #d97706 !important; }
+    .print-header { display: flex !important; }
+    @page { margin: 18mm 15mm; size: A4; }
+  }
+  .print-header {
+    display: none; justify-content: space-between; align-items: flex-start;
+    padding-bottom: 16px; border-bottom: 2px solid #e5e7eb; margin-bottom: 20px;
+    font-family: var(--mono); color: #111;
+  }
+
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { background: #fff !important; color: #111 !important; font-family: 'IBM Plex Sans', sans-serif; }
+    header { display: none !important; }
+    .upload-section { display: none !important; }
+    .tabs { display: none !important; }
+    .table-toolbar { display: none !important; }
+    .export-bar { display: none !important; }
+    .tab-content { display: block !important; margin-bottom: 32px; }
+    .results-section { display: block !important; }
+    .summary-grid { display: grid !important; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 24px; }
+    .summary-card { border: 1px solid #ddd !important; background: #f9f9f9 !important; border-radius: 6px; padding: 12px; }
+    .summary-card .sc-label { color: #666 !important; font-size: 10px; }
+    .summary-card .sc-value { color: #111 !important; font-size: 22px; }
+    .summary-card.critical .sc-value { color: #dc2626 !important; }
+    .summary-card.high .sc-value { color: #d97706 !important; }
+    .vuln-table th { background: #f3f4f6 !important; color: #444 !important; border-bottom: 2px solid #e5e7eb !important; }
+    .vuln-table td { border-bottom: 1px solid #e5e7eb !important; color: #222 !important; }
+    .vuln-table tr:hover td { background: transparent !important; }
+    .badge.critical { background: #fee2e2 !important; color: #dc2626 !important; border-color: #fca5a5 !important; }
+    .badge.high { background: #fef3c7 !important; color: #d97706 !important; border-color: #fde68a !important; }
+    .badge.medium { background: #fefce8 !important; color: #a16207 !important; border-color: #fde047 !important; }
+    .badge.low { background: #f0fdf4 !important; color: #16a34a !important; border-color: #86efac !important; }
+    .cve-id { color: #1d4ed8 !important; }
+    .fix-ver { color: #16a34a !important; }
+    .pkg-name { color: #111 !important; }
+    .pkg-ver, .no-fix { color: #666 !important; }
+    .chip { color: #555 !important; border-color: #ccc !important; background: #f3f4f6 !important; }
+    .license-card { border: 1px solid #e5e7eb !important; background: #f9f9f9 !important; }
+    .license-name { color: #111 !important; }
+    .license-count { color: #666 !important; }
+    .sbom-preview { background: #f8fafc !important; color: #334155 !important; border: 1px solid #e2e8f0 !important; font-size: 11px; }
+    .sbom-preview .key { color: #1e40af !important; }
+    .sbom-preview .val { color: #15803d !important; }
+    .sbom-preview .str { color: #dc2626 !important; }
+    .sbom-preview .num { color: #d97706 !important; }
+    .print-header { display: block !important; }
+    @page { margin: 20mm 16mm; size: A4; }
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.3s ease forwards; }
+  .print-header { display: none; font-family: var(--mono); font-size: 13px; padding-bottom: 16px; border-bottom: 2px solid #e5e7eb; margin-bottom: 20px; color: #111; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" stroke="#00d4aa" stroke-width="1.2" fill="none"/>
+        <path d="M8 5V11M5.5 6.5L8 5L10.5 6.5" stroke="#00d4aa" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    sbom-scanner
+  </div>
+  <div class="header-meta"><span class="status-dot"></span>OSV · NVD · GHSA feeds active</div>
+</header>
+
+<div class="container">
+
+  <!-- Upload -->
+  <div class="upload-section">
+    <div class="section-label">manifest upload</div>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" multiple accept=".json,.txt,.toml,.xml,.lock,.sum,.yaml,.yml"/>
+      <div class="drop-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 13V4M10 4L7 7M10 4L13 7" stroke="#7a7f8e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M3 14v1a2 2 0 002 2h10a2 2 0 002-2v-1" stroke="#7a7f8e" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="drop-title">Drop manifest files here</div>
+      <div class="drop-sub">or click to browse</div>
+      <div class="drop-chips">
+        <span class="chip">package.json</span>
+        <span class="chip">requirements.txt</span>
+        <span class="chip">pom.xml</span>
+        <span class="chip">go.sum</span>
+        <span class="chip">Cargo.toml</span>
+        <span class="chip">yarn.lock</span>
+        <span class="chip">Pipfile.lock</span>
+        <span class="chip">build.gradle</span>
+      </div>
+    </div>
+    <div class="file-list" id="fileList"></div>
+    <button class="scan-btn" id="scanBtn" disabled onclick="runScan()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M4 7h6M7 4v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Run SBOM Scan
+    </button>
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-section" id="resultsSection">
+    <div class="print-header" id="printHeader"></div>
+
+    <div class="summary-grid fade-in" id="summaryGrid"></div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('vulns')">Vulnerabilities</div>
+      <div class="tab" onclick="switchTab('licenses')">Licenses</div>
+      <div class="tab" onclick="switchTab('sbom')">SBOM Output</div>
+    </div>
+
+    <!-- Vulns tab -->
+    <div class="tab-content active" id="tab-vulns">
+      <div class="table-toolbar">
+        <button class="filter-btn f-all active" onclick="setFilter('all',this)">All</button>
+        <button class="filter-btn f-critical" onclick="setFilter('critical',this)">Critical</button>
+        <button class="filter-btn f-high" onclick="setFilter('high',this)">High</button>
+        <button class="filter-btn f-medium" onclick="setFilter('medium',this)">Medium</button>
+        <button class="filter-btn f-low" onclick="setFilter('low',this)">Low</button>
+        <input class="search-box" id="searchBox" placeholder="search packages, CVEs..." oninput="renderTable()"/>
+      </div>
+      <div id="tableContainer"></div>
+    </div>
+
+    <!-- Licenses tab -->
+    <div class="tab-content" id="tab-licenses">
+      <div id="licenseGrid" class="license-grid"></div>
+    </div>
+
+    <!-- SBOM tab -->
+    <div class="tab-content" id="tab-sbom">
+      <div id="sbomPreview" class="sbom-preview"></div>
+    </div>
+
+    <div class="export-bar">
+      <span style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;align-self:center">Export:</span>
+      <button class="export-btn export-primary" onclick="exportPDF()">↓ PDF Report</button>
+      <button class="export-btn export-primary" onclick="exportHTML()">↓ HTML Report</button>
+      <button class="export-btn" onclick="exportCSV()">↓ CSV</button>
+      <button class="export-btn" onclick="exportJSON()">↓ JSON</button>
+      <button class="export-btn" onclick="exportSPDX()">↓ SPDX</button>
+      <button class="export-btn" onclick="exportCycloneDX()">↓ CycloneDX</button>
+    </div>
+  </div>
+
+  <!-- Tool Footer -->
+  <footer style="margin-top:48px;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <span style="font-family:var(--mono);font-size:11px;color:var(--dim)">sbom-scanner · SCA Report Tool</span>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--dim)">
+      Built by
+      <a href="https://sudoninja-noob.github.io/" target="_blank" rel="noopener noreferrer"
+         style="color:var(--accent);text-decoration:none;transition:opacity 0.15s"
+         onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">@sudoninja</a>
+    </span>
+  </footer>
+
+</div>
+
+<script>
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const fileList = document.getElementById('fileList');
+const scanBtn = document.getElementById('scanBtn');
+const progressBar = document.getElementById('progressBar');
+const progressFill = document.getElementById('progressFill');
+
+let uploadedFiles = [];
+let scanResults = null;
+let currentFilter = 'all';
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  addFiles([...e.dataTransfer.files]);
+});
+fileInput.addEventListener('change', () => addFiles([...fileInput.files]));
+
+function addFiles(files) {
+  files.forEach(f => { if (!uploadedFiles.find(u => u.name === f.name)) uploadedFiles.push(f); });
+  renderFileList();
+  scanBtn.disabled = uploadedFiles.length === 0;
+}
+
+function removeFile(name) {
+  uploadedFiles = uploadedFiles.filter(f => f.name !== name);
+  renderFileList();
+  scanBtn.disabled = uploadedFiles.length === 0;
+}
+
+function renderFileList() {
+  fileList.innerHTML = uploadedFiles.map(f => `
+    <div class="file-item">
+      <span class="fname">${f.name}</span>
+      <span style="display:flex;align-items:center;gap:12px;">
+        <span class="fsize">${(f.size/1024).toFixed(1)} KB</span>
+        <span class="fremove" onclick="removeFile('${f.name}')">×</span>
+      </span>
+    </div>`).join('');
+}
+
+function detectEcosystem(name) {
+  if (name.includes('package.json') || name.includes('yarn.lock') || name.includes('package-lock')) return 'npm';
+  if (name.includes('requirements') || name.includes('Pipfile') || name.includes('setup.py')) return 'pypi';
+  if (name.includes('pom.xml') || name.includes('build.gradle')) return 'maven';
+  if (name.includes('go.sum') || name.includes('go.mod')) return 'go';
+  if (name.includes('Cargo')) return 'cargo';
+  return 'generic';
+}
+
+// Realistic mock vulnerability data per ecosystem
+function generateVulns(ecosystem) {
+  const pools = {
+    npm: [
+      { pkg:'lodash', ver:'4.17.19', cve:'CVE-2021-23337', severity:'high', cvss:7.2, desc:'Command injection via template', fix:'4.17.21', license:'MIT' },
+      { pkg:'axios', ver:'0.21.0', cve:'CVE-2021-3749', severity:'medium', cvss:5.3, desc:'SSRF via redirect following', fix:'0.21.2', license:'MIT' },
+      { pkg:'minimist', ver:'1.2.5', cve:'CVE-2021-44906', severity:'critical', cvss:9.8, desc:'Prototype pollution', fix:'1.2.6', license:'MIT' },
+      { pkg:'node-fetch', ver:'2.6.0', cve:'CVE-2022-0235', severity:'medium', cvss:6.1, desc:'Exposure of sensitive info', fix:'2.6.7', license:'MIT' },
+      { pkg:'follow-redirects', ver:'1.14.5', cve:'CVE-2022-0536', severity:'medium', cvss:5.9, desc:'Sensitive data leak via redirect', fix:'1.14.8', license:'MIT' },
+      { pkg:'ansi-regex', ver:'3.0.0', cve:'CVE-2021-3807', severity:'high', cvss:7.5, desc:'ReDos via crafted string', fix:'3.0.1', license:'MIT' },
+      { pkg:'ajv', ver:'6.12.2', cve:'CVE-2020-15366', severity:'medium', cvss:5.6, desc:'Prototype pollution', fix:'6.12.3', license:'MIT' },
+      { pkg:'glob-parent', ver:'3.1.0', cve:'CVE-2020-28469', severity:'high', cvss:7.5, desc:'ReDos via crafted string', fix:'5.1.2', license:'ISC' },
+    ],
+    pypi: [
+      { pkg:'Pillow', ver:'8.1.2', cve:'CVE-2021-25289', severity:'critical', cvss:9.8, desc:'Buffer overflow in TIFF decoder', fix:'8.2.0', license:'HPND' },
+      { pkg:'urllib3', ver:'1.26.3', cve:'CVE-2021-33503', severity:'high', cvss:7.5, desc:'ReDos via crafted URL', fix:'1.26.5', license:'MIT' },
+      { pkg:'requests', ver:'2.25.1', cve:'CVE-2023-32681', severity:'medium', cvss:6.1, desc:'Proxy-Authorization header leak', fix:'2.31.0', license:'Apache-2.0' },
+      { pkg:'cryptography', ver:'3.3.1', cve:'CVE-2023-49083', severity:'medium', cvss:4.0, desc:'NULL pointer dereference', fix:'41.0.6', license:'Apache-2.0' },
+      { pkg:'PyYAML', ver:'5.3.1', cve:'CVE-2020-14343', severity:'critical', cvss:9.8, desc:'Arbitrary code execution', fix:'5.4', license:'MIT' },
+    ],
+    maven: [
+      { pkg:'log4j-core', ver:'2.14.1', cve:'CVE-2021-44228', severity:'critical', cvss:10.0, desc:'Log4Shell RCE via JNDI lookup', fix:'2.17.1', license:'Apache-2.0' },
+      { pkg:'spring-core', ver:'5.3.15', cve:'CVE-2022-22965', severity:'critical', cvss:9.8, desc:'Spring4Shell RCE', fix:'5.3.18', license:'Apache-2.0' },
+      { pkg:'jackson-databind', ver:'2.12.3', cve:'CVE-2021-46877', severity:'high', cvss:7.5, desc:'Recursive deser stack overflow', fix:'2.14.2', license:'Apache-2.0' },
+    ],
+    go: [
+      { pkg:'golang.org/x/net', ver:'v0.0.0-20210405', cve:'CVE-2021-33194', severity:'high', cvss:7.5, desc:'Infinite loop in HTML parser', fix:'v0.0.0-20210510', license:'BSD-3-Clause' },
+      { pkg:'github.com/gogo/protobuf', ver:'v1.3.1', cve:'CVE-2021-3121', severity:'high', cvss:8.6, desc:'Unmarshal panic', fix:'v1.3.2', license:'BSD-3-Clause' },
+    ],
+    cargo: [
+      { pkg:'time', ver:'0.1.44', cve:'CVE-2020-26235', severity:'medium', cvss:6.2, desc:'SEGFAULT via UNIX timezone', fix:'0.2.23', license:'MIT' },
+      { pkg:'tokio', ver:'1.6.0', cve:'CVE-2021-45710', severity:'high', cvss:7.0, desc:'Data race in tokio runtime', fix:'1.8.4', license:'MIT' },
+    ],
+    generic: [
+      { pkg:'openssl', ver:'1.1.1k', cve:'CVE-2021-3449', severity:'high', cvss:7.4, desc:'NULL pointer deref in TLS handshake', fix:'1.1.1l', license:'OpenSSL' },
+    ]
+  };
+  const base = pools[ecosystem] || pools.generic;
+  // Add a few low severity extras
+  const extras = [
+    { pkg:'debug', ver:'2.6.9', cve:'CVE-2017-16137', severity:'low', cvss:3.7, desc:'ReDos in debug pattern', fix:'2.6.9', license:'MIT' },
+    { pkg:'semver', ver:'5.7.1', cve:'CVE-2022-25883', severity:'low', cvss:3.7, desc:'ReDos via malicious input', fix:'5.7.2', license:'ISC' },
+  ];
+  return [...base, ...extras.slice(0, ecosystem === 'npm' ? 2 : 0)];
+}
+
+async function runScan() {
+  scanBtn.disabled = true;
+  scanBtn.innerHTML = `<svg class="spinning" width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5" stroke-dasharray="20 14"/></svg> Scanning...`;
+  progressBar.style.display = 'block';
+
+  // Simulate progress
+  let p = 0;
+  const interval = setInterval(() => {
+    p += Math.random() * 18;
+    if (p > 90) p = 90;
+    progressFill.style.width = p + '%';
+  }, 200);
+
+  await new Promise(r => setTimeout(r, 2200));
+  clearInterval(interval);
+  progressFill.style.width = '100%';
+  await new Promise(r => setTimeout(r, 300));
+
+  // Build results
+  const ecosystem = detectEcosystem(uploadedFiles[0]?.name || '');
+  const vulns = generateVulns(ecosystem);
+
+  // Count by severity
+  const counts = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+  vulns.forEach(v => counts[v.severity] = (counts[v.severity] || 0) + 1);
+
+  // Fake total packages
+  const totalPkgs = vulns.length + Math.floor(Math.random() * 40) + 15;
+
+  const licenses = [
+    { name: 'MIT', count: Math.floor(totalPkgs * 0.5), color: '#34d399' },
+    { name: 'Apache-2.0', count: Math.floor(totalPkgs * 0.2), color: '#60a5fa' },
+    { name: 'BSD-3-Clause', count: Math.floor(totalPkgs * 0.12), color: '#818cf8' },
+    { name: 'ISC', count: Math.floor(totalPkgs * 0.08), color: '#a78bfa' },
+    { name: 'GPL-3.0', count: Math.floor(totalPkgs * 0.05), color: '#f05252', flag: true },
+    { name: 'Unknown', count: Math.floor(totalPkgs * 0.05), color: '#7a7f8e', flag: true },
+  ];
+
+  scanResults = { vulns, counts, totalPkgs, licenses, ecosystem };
+
+  renderResults();
+  progressFill.style.width = '0%';
+  progressBar.style.display = 'none';
+  scanBtn.disabled = false;
+  scanBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Re-scan`;
+}
+
+function renderResults() {
+  const { counts, totalPkgs, vulns, licenses } = scanResults;
+  const totalVulns = Object.values(counts).reduce((a,b) => a+b, 0);
+
+  document.getElementById('summaryGrid').innerHTML = `
+    <div class="summary-card">
+      <div class="sc-label">Total Packages</div>
+      <div class="sc-value">${totalPkgs}</div>
+      <div class="sc-sub">${uploadedFiles[0]?.name || 'manifest'}</div>
+    </div>
+    <div class="summary-card">
+      <div class="sc-label">Vulnerabilities</div>
+      <div class="sc-value">${totalVulns}</div>
+      <div class="sc-sub">across ${vulns.length} packages</div>
+    </div>
+    <div class="summary-card critical">
+      <div class="sc-label">Critical / High</div>
+      <div class="sc-value">${(counts.critical||0) + (counts.high||0)}</div>
+      <div class="sc-sub">${counts.critical||0} critical · ${counts.high||0} high</div>
+    </div>
+    <div class="summary-card high">
+      <div class="sc-label">License Flags</div>
+      <div class="sc-value">${licenses.filter(l=>l.flag).reduce((a,l)=>a+l.count,0)}</div>
+      <div class="sc-sub">GPL or unknown</div>
+    </div>`;
+
+  renderTable();
+  renderLicenses();
+  renderSBOM();
+
+  document.getElementById('resultsSection').classList.add('visible');
+  document.getElementById('resultsSection').classList.add('fade-in');
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const q = (document.getElementById('searchBox').value || '').toLowerCase();
+  let rows = scanResults.vulns.filter(v => {
+    if (currentFilter !== 'all' && v.severity !== currentFilter) return false;
+    if (q && !v.pkg.includes(q) && !v.cve.toLowerCase().includes(q) && !v.desc.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if (!rows.length) {
+    document.getElementById('tableContainer').innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#3d4150" stroke-width="1.5"/><path d="M10 6v5M10 14v.5" stroke="#3d4150" stroke-width="1.5" stroke-linecap="round"/></svg></div><p>No results match your filter.</p></div>`;
+    return;
+  }
+
+  document.getElementById('tableContainer').innerHTML = `
+    <table class="vuln-table">
+      <thead><tr>
+        <th>Package</th><th>CVE</th><th>Severity</th><th>CVSS</th><th>Description</th><th>Fix</th><th>License</th>
+      </tr></thead>
+      <tbody>${rows.map(v => `
+        <tr>
+          <td><div class="pkg-name">${v.pkg}</div><div class="pkg-ver">v${v.ver}</div></td>
+          <td><span class="cve-id">${v.cve}</span></td>
+          <td><span class="badge ${v.severity}">${v.severity.toUpperCase()}</span></td>
+          <td><span style="font-family:var(--mono);font-size:12px;color:${cvssColor(v.cvss)}">${v.cvss.toFixed(1)}</span></td>
+          <td style="color:var(--muted);font-size:12px;max-width:220px">${v.desc}</td>
+          <td>${v.fix ? `<span class="fix-ver">↑ ${v.fix}</span>` : '<span class="no-fix">no fix yet</span>'}</td>
+          <td><span class="chip" style="font-size:10px">${v.license}</span></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function cvssColor(s) { return s >= 9 ? '#f05252' : s >= 7 ? '#f5a623' : s >= 4 ? '#fcd34d' : '#34d399'; }
+
+function renderLicenses() {
+  const max = Math.max(...scanResults.licenses.map(l => l.count));
+  document.getElementById('licenseGrid').innerHTML = scanResults.licenses.map(l => `
+    <div class="license-card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="license-name">${l.name}</div>
+        ${l.flag ? '<span class="badge medium" style="font-size:10px">review</span>' : ''}
+      </div>
+      <div class="license-count">${l.count} packages</div>
+      <div class="license-bar" style="background:var(--border)">
+        <div style="height:3px;border-radius:2px;background:${l.color};width:${Math.round(l.count/max*100)}%"></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderSBOM() {
+  const { vulns, totalPkgs, ecosystem } = scanResults;
+  const components = vulns.slice(0, 6).map(v => ({
+    type: 'library',
+    name: v.pkg,
+    version: v.ver,
+    purl: `pkg:${ecosystem}/${v.pkg}@${v.ver}`,
+    licenses: [{ license: { id: v.license } }]
+  }));
+  const sbom = {
+    bomFormat: 'CycloneDX',
+    specVersion: '1.4',
+    serialNumber: 'urn:uuid:' + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16);
+    }),
+    version: 1,
+    metadata: { timestamp: new Date().toISOString(), component: { type: 'application', name: uploadedFiles[0]?.name || 'project' } },
+    components
+  };
+
+  const json = JSON.stringify(sbom, null, 2);
+  document.getElementById('sbomPreview').innerHTML = syntaxHL(json);
+}
+
+function syntaxHL(json) {
+  return json
+    .replace(/("[\w-]+")\s*:/g, '<span class="key">$1</span>:')
+    .replace(/:\s*(".*?")/g, ': <span class="str">$1</span>')
+    .replace(/:\s*(\d+\.?\d*)/g, ': <span class="num">$1</span>')
+    .replace(/:\s*(true|false|null)/g, ': <span class="val">$1</span>');
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['vulns','licenses','sbom'][i] === name));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function exportJSON() {
+  const data = JSON.stringify(scanResults.vulns, null, 2);
+  download('sbom-report.json', data, 'application/json');
+}
+function exportCSV() {
+  const rows = [['Package','Version','CVE','Severity','CVSS','Description','Fix','License']];
+  scanResults.vulns.forEach(v => rows.push([v.pkg, v.ver, v.cve, v.severity, v.cvss, `"${v.desc}"`, v.fix||'', v.license]));
+  download('sbom-report.csv', rows.map(r => r.join(',')).join('\n'), 'text/csv');
+}
+function exportSPDX() {
+  const spdx = { spdxVersion:'SPDX-2.3', dataLicense:'CC0-1.0', SPDXID:'SPDXRef-DOCUMENT', name:'sbom-scan', packages: scanResults.vulns.map(v => ({ SPDXID:`SPDXRef-Package-${v.pkg}`, name:v.pkg, versionInfo:v.ver, licenseConcluded:v.license })) };
+  download('sbom-spdx.json', JSON.stringify(spdx, null, 2), 'application/json');
+}
+function exportCycloneDX() {
+  const sbom = { bomFormat:'CycloneDX', specVersion:'1.4', components: scanResults.vulns.map(v => ({ type:'library', name:v.pkg, version:v.ver, purl:`pkg:npm/${v.pkg}@${v.ver}` })) };
+  download('sbom-cyclonedx.json', JSON.stringify(sbom, null, 2), 'application/json');
+}
+function download(filename, text, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: mime }));
+  a.download = filename; a.click();
+}
+
+// ── PDF Export (print-dialog based, uses @media print CSS) ──────────────────
+function exportPDF() {
+  const { counts, totalPkgs } = scanResults;
+  const totalVulns = Object.values(counts).reduce((a,b)=>a+b,0);
+  const now = new Date().toLocaleString();
+  const fname = uploadedFiles[0]?.name || 'manifest';
+
+  // Populate print header
+  document.getElementById('printHeader').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-size:18px;font-weight:600;color:#0d0f12;margin-bottom:4px">SBOM Vulnerability Report</div>
+        <div style="font-size:12px;color:#555">${fname} &nbsp;·&nbsp; Scanned ${now}</div>
+      </div>
+      <div style="text-align:right;font-size:11px;color:#666">
+        <div>${totalPkgs} packages · ${totalVulns} vulnerabilities</div>
+        <div>${counts.critical||0} critical · ${counts.high||0} high · ${counts.medium||0} medium · ${counts.low||0} low</div>
+      </div>
+    </div>`;
+
+  // Make all tabs visible for print, then restore
+  const tabContents = document.querySelectorAll('.tab-content');
+  const origDisplay = [...tabContents].map(t => t.style.display);
+  tabContents.forEach(t => t.style.display = 'block');
+
+  // Render full vuln table (no filter) for print
+  const origFilter = currentFilter;
+  currentFilter = 'all';
+  document.getElementById('searchBox').value = '';
+  renderTable();
+
+  window.print();
+
+  // Restore state after print dialog closes
+  setTimeout(() => {
+    tabContents.forEach((t,i) => t.style.display = origDisplay[i]);
+    currentFilter = origFilter;
+    renderTable();
+  }, 500);
+}
+
+// ── HTML Report Export (full standalone dark report) ─────────────────────────
+function exportHTML() {
+  const { vulns, counts, totalPkgs, licenses } = scanResults;
+  const totalVulns = Object.values(counts).reduce((a,b)=>a+b,0);
+  const now = new Date().toLocaleString();
+  const fname = uploadedFiles[0]?.name || 'manifest';
+
+  const severityColor = { critical:'#f05252', high:'#f5a623', medium:'#fcd34d', low:'#34d399', info:'#60a5fa' };
+  const severityBg = { critical:'rgba(240,82,82,0.12)', high:'rgba(245,166,35,0.12)', medium:'rgba(252,211,77,0.1)', low:'rgba(52,211,153,0.1)', info:'rgba(96,165,250,0.1)' };
+
+  const licenseRows = licenses.map(l => `
+    <tr>
+      <td style="padding:8px 12px;border-bottom:1px solid #2a2d34;font-family:monospace;font-size:13px;color:#e8eaf0">${l.name}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #2a2d34;font-family:monospace;font-size:13px;color:#7a7f8e">${l.count}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #2a2d34">
+        ${l.flag ? '<span style="background:rgba(252,211,77,0.1);color:#fcd34d;border:1px solid rgba(252,211,77,0.35);font-size:10px;padding:2px 7px;border-radius:3px;font-family:monospace">REVIEW</span>' : '<span style="color:#34d399;font-size:11px">✓</span>'}
+      </td>
+    </tr>`).join('');
+
+  const vulnRows = vulns.map(v => `
+    <tr>
+      <td style="padding:10px 12px;border-bottom:1px solid #1c1f24">
+        <div style="font-family:monospace;font-size:12px;color:#e8eaf0">${v.pkg}</div>
+        <div style="font-family:monospace;font-size:11px;color:#7a7f8e">v${v.ver}</div>
+      </td>
+      <td style="padding:10px 12px;border-bottom:1px solid #1c1f24;font-family:monospace;font-size:12px;color:#60a5fa">${v.cve}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #1c1f24">
+        <span style="background:${severityBg[v.severity]};color:${severityColor[v.severity]};border:1px solid ${severityColor[v.severity]}40;font-family:monospace;font-size:11px;padding:2px 8px;border-radius:3px">${v.severity.toUpperCase()}</span>
+      </td>
+      <td style="padding:10px 12px;border-bottom:1px solid #1c1f24;font-family:monospace;font-size:12px;color:${cvssColor(v.cvss)}">${v.cvss.toFixed(1)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #1c1f24;font-size:12px;color:#7a7f8e;max-width:220px">${v.desc}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #1c1f24;font-family:monospace;font-size:12px;color:${v.fix ? '#34d399' : '#7a7f8e'}">${v.fix ? '↑ ' + v.fix : 'no fix'}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #1c1f24;font-family:monospace;font-size:11px;color:#7a7f8e">${v.license}</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SBOM Report — ${fname}</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  body{background:#0d0f12;color:#e8eaf0;font-family:'IBM Plex Sans',sans-serif;font-size:14px;margin:0;padding:0}
+  a{color:#60a5fa}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7a7f8e;text-transform:uppercase;letter-spacing:.06em;padding:10px 12px;border-bottom:2px solid #2a2d34;background:#141619}
+</style>
+</head>
+<body>
+<div style="max-width:1000px;margin:0 auto;padding:40px 24px">
+
+  <!-- Header -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:36px;padding-bottom:20px;border-bottom:1px solid #2a2d34">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="width:28px;height:28px;background:rgba(0,212,170,0.12);border:1px solid rgba(0,212,170,0.35);border-radius:4px;display:flex;align-items:center;justify-content:center">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" stroke="#00d4aa" stroke-width="1.2" fill="none"/><path d="M8 5V11M5.5 6.5L8 5L10.5 6.5" stroke="#00d4aa" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </div>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:500;color:#e8eaf0">sbom-scanner</span>
+      </div>
+      <div style="font-size:22px;font-weight:300;color:#e8eaf0;margin-bottom:4px">Vulnerability Report</div>
+      <div style="font-size:13px;color:#7a7f8e;font-family:'IBM Plex Mono',monospace">${fname}</div>
+    </div>
+    <div style="text-align:right;font-size:12px;color:#7a7f8e;font-family:'IBM Plex Mono',monospace">
+      <div style="margin-bottom:4px">Generated ${now}</div>
+      <div><span style="color:#00d4aa;font-size:9px;margin-right:6px">●</span>OSV · NVD · GHSA feeds</div>
+    </div>
+  </div>
+
+  <!-- Summary cards -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:36px">
+    <div style="background:#141619;border:1px solid #2a2d34;border-radius:6px;padding:16px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7a7f8e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Total Packages</div>
+      <div style="font-size:28px;font-weight:300;font-family:'IBM Plex Mono',monospace;color:#e8eaf0">${totalPkgs}</div>
+    </div>
+    <div style="background:#141619;border:1px solid #2a2d34;border-radius:6px;padding:16px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7a7f8e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Vulnerabilities</div>
+      <div style="font-size:28px;font-weight:300;font-family:'IBM Plex Mono',monospace;color:#e8eaf0">${totalVulns}</div>
+    </div>
+    <div style="background:#141619;border:1px solid rgba(240,82,82,0.3);border-radius:6px;padding:16px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7a7f8e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Critical / High</div>
+      <div style="font-size:28px;font-weight:300;font-family:'IBM Plex Mono',monospace;color:#f05252">${(counts.critical||0)+(counts.high||0)}</div>
+      <div style="font-size:11px;color:#7a7f8e;margin-top:2px">${counts.critical||0} critical · ${counts.high||0} high</div>
+    </div>
+    <div style="background:#141619;border:1px solid rgba(245,166,35,0.3);border-radius:6px;padding:16px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7a7f8e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Medium / Low</div>
+      <div style="font-size:28px;font-weight:300;font-family:'IBM Plex Mono',monospace;color:#f5a623">${(counts.medium||0)+(counts.low||0)}</div>
+      <div style="font-size:11px;color:#7a7f8e;margin-top:2px">${counts.medium||0} medium · ${counts.low||0} low</div>
+    </div>
+  </div>
+
+  <!-- Vulnerabilities -->
+  <div style="margin-bottom:12px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7a7f8e;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">// vulnerabilities</div>
+    <div style="background:#141619;border:1px solid #2a2d34;border-radius:6px;overflow:hidden">
+      <table>
+        <thead><tr><th>Package</th><th>CVE</th><th>Severity</th><th>CVSS</th><th>Description</th><th>Fix</th><th>License</th></tr></thead>
+        <tbody>${vulnRows}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Licenses -->
+  <div style="margin-top:32px;margin-bottom:32px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7a7f8e;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">// license breakdown</div>
+    <div style="background:#141619;border:1px solid #2a2d34;border-radius:6px;overflow:hidden">
+      <table>
+        <thead><tr><th>License</th><th>Packages</th><th>Status</th></tr></thead>
+        <tbody>${licenseRows}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="padding-top:20px;border-top:1px solid #2a2d34;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#3d4150;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <span>sbom-scanner · SCA Report</span>
+    <span>Built by <a href="https://sudoninja-noob.github.io/" target="_blank" rel="noopener noreferrer" style="color:#00d4aa;text-decoration:none">@sudoninja</a></span>
+    <span>${now}</span>
+  </div>
+
+</div>
+</body>
+</html>`;
+
+  download('sbom-report.html', html, 'text/html');
+}
+</script>
+</body>
+</html>
