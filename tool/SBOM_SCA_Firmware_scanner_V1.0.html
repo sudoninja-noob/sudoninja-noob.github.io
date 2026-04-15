@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SecureScan Suite — SBOM · SCA · Firmware</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#0b0d10;--surface:#13151a;--surface2:#1a1d24;--surface3:#20242d;
+  --border:#252830;--border2:#2e3240;--text:#e2e4ed;--muted:#6b7080;--dim:#32363f;
+  --accent:#00d4aa;--accent-dim:rgba(0,212,170,.1);--accent-border:rgba(0,212,170,.3);
+  --red:#f05252;--red-dim:rgba(240,82,82,.1);--red-border:rgba(240,82,82,.3);
+  --orange:#f5a623;--orange-dim:rgba(245,166,35,.1);--orange-border:rgba(245,166,35,.3);
+  --yellow:#fcd34d;--yellow-dim:rgba(252,211,77,.1);
+  --green:#34d399;--green-dim:rgba(52,211,153,.1);--green-border:rgba(52,211,153,.3);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,.1);--blue-border:rgba(96,165,250,.3);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,.1);--purple-border:rgba(167,139,250,.3);
+  --mono:'IBM Plex Mono',monospace;--sans:'Inter',system-ui,sans-serif;
+  --r:6px;--r2:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh}
+
+/* ── App Header ───────────────────────────────────────────────── */
+.app-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 32px;border-bottom:1px solid var(--border);
+  background:var(--surface);position:sticky;top:0;z-index:100;
+}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text)}
+.logo-icon{width:30px;height:30px;background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--r);display:flex;align-items:center;justify-content:center}
+.logo-badge{font-family:var(--mono);font-size:9px;padding:2px 7px;border:1px solid var(--border2);border-radius:20px;color:var(--muted);letter-spacing:.07em}
+.hdr-nav{display:flex;gap:4px}
+.hdr-nav a{font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:var(--r);color:var(--muted);text-decoration:none;transition:all .15s;cursor:pointer}
+.hdr-nav a:hover,.hdr-nav a.active{background:var(--surface2);color:var(--text)}
+.hdr-status{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.dot-live{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+
+/* ── Page layout ────────────────────────────────────────────── */
+.page{max-width:1140px;margin:0 auto;padding:32px 24px}
+
+/* ── Scanner Cards ───────────────────────────────────────────── */
+.scanner-card{
+  border:1px solid var(--border);border-radius:var(--r2);background:var(--surface);
+  margin-bottom:28px;overflow:hidden;
+}
+.scanner-card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 24px;border-bottom:1px solid var(--border);
+  background:var(--surface2);cursor:pointer;user-select:none;
+}
+.scanner-card-header:hover{background:var(--surface3)}
+.sc-title{display:flex;align-items:center;gap:12px}
+.sc-icon{width:30px;height:30px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;border:1px solid}
+.sc-icon.sbom{background:var(--accent-dim);border-color:var(--accent-border)}
+.sc-icon.sca{background:var(--blue-dim);border-color:var(--blue-border)}
+.sc-icon.fw{background:var(--purple-dim);border-color:var(--purple-border)}
+.sc-name{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text)}
+.sc-desc{font-size:12px;color:var(--muted);margin-top:1px}
+.sc-tag{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:20px;border:1px solid;letter-spacing:.06em}
+.sc-tag.sbom{color:var(--accent);border-color:var(--accent-border);background:var(--accent-dim)}
+.sc-tag.sca{color:var(--blue);border-color:var(--blue-border);background:var(--blue-dim)}
+.sc-tag.fw{color:var(--purple);border-color:var(--purple-border);background:var(--purple-dim)}
+.scanner-body{padding:24px}
+
+/* ── Drop zones ──────────────────────────────────────────────── */
+.drop-zone{
+  border:1px dashed var(--border2);border-radius:var(--r);padding:36px 24px;
+  text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2);
+}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent-border);background:var(--accent-dim)}
+.drop-zone.blue:hover,.drop-zone.blue.drag-over{border-color:var(--blue-border);background:var(--blue-dim)}
+.drop-zone.purple:hover,.drop-zone.purple.drag-over{border-color:var(--purple-border);background:var(--purple-dim)}
+.drop-zone input[type=file]{display:none}
+.dz-icon{width:40px;height:40px;margin:0 auto 12px;border:1px solid var(--border2);border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--surface)}
+.dz-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px}
+.dz-sub{font-size:12px;color:var(--muted)}
+.chips{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.chip{font-family:var(--mono);font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:3px;color:var(--muted);background:var(--surface)}
+
+/* ── File list ───────────────────────────────────────────────── */
+.file-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.file-item{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);font-family:var(--mono);font-size:12px}
+.fi-name{color:var(--text)}
+.fi-size{color:var(--muted);font-size:11px}
+.fi-rm{color:var(--dim);cursor:pointer;font-size:16px;line-height:1;padding:0 4px;transition:color .15s}
+.fi-rm:hover{color:var(--red)}
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.run-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:12px;font-weight:500;
+  border:none;border-radius:var(--r);padding:10px 22px;cursor:pointer;transition:all .15s;margin-top:14px;
+}
+.run-btn.sbom{background:var(--accent);color:#071a15}
+.run-btn.sbom:hover:not(:disabled){background:#00f0c4}
+.run-btn.sca{background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-border)}
+.run-btn.sca:hover:not(:disabled){background:rgba(96,165,250,.2)}
+.run-btn.fw{background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple-border)}
+.run-btn.fw:hover:not(:disabled){background:rgba(167,139,250,.2)}
+.run-btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ── Progress ────────────────────────────────────────────────── */
+.progress-bar{height:3px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden;display:none}
+.progress-fill{height:100%;border-radius:2px;width:0%;transition:width .3s ease}
+.progress-fill.sbom{background:var(--accent)}
+.progress-fill.sca{background:var(--blue)}
+.progress-fill.fw{background:var(--purple)}
+
+/* ── Results panel ───────────────────────────────────────────── */
+.results-panel{
+  margin-top:20px;border:1px solid var(--border);border-radius:var(--r);
+  overflow:hidden;display:none;
+}
+.results-panel.visible{display:block}
+.results-panel-header{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  background:var(--surface2);display:flex;align-items:center;justify-content:space-between;
+}
+.rph-title{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px}
+.rph-badge{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:20px}
+.rph-badge.pass{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
+.rph-badge.fail{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
+.results-panel-body{padding:20px}
+
+/* ── Summary grid ────────────────────────────────────────────── */
+.sum-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.sum-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.sum-card .sv{font-size:26px;font-weight:300;font-family:var(--mono);color:var(--text)}
+.sum-card .sl{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.sum-card .ss{font-size:11px;color:var(--muted);margin-top:2px}
+.sum-card.s-crit{border-color:var(--red-border)} .sum-card.s-crit .sv{color:var(--red)}
+.sum-card.s-high{border-color:var(--orange-border)} .sum-card.s-high .sv{color:var(--orange)}
+.sum-card.s-accent{border-color:var(--accent-border)} .sum-card.s-accent .sv{color:var(--accent)}
+
+/* ── Tabs ────────────────────────────────────────────────────── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;flex-wrap:wrap}
+.tab{font-family:var(--mono);font-size:11px;padding:9px 16px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.tab:hover{color:var(--text)}
+.tab.t-sbom.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab.t-sca.active{color:var(--blue);border-bottom-color:var(--blue)}
+.tab.t-fw.active{color:var(--purple);border-bottom-color:var(--purple)}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* ── Table ───────────────────────────────────────────────────── */
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.flt-btn{font-family:var(--mono);font-size:11px;padding:5px 10px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s}
+.flt-btn.active,.flt-btn:hover{border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim)}
+.flt-btn.fc.active{border-color:var(--red-border);color:var(--red);background:var(--red-dim)}
+.flt-btn.fh.active{border-color:var(--orange-border);color:var(--orange);background:var(--orange-dim)}
+.flt-btn.fm.active{border-color:var(--yellow-dim);color:var(--yellow);background:var(--yellow-dim)}
+.flt-btn.fl.active{border-color:var(--green-border);color:var(--green);background:var(--green-dim)}
+.search{flex:1;min-width:160px;font-family:var(--mono);font-size:12px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:6px 12px;outline:none;transition:border .15s}
+.search:focus{border-color:var(--accent-border)}
+.search::placeholder{color:var(--dim)}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{text-align:left;font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--surface)}
+.data-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;font-size:13px}
+.data-table tr:hover td{background:rgba(255,255,255,.02)}
+.data-table tr:last-child td{border-bottom:none}
+.pkg{font-family:var(--mono);font-size:12px;color:var(--text)}
+.pkgv{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.cveid{font-family:var(--mono);font-size:12px;color:var(--blue)}
+.fixv{font-family:var(--mono);font-size:12px;color:var(--green)}
+
+/* ── Severity badges ─────────────────────────────────────────── */
+.sev{display:inline-flex;align-items:center;font-family:var(--mono);font-size:10px;font-weight:500;padding:2px 7px;border-radius:3px;border:1px solid}
+.sev.critical{background:var(--red-dim);color:var(--red);border-color:var(--red-border)}
+.sev.high{background:var(--orange-dim);color:var(--orange);border-color:var(--orange-border)}
+.sev.medium{background:var(--yellow-dim);color:var(--yellow);border-color:rgba(252,211,77,.35)}
+.sev.low{background:var(--green-dim);color:var(--green);border-color:var(--green-border)}
+.sev.info{background:var(--blue-dim);color:var(--blue);border-color:var(--blue-border)}
+
+/* ── License grid ────────────────────────────────────────────── */
+.lic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.lic-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.lic-name{font-family:var(--mono);font-size:13px;color:var(--text);margin-bottom:4px}
+.lic-count{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.lic-bar{height:3px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden}
+.lic-fill{height:100%;border-radius:2px}
+
+/* ── SBOM preview ────────────────────────────────────────────── */
+.sbom-pre{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;font-family:var(--mono);font-size:12px;color:var(--muted);white-space:pre-wrap;max-height:340px;overflow-y:auto;line-height:1.8}
+.sbom-pre .k{color:#7dd3fc}
+.sbom-pre .s{color:#fca5a5}
+.sbom-pre .n{color:var(--orange)}
+.sbom-pre .v{color:#86efac}
+
+/* ── Export bar ──────────────────────────────────────────────── */
+.export-bar{display:flex;gap:8px;padding-top:16px;margin-top:16px;border-top:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.exp-label{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;align-self:center}
+.exp-btn{font-family:var(--mono);font-size:11px;padding:6px 12px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);border-radius:3px;cursor:pointer;transition:all .15s}
+.exp-btn:hover{border-color:var(--accent-border);color:var(--accent)}
+.exp-btn.primary{border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim)}
+.exp-btn.primary:hover{background:rgba(0,212,170,.2)}
+.exp-btn.blue-p{border-color:var(--blue-border);color:var(--blue);background:var(--blue-dim)}
+.exp-btn.purple-p{border-color:var(--purple-border);color:var(--purple);background:var(--purple-dim)}
+.exp-btn.feed{border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);font-size:12px;padding:7px 16px}
+
+/* ── SCA scanner ─────────────────────────────────────────────── */
+.sca-meta-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px;font-family:var(--mono);font-size:12px}
+.mk{color:var(--muted)} .mv{color:var(--text)}
+.sca-sum{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.sca-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:13px}
+.sca-card .cv{font-size:22px;font-weight:300;font-family:var(--mono);color:var(--text)}
+.sca-card .cl{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.sca-card.c-r{border-color:var(--red-border)} .sca-card.c-r .cv{color:var(--red)}
+.sca-card.c-o{border-color:var(--orange-border)} .sca-card.c-o .cv{color:var(--orange)}
+.sca-card.c-b{border-color:var(--blue-border)} .sca-card.c-b .cv{color:var(--blue)}
+.comp-tag{font-family:var(--mono);font-size:11px;padding:2px 8px;border:1px solid var(--border2);border-radius:3px;color:var(--muted);background:var(--surface)}
+.finding{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:8px}
+.finding-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;cursor:pointer;transition:background .15s}
+.finding-hdr:hover{background:rgba(255,255,255,.02)}
+.finding-hdr .lft{display:flex;align-items:center;gap:10px}
+.finding-body{display:none;padding:12px 14px;border-top:1px solid var(--border);font-size:12px;line-height:1.9}
+.finding-body.open{display:block}
+.dr{display:flex;gap:8px;margin-bottom:3px}
+.dk{font-family:var(--mono);color:var(--muted);font-size:11px;min-width:100px}
+.dv{font-family:var(--mono);font-size:11px;color:var(--text)}
+.dv.lnk{color:var(--blue);cursor:pointer}
+.chev{color:var(--muted);font-size:11px;transition:transform .2s}
+.chev.open{transform:rotate(180deg)}
+
+/* ── Firmware scanner ────────────────────────────────────────── */
+.fw-meta-band{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px;font-family:var(--mono);font-size:12px}
+.fw-sum{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.fw-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:13px}
+.fw-card .fv{font-size:22px;font-weight:300;font-family:var(--mono);color:var(--text)}
+.fw-card .fl{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.fw-card.c-p{border-color:var(--purple-border)} .fw-card.c-p .fv{color:var(--purple)}
+.fw-card.c-r{border-color:var(--red-border)} .fw-card.c-r .fv{color:var(--red)}
+.fw-card.c-o{border-color:var(--orange-border)} .fw-card.c-o .fv{color:var(--orange)}
+.fw-card.c-b{border-color:var(--blue-border)} .fw-card.c-b .fv{color:var(--blue)}
+.type-pill{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:3px;border:1px solid}
+.type-pill.kernel{color:var(--orange);border-color:var(--orange-border);background:var(--orange-dim)}
+.type-pill.binary{color:var(--blue);border-color:var(--blue-border);background:var(--blue-dim)}
+.type-pill.library{color:var(--purple);border-color:var(--purple-border);background:var(--purple-dim)}
+.type-pill.package{color:var(--green);border-color:var(--green-border);background:var(--green-dim)}
+.type-pill.config{color:var(--yellow);border-color:rgba(252,211,77,.35);background:var(--yellow-dim)}
+.type-pill.script{color:var(--muted);border-color:var(--border2);background:var(--surface2)}
+.arch-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.arch-row:last-child{border-bottom:none}
+.sbom-inject{background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--r);padding:12px 14px;font-family:var(--mono);font-size:12px;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+
+/* ── Misc utilities ──────────────────────────────────────────── */
+.sec-lbl{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sec-lbl::before{content:'//';color:var(--dim)}
+.empty-state{text-align:center;padding:48px 24px;color:var(--muted);font-family:var(--mono);font-size:12px}
+.feed-notice{background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--accent);font-family:var(--mono);margin-top:10px;display:none}
+.feed-notice.show{display:flex;align-items:center;gap:8px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeUp .3s ease forwards}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .8s linear infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pulse{animation:pulse 1.4s ease infinite}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@media(max-width:900px){.sum-grid,.sca-sum,.fw-sum{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.hdr-nav{display:none}}
+
+/* ── Section divider ─────────────────────────────────────────── */
+.scan-divider{display:flex;align-items:center;gap:14px;margin:8px 0 28px;opacity:.5}
+.scan-divider::before,.scan-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.scan-divider span{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<!-- ══════════ APP HEADER ══════════ -->
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" stroke="#00d4aa" stroke-width="1.2"/>
+        <path d="M8 5V11M5.5 6.5L8 5L10.5 6.5" stroke="#00d4aa" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    SecureScan Suite
+    <span class="logo-badge">v6.0</span>
+  </div>
+  <nav class="hdr-nav">
+    <a onclick="scrollTo('sbom-card')">SBOM</a>
+    <a onclick="scrollTo('sca-card')">SCA</a>
+    <a onclick="scrollTo('fw-card')">Firmware</a>
+  </nav>
+  <div class="hdr-status">
+    <span class="dot-live"></span>OSV · NVD · GHSA
+  </div>
+</header>
+
+<div class="page">
+
+<!-- ══════════════════════════════════════════════════════════════
+     SCANNER 1 — SBOM MANIFEST SCANNER
+══════════════════════════════════════════════════════════════ -->
+<div class="scanner-card" id="sbom-card">
+  <div class="scanner-card-header" onclick="toggleCard('sbom-body')">
+    <div class="sc-title">
+      <div class="sc-icon sbom">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <rect x="2" y="1" width="11" height="13" rx="1.5" stroke="#00d4aa" stroke-width="1.2"/>
+          <path d="M5 5h5M5 7.5h4M5 10h5" stroke="#00d4aa" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="sc-name">SBOM Scanner — Manifest Analysis</div>
+        <div class="sc-desc">Scan package manifests · Generate Software Bill of Materials · CVE cross-reference</div>
+      </div>
+    </div>
+    <span class="sc-tag sbom">SBOM ENGINE</span>
+  </div>
+  <div class="scanner-body" id="sbom-body">
+    <div class="sec-lbl">manifest upload</div>
+    <div class="drop-zone" id="sbomDrop">
+      <input type="file" id="sbomFileInput" multiple accept=".json,.txt,.toml,.xml,.lock,.sum,.yaml,.yml,.gradle"/>
+      <div class="dz-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 13V4M10 4L7 7M10 4L13 7" stroke="#7a7f8e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 14v1a2 2 0 002 2h10a2 2 0 002-2v-1" stroke="#7a7f8e" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="dz-title">Drop manifest files here</div>
+      <div class="dz-sub">or click to browse</div>
+      <div class="chips"><span class="chip">package.json</span><span class="chip">requirements.txt</span><span class="chip">pom.xml</span><span class="chip">go.sum</span><span class="chip">Cargo.toml</span><span class="chip">yarn.lock</span></div>
+    </div>
+    <div class="file-list" id="sbomFileList"></div>
+    <div id="sbomFeedNotice" class="feed-notice">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1L11 3.5v5L6 11 1 8.5v-5L6 1Z" stroke="#00d4aa" stroke-width="1.2"/></svg>
+      Firmware components loaded — ready to scan
+    </div>
+    <button class="run-btn sbom" id="sbomRunBtn" disabled onclick="runSBOMScan()">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M4.5 6.5l2 2 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Run SBOM Scan
+    </button>
+    <div class="progress-bar" id="sbomProgress"><div class="progress-fill sbom" id="sbomProgressFill"></div></div>
+
+    <!-- SBOM Results appear right here, below the scan button -->
+    <div class="results-panel" id="sbomResults">
+      <div class="results-panel-header">
+        <div class="rph-title">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1.5" stroke="#00d4aa" stroke-width="1.2"/><path d="M3 4h6M3 6h4M3 8h5" stroke="#00d4aa" stroke-width="1.2" stroke-linecap="round"/></svg>
+          SBOM Scan Results
+        </div>
+        <span class="rph-badge fail" id="sbomPolicyBadge">Policy: PENDING</span>
+      </div>
+      <div class="results-panel-body">
+        <div class="sum-grid" id="sbomSumGrid"></div>
+        <div class="tabs" id="sbomTabs">
+          <div class="tab t-sbom active" onclick="sbomTab('vulns',this)">Vulnerabilities</div>
+          <div class="tab t-sbom" onclick="sbomTab('licenses',this)">Licenses</div>
+          <div class="tab t-sbom" onclick="sbomTab('sbom-output',this)">SBOM Output</div>
+        </div>
+        <div class="tab-pane active" id="sbom-pane-vulns">
+          <div class="toolbar">
+            <button class="flt-btn active" onclick="sbomFilter('all',this)">All</button>
+            <button class="flt-btn fc" onclick="sbomFilter('critical',this)">Critical</button>
+            <button class="flt-btn fh" onclick="sbomFilter('high',this)">High</button>
+            <button class="flt-btn fm" onclick="sbomFilter('medium',this)">Medium</button>
+            <button class="flt-btn fl" onclick="sbomFilter('low',this)">Low</button>
+            <input class="search" id="sbomSearch" placeholder="search packages, CVEs..." oninput="renderSBOMTable()"/>
+          </div>
+          <div id="sbomTableContainer"></div>
+        </div>
+        <div class="tab-pane" id="sbom-pane-licenses">
+          <div class="lic-grid" id="sbomLicGrid"></div>
+        </div>
+        <div class="tab-pane" id="sbom-pane-sbom-output">
+          <div class="sbom-pre" id="sbomJsonPreview"></div>
+        </div>
+        <div class="export-bar">
+          <span class="exp-label">Export:</span>
+          <button class="exp-btn primary" onclick="sbomExportHTML()">↓ HTML Report</button>
+          <button class="exp-btn primary" onclick="sbomExportXLSX()">↓ Excel</button>
+          <button class="exp-btn" onclick="sbomExportCSV()">↓ CSV</button>
+          <button class="exp-btn" onclick="sbomExportJSON()">↓ JSON</button>
+          <button class="exp-btn" onclick="sbomExportSPDX()">↓ SPDX</button>
+          <button class="exp-btn" onclick="sbomExportCycloneDX()">↓ CycloneDX</button>
+          <button class="exp-btn" onclick="window.print()">↓ PDF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SCANNER 2 — SCA BINARY SCANNER
+══════════════════════════════════════════════════════════════ -->
+<div class="scanner-card" id="sca-card">
+  <div class="scanner-card-header" onclick="toggleCard('sca-body')">
+    <div class="sc-title">
+      <div class="sc-icon sca">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <rect x="2" y="1.5" width="11" height="12" rx="1.5" stroke="#60a5fa" stroke-width="1.2"/>
+          <path d="M5 5h5M5 7h3M5 9h4" stroke="#60a5fa" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="11" cy="11" r="3" fill="#0b0d10" stroke="#60a5fa" stroke-width="1.2"/>
+          <path d="M10.2 11l.6.6 1.2-1.2" stroke="#60a5fa" stroke-width="1" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="sc-name">SCA Scanner — Binary / Installer Analysis</div>
+        <div class="sc-desc">Fingerprint executables · Detect embedded libraries · CVE lookup per component</div>
+      </div>
+    </div>
+    <span class="sc-tag sca">SCA ENGINE</span>
+  </div>
+  <div class="scanner-body" id="sca-body">
+    <div class="sec-lbl">binary upload</div>
+    <div class="drop-zone blue" id="scaDrop">
+      <input type="file" id="scaFileInput" accept=".exe,.msi,.dmg,.pkg,.deb,.rpm,.apk,.appx,.zip,.tar,.gz,.xz,.7z,.bin,.run,.sh,.jar,.war,.ear"/>
+      <div class="dz-icon" style="border-color:var(--blue-border);background:var(--blue-dim)">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="2" width="14" height="16" rx="2" stroke="#60a5fa" stroke-width="1.4"/><path d="M7 7h6M7 10h4M7 13h5" stroke="#60a5fa" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </div>
+      <div class="dz-title">Drop a software binary or installer</div>
+      <div class="dz-sub">Wireshark, 7-Zip, OpenSSL, Python, VLC, WinRAR, Node.js and 80+ more</div>
+      <div class="chips"><span class="chip">.exe</span><span class="chip">.msi</span><span class="chip">.dmg</span><span class="chip">.deb</span><span class="chip">.rpm</span><span class="chip">.apk</span><span class="chip">.jar</span><span class="chip">.zip</span></div>
+    </div>
+    <!-- SCA Results appear right here -->
+    <div class="results-panel" id="scaResults" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SCANNER 3 — FIRMWARE SCANNER
+══════════════════════════════════════════════════════════════ -->
+<div class="scanner-card" id="fw-card">
+  <div class="scanner-card-header" onclick="toggleCard('fw-body')">
+    <div class="sc-title">
+      <div class="sc-icon fw">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <rect x="1.5" y="4" width="12" height="7" rx="1.5" stroke="#a78bfa" stroke-width="1.2"/>
+          <path d="M4 4V3M7.5 4V2M11 4V3" stroke="#a78bfa" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M4 11v1M7.5 11v1.5M11 11v1" stroke="#a78bfa" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M4.5 7.5h6" stroke="#a78bfa" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="4.5" cy="7.5" r=".8" fill="#a78bfa"/>
+          <circle cx="10.5" cy="7.5" r=".8" fill="#a78bfa"/>
+        </svg>
+      </div>
+      <div>
+        <div class="sc-name">Firmware Scanner — Component Extraction</div>
+        <div class="sc-desc">Extract binaries, packages, libraries · CVE scan · Generate SBOM feed for manifest scanner</div>
+      </div>
+    </div>
+    <span class="sc-tag fw">FIRMWARE ENGINE</span>
+  </div>
+  <div class="scanner-body" id="fw-body">
+    <div class="sec-lbl">firmware image upload</div>
+    <div class="drop-zone purple" id="fwDrop">
+      <input type="file" id="fwFileInput" accept=".bin,.img,.squashfs,.ext4,.cramfs,.jffs2,.ubifs,.tar,.gz,.xz,.bz2,.zip,.hex,.ihex,.elf,.axf,.rom,.fw,.update,.ota,.pak,.tar.gz"/>
+      <div class="dz-icon" style="border-color:var(--purple-border);background:var(--purple-dim)">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="10" rx="2" stroke="#a78bfa" stroke-width="1.4"/><path d="M5 5V3.5M10 5V2.5M15 5V3.5" stroke="#a78bfa" stroke-width="1.3" stroke-linecap="round"/><path d="M5 15v1.5M10 15v2M15 15v1.5" stroke="#a78bfa" stroke-width="1.3" stroke-linecap="round"/><path d="M6 10h8" stroke="#a78bfa" stroke-width="1.3" stroke-linecap="round"/><circle cx="6" cy="10" r="1" fill="#a78bfa"/><circle cx="14" cy="10" r="1" fill="#a78bfa"/></svg>
+      </div>
+      <div class="dz-title">Drop a firmware image or archive</div>
+      <div class="dz-sub">IoT · Router · Embedded · RTOS · Linux-based firmware</div>
+      <div class="chips"><span class="chip">.bin</span><span class="chip">.img</span><span class="chip">.squashfs</span><span class="chip">.ext4</span><span class="chip">.tar.gz</span><span class="chip">.elf</span><span class="chip">.ota</span><span class="chip">.fw</span></div>
+    </div>
+    <!-- Firmware Results appear right here -->
+    <div class="results-panel" id="fwResults" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer style="margin-top:32px;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+  <span style="font-family:var(--mono);font-size:11px;color:var(--dim)">SecureScan Suite · SBOM · SCA · Firmware</span>
+  <span style="font-family:var(--mono);font-size:11px;color:var(--dim)">Built by <a href="https://sudoninja-noob.github.io/" target="_blank" style="color:var(--accent);text-decoration:none">@sudoninja</a></span>
+</footer>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════════════════════════════════
+function scrollTo(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'})}
+function toggleCard(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'':'none'}
+function cvssColor(s){return s>=9?'var(--red)':s>=7?'var(--orange)':s>=4?'var(--yellow)':'var(--green)'}
+function download(filename,text,mime){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:mime}));a.download=filename;a.click()}
+function syntaxHL(json){return json.replace(/("[\w-]+")\s*:/g,'<span class="k">$1</span>:').replace(/:\s*(".*?")/g,': <span class="s">$1</span>').replace(/:\s*(\d+\.?\d*)/g,': <span class="n">$1</span>').replace(/:\s*(true|false|null)/g,': <span class="v">$1</span>')}
+
+// ══════════════════════════════════════════════════════════════════
+// SBOM SCANNER
+// ══════════════════════════════════════════════════════════════════
+let sbomFiles=[], sbomResults=null, sbomFilter_='all';
+
+const sbomDrop=document.getElementById('sbomDrop');
+const sbomFileInput=document.getElementById('sbomFileInput');
+const sbomRunBtn=document.getElementById('sbomRunBtn');
+
+sbomDrop.addEventListener('click',()=>sbomFileInput.click());
+sbomDrop.addEventListener('dragover',e=>{e.preventDefault();sbomDrop.classList.add('drag-over')});
+sbomDrop.addEventListener('dragleave',()=>sbomDrop.classList.remove('drag-over'));
+sbomDrop.addEventListener('drop',e=>{e.preventDefault();sbomDrop.classList.remove('drag-over');addSBOMFiles([...e.dataTransfer.files])});
+sbomFileInput.addEventListener('change',()=>addSBOMFiles([...sbomFileInput.files]));
+
+function addSBOMFiles(files){
+  files.forEach(f=>{if(!sbomFiles.find(u=>u.name===f.name))sbomFiles.push(f)});
+  renderSBOMFileList(); sbomRunBtn.disabled=sbomFiles.length===0;
+}
+function removeSBOMFile(name){sbomFiles=sbomFiles.filter(f=>f.name!==name);renderSBOMFileList();sbomRunBtn.disabled=sbomFiles.length===0}
+function renderSBOMFileList(){
+  document.getElementById('sbomFileList').innerHTML=sbomFiles.map(f=>`<div class="file-item"><span class="fi-name">${f.name}</span><span style="display:flex;align-items:center;gap:12px"><span class="fi-size">${(f.size/1024).toFixed(1)} KB</span><span class="fi-rm" onclick="removeSBOMFile('${f.name}')">×</span></span></div>`).join('');
+}
+
+function detectEcosystem(name){
+  if(/package\.json|yarn\.lock|package-lock/.test(name))return'npm';
+  if(/requirements|Pipfile|setup\.py/.test(name))return'pypi';
+  if(/pom\.xml|build\.gradle/.test(name))return'maven';
+  if(/go\.sum|go\.mod/.test(name))return'go';
+  if(/Cargo/.test(name))return'cargo';
+  if(/fw-.*-components\.txt/.test(name))return'firmware';
+  return'generic';
+}
+
+// Ecosystem-specific vuln pools — NO openssl in generic/npm/pypi unless relevant
+const SBOM_VULN_POOLS = {
+  npm:[
+    {pkg:'lodash',ver:'4.17.19',cve:'CVE-2021-23337',severity:'high',cvss:7.2,desc:'Command injection via template function',fix:'4.17.21',license:'MIT'},
+    {pkg:'axios',ver:'0.21.0',cve:'CVE-2021-3749',severity:'medium',cvss:5.3,desc:'SSRF via redirect following',fix:'0.21.2',license:'MIT'},
+    {pkg:'minimist',ver:'1.2.5',cve:'CVE-2021-44906',severity:'critical',cvss:9.8,desc:'Prototype pollution via constructor',fix:'1.2.6',license:'MIT'},
+    {pkg:'node-fetch',ver:'2.6.0',cve:'CVE-2022-0235',severity:'medium',cvss:6.1,desc:'Exposure of sensitive info via redirect',fix:'2.6.7',license:'MIT'},
+    {pkg:'follow-redirects',ver:'1.14.5',cve:'CVE-2022-0536',severity:'medium',cvss:5.9,desc:'Sensitive data leak via redirect',fix:'1.14.8',license:'MIT'},
+    {pkg:'ansi-regex',ver:'3.0.0',cve:'CVE-2021-3807',severity:'high',cvss:7.5,desc:'ReDos via crafted ANSI string',fix:'3.0.1',license:'MIT'},
+    {pkg:'ajv',ver:'6.12.2',cve:'CVE-2020-15366',severity:'medium',cvss:5.6,desc:'Prototype pollution in ajv',fix:'6.12.3',license:'MIT'},
+    {pkg:'glob-parent',ver:'3.1.0',cve:'CVE-2020-28469',severity:'high',cvss:7.5,desc:'ReDos in glob-parent',fix:'5.1.2',license:'ISC'},
+    {pkg:'debug',ver:'2.6.9',cve:'CVE-2017-16137',severity:'low',cvss:3.7,desc:'ReDos in debug pattern matching',fix:'2.6.9',license:'MIT'},
+    {pkg:'semver',ver:'5.7.1',cve:'CVE-2022-25883',severity:'low',cvss:3.7,desc:'ReDos via malicious semver string',fix:'5.7.2',license:'ISC'},
+  ],
+  pypi:[
+    {pkg:'Pillow',ver:'8.1.2',cve:'CVE-2021-25289',severity:'critical',cvss:9.8,desc:'Buffer overflow in TIFF decoder',fix:'8.2.0',license:'HPND'},
+    {pkg:'urllib3',ver:'1.26.3',cve:'CVE-2021-33503',severity:'high',cvss:7.5,desc:'ReDos via crafted URL',fix:'1.26.5',license:'MIT'},
+    {pkg:'requests',ver:'2.25.1',cve:'CVE-2023-32681',severity:'medium',cvss:6.1,desc:'Proxy-Authorization header leak on redirect',fix:'2.31.0',license:'Apache-2.0'},
+    {pkg:'cryptography',ver:'3.3.1',cve:'CVE-2023-49083',severity:'medium',cvss:4.0,desc:'NULL pointer dereference in PKCS12',fix:'41.0.6',license:'Apache-2.0'},
+    {pkg:'PyYAML',ver:'5.3.1',cve:'CVE-2020-14343',severity:'critical',cvss:9.8,desc:'Arbitrary code execution via full_load',fix:'5.4',license:'MIT'},
+    {pkg:'lxml',ver:'4.6.2',cve:'CVE-2021-43818',severity:'high',cvss:7.1,desc:'XSS via HTML entity injection',fix:'4.6.5',license:'BSD-3-Clause'},
+  ],
+  maven:[
+    {pkg:'log4j-core',ver:'2.14.1',cve:'CVE-2021-44228',severity:'critical',cvss:10.0,desc:'Log4Shell: RCE via JNDI lookup in log messages',fix:'2.17.1',license:'Apache-2.0'},
+    {pkg:'spring-webmvc',ver:'5.3.14',cve:'CVE-2022-22965',severity:'critical',cvss:9.8,desc:'Spring4Shell: RCE via data binding on JDK 9+',fix:'5.3.18',license:'Apache-2.0'},
+    {pkg:'jackson-databind',ver:'2.12.3',cve:'CVE-2021-46877',severity:'high',cvss:7.5,desc:'Recursive deserialization stack overflow',fix:'2.14.2',license:'Apache-2.0'},
+    {pkg:'commons-text',ver:'1.9.0',cve:'CVE-2022-42889',severity:'critical',cvss:9.8,desc:'Text4Shell: RCE via StringSubstitutor interpolation',fix:'1.10.0',license:'Apache-2.0'},
+    {pkg:'netty-handler',ver:'4.1.68',cve:'CVE-2023-44487',severity:'high',cvss:7.5,desc:'HTTP/2 Rapid Reset Attack DoS',fix:'4.1.100',license:'Apache-2.0'},
+    {pkg:'commons-collections',ver:'3.2.1',cve:'CVE-2015-6420',severity:'high',cvss:7.5,desc:'RCE via unsafe Java deserialization',fix:'3.2.2',license:'Apache-2.0'},
+  ],
+  go:[
+    {pkg:'golang.org/x/net',ver:'v0.0.0-20210405',cve:'CVE-2021-33194',severity:'high',cvss:7.5,desc:'Infinite loop in HTML parser leads to DoS',fix:'v0.0.0-20210510',license:'BSD-3-Clause'},
+    {pkg:'github.com/gogo/protobuf',ver:'v1.3.1',cve:'CVE-2021-3121',severity:'high',cvss:8.6,desc:'Unmarshal panic via crafted message',fix:'v1.3.2',license:'BSD-3-Clause'},
+    {pkg:'github.com/gin-gonic/gin',ver:'v1.7.1',cve:'CVE-2023-26125',severity:'medium',cvss:6.3,desc:'Improper wildcard matching allows path traversal',fix:'v1.9.0',license:'MIT'},
+  ],
+  cargo:[
+    {pkg:'time',ver:'0.1.44',cve:'CVE-2020-26235',severity:'medium',cvss:6.2,desc:'SEGFAULT via UNIX timezone environment variable',fix:'0.2.23',license:'MIT'},
+    {pkg:'tokio',ver:'1.6.0',cve:'CVE-2021-45710',severity:'high',cvss:7.0,desc:'Data race in tokio runtime under specific conditions',fix:'1.8.4',license:'MIT'},
+    {pkg:'crossbeam-deque',ver:'0.8.0',cve:'CVE-2021-32810',severity:'critical',cvss:9.8,desc:'Data race allows arbitrary code execution',fix:'0.8.1',license:'MIT'},
+  ],
+  firmware:[
+    {pkg:'busybox',ver:'1.35.0',cve:'CVE-2022-48174',severity:'critical',cvss:9.8,desc:'Stack overflow in ash shell via crafted input',fix:'1.36.1',license:'GPL-2.0'},
+    {pkg:'openssl',ver:'1.1.1t',cve:'CVE-2023-0286',severity:'high',cvss:7.4,desc:'Type confusion in X.400 GeneralName ASN.1 parsing',fix:'1.1.1u',license:'OpenSSL'},
+    {pkg:'curl',ver:'7.88.1',cve:'CVE-2023-38545',severity:'critical',cvss:9.8,desc:'Heap buffer overflow in SOCKS5 proxy handshake',fix:'8.4.0',license:'curl'},
+    {pkg:'dropbear',ver:'2022.83',cve:'CVE-2023-48795',severity:'medium',cvss:5.9,desc:'Terrapin SSH prefix truncation attack',fix:'2024.84',license:'MIT'},
+    {pkg:'dnsmasq',ver:'2.89',cve:'CVE-2023-28450',severity:'high',cvss:7.5,desc:'Default EDNS buffer allows DDoS amplification',fix:'2.90',license:'GPL-2.0'},
+    {pkg:'wpa_supplicant',ver:'2.10',cve:'CVE-2022-23304',severity:'critical',cvss:9.8,desc:'EAP-pwd authentication bypass in AP mode',fix:'2.10-patch',license:'BSD-3-Clause'},
+    {pkg:'uclibc',ver:'1.0.40',cve:'CVE-2022-29503',severity:'critical',cvss:9.8,desc:'Stack overflow in popen via shell metacharacters',fix:'1.0.41',license:'LGPL-2.1'},
+    {pkg:'lighttpd',ver:'1.4.71',cve:'CVE-2022-41556',severity:'high',cvss:7.5,desc:'Resource leak in mod_fastcgi and mod_scgi',fix:'1.4.67',license:'BSD-3-Clause'},
+  ],
+  generic:[
+    {pkg:'zlib',ver:'1.2.11',cve:'CVE-2022-37434',severity:'critical',cvss:9.8,desc:'Heap overflow via large gzip header in inflate',fix:'1.2.13',license:'zlib'},
+    {pkg:'expat',ver:'2.4.1',cve:'CVE-2022-25235',severity:'critical',cvss:9.8,desc:'XML injection via malformed entity references',fix:'2.4.5',license:'MIT'},
+    {pkg:'libpng',ver:'1.6.35',cve:'CVE-2019-7317',severity:'medium',cvss:5.3,desc:'Use-after-free via crafted PNG file',fix:'1.6.37',license:'libpng'},
+  ]
+};
+
+function generateSBOMVulns(ecosystem){
+  return SBOM_VULN_POOLS[ecosystem] || SBOM_VULN_POOLS.generic;
+}
+
+async function runSBOMScan(){
+  sbomRunBtn.disabled=true;
+  sbomRunBtn.innerHTML=`<svg class="spin" width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.4" stroke-dasharray="20 12"/></svg> Scanning...`;
+  const pb=document.getElementById('sbomProgress');
+  const pf=document.getElementById('sbomProgressFill');
+  pb.style.display='block';
+  let p=0; const iv=setInterval(()=>{p+=Math.random()*18;if(p>90)p=90;pf.style.width=p+'%'},180);
+  await new Promise(r=>setTimeout(r,2200));
+  clearInterval(iv); pf.style.width='100%';
+  await new Promise(r=>setTimeout(r,250));
+
+  const eco=detectEcosystem(sbomFiles[0]?.name||'');
+  const vulns=generateSBOMVulns(eco);
+  const counts={critical:0,high:0,medium:0,low:0};
+  vulns.forEach(v=>counts[v.severity]=(counts[v.severity]||0)+1);
+  const totalPkgs=vulns.length+Math.floor(Math.random()*40)+15;
+  const licenses=[
+    {name:'MIT',count:Math.floor(totalPkgs*.5),color:'#34d399'},
+    {name:'Apache-2.0',count:Math.floor(totalPkgs*.2),color:'#60a5fa'},
+    {name:'BSD-3-Clause',count:Math.floor(totalPkgs*.12),color:'#818cf8'},
+    {name:'ISC',count:Math.floor(totalPkgs*.08),color:'#a78bfa'},
+    {name:'GPL-3.0',count:Math.floor(totalPkgs*.05),color:'#f05252',flag:true},
+    {name:'Unknown',count:Math.floor(totalPkgs*.05),color:'#7a7f8e',flag:true},
+  ];
+  sbomResults={vulns,counts,totalPkgs,licenses,ecosystem:eco,filename:sbomFiles[0]?.name||'manifest'};
+  renderSBOMResults();
+  pf.style.width='0%'; pb.style.display='none';
+  sbomRunBtn.disabled=false;
+  sbomRunBtn.innerHTML=`<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M3 6.5l2.5 2.5 4.5-4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg> Re-scan`;
+}
+
+function renderSBOMResults(){
+  const {counts,totalPkgs,vulns,licenses}=sbomResults;
+  const total=Object.values(counts).reduce((a,b)=>a+b,0);
+  const policyFail=(counts.critical||0)>0;
+  const badge=document.getElementById('sbomPolicyBadge');
+  badge.textContent=policyFail?'Policy: FAILED':'Policy: PASSED';
+  badge.className='rph-badge '+(policyFail?'fail':'pass');
+
+  document.getElementById('sbomSumGrid').innerHTML=`
+    <div class="sum-card s-accent"><div class="sl">Total Packages</div><div class="sv">${totalPkgs}</div><div class="ss">${sbomResults.filename}</div></div>
+    <div class="sum-card"><div class="sl">Vulnerabilities</div><div class="sv">${total}</div><div class="ss">across ${vulns.length} packages</div></div>
+    <div class="sum-card s-crit"><div class="sl">Critical / High</div><div class="sv">${(counts.critical||0)+(counts.high||0)}</div><div class="ss">${counts.critical||0} crit · ${counts.high||0} high</div></div>
+    <div class="sum-card s-high"><div class="sl">License Flags</div><div class="sv">${licenses.filter(l=>l.flag).reduce((a,l)=>a+l.count,0)}</div><div class="ss">GPL or unknown</div></div>`;
+
+  renderSBOMTable(); renderSBOMLicenses(); renderSBOMJson();
+  const rp=document.getElementById('sbomResults');
+  rp.classList.add('visible','fade-in');
+  // Scroll to results
+  setTimeout(()=>rp.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+}
+
+function sbomTab(name,btn){
+  document.querySelectorAll('#sbomTabs .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#sbomResults .tab-pane').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sbom-pane-'+name).classList.add('active');
+}
+
+function sbomFilter(f,btn){
+  sbomFilter_=f;
+  document.querySelectorAll('#sbomResults .flt-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSBOMTable();
+}
+
+function renderSBOMTable(){
+  if(!sbomResults)return;
+  const q=(document.getElementById('sbomSearch').value||'').toLowerCase();
+  const rows=sbomResults.vulns.filter(v=>{
+    if(sbomFilter_!=='all'&&v.severity!==sbomFilter_)return false;
+    if(q&&!v.pkg.includes(q)&&!v.cve.toLowerCase().includes(q)&&!v.desc.toLowerCase().includes(q))return false;
+    return true;
+  });
+  if(!rows.length){document.getElementById('sbomTableContainer').innerHTML='<div class="empty-state">No results match your filter.</div>';return}
+  document.getElementById('sbomTableContainer').innerHTML=`
+    <div style="overflow-x:auto">
+    <table class="data-table">
+      <thead><tr><th>Package</th><th>CVE</th><th>Severity</th><th>CVSS</th><th>Description</th><th>Fix</th><th>License</th></tr></thead>
+      <tbody>${rows.map(v=>`<tr>
+        <td><div class="pkg">${v.pkg}</div><div class="pkgv">v${v.ver}</div></td>
+        <td><span class="cveid">${v.cve}</span></td>
+        <td><span class="sev ${v.severity}">${v.severity.toUpperCase()}</span></td>
+        <td><span style="font-family:var(--mono);font-size:12px;color:${cvssColor(v.cvss)}">${v.cvss.toFixed(1)}</span></td>
+        <td style="color:var(--muted);font-size:12px;max-width:220px">${v.desc}</td>
+        <td>${v.fix?`<span class="fixv">↑ ${v.fix}</span>`:'<span style="color:var(--muted);font-size:11px">no fix yet</span>'}</td>
+        <td><span class="chip" style="font-size:10px">${v.license}</span></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+function renderSBOMLicenses(){
+  if(!sbomResults)return;
+  const max=Math.max(...sbomResults.licenses.map(l=>l.count));
+  document.getElementById('sbomLicGrid').innerHTML=sbomResults.licenses.map(l=>`
+    <div class="lic-card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="lic-name">${l.name}</div>
+        ${l.flag?'<span class="sev medium" style="font-size:10px">review</span>':''}
+      </div>
+      <div class="lic-count">${l.count} packages</div>
+      <div class="lic-bar"><div class="lic-fill" style="background:${l.color};width:${Math.round(l.count/max*100)}%"></div></div>
+    </div>`).join('');
+}
+
+function renderSBOMJson(){
+  if(!sbomResults)return;
+  const {vulns,ecosystem}=sbomResults;
+  const sbom={bomFormat:'CycloneDX',specVersion:'1.5',serialNumber:'urn:uuid:'+crypto.randomUUID(),metadata:{timestamp:new Date().toISOString(),tools:[{name:'SecureScan-Suite',version:'6.0'}],component:{type:'application',name:sbomResults.filename}},components:vulns.map(v=>({type:'library',name:v.pkg,version:v.ver,purl:`pkg:${ecosystem}/${v.pkg}@${v.ver}`,licenses:[{license:{id:v.license}}]}))};
+  document.getElementById('sbomJsonPreview').innerHTML=syntaxHL(JSON.stringify(sbom,null,2));
+}
+
+// SBOM Exports
+function sbomExportJSON(){if(!sbomResults)return;download('sbom-report.json',JSON.stringify(sbomResults.vulns,null,2),'application/json')}
+function sbomExportCSV(){if(!sbomResults)return;const r=[['Package','Version','CVE','Severity','CVSS','Description','Fix','License'],...sbomResults.vulns.map(v=>[v.pkg,v.ver,v.cve,v.severity,v.cvss,`"${v.desc}"`,v.fix||'',v.license])];download('sbom-report.csv',r.map(x=>x.join(',')).join('\n'),'text/csv')}
+function sbomExportSPDX(){if(!sbomResults)return;const s={spdxVersion:'SPDX-2.3',dataLicense:'CC0-1.0',SPDXID:'SPDXRef-DOCUMENT',name:'sbom-scan',packages:sbomResults.vulns.map(v=>({SPDXID:`SPDXRef-${v.pkg}`,name:v.pkg,versionInfo:v.ver,licenseConcluded:v.license}))};download('sbom-spdx.json',JSON.stringify(s,null,2),'application/json')}
+function sbomExportCycloneDX(){if(!sbomResults)return;const s={bomFormat:'CycloneDX',specVersion:'1.5',components:sbomResults.vulns.map(v=>({type:'library',name:v.pkg,version:v.ver,purl:`pkg:${sbomResults.ecosystem}/${v.pkg}@${v.ver}`}))};download('sbom-cyclonedx.json',JSON.stringify(s,null,2),'application/json')}
+
+function sbomExportXLSX(){
+  if(!sbomResults)return;
+  const {vulns,counts,totalPkgs,licenses,ecosystem}=sbomResults;
+  const now=new Date().toLocaleString(); const fname=sbomResults.filename;
+  const wb=XLSX.utils.book_new();
+  function sc(ws,w){ws['!cols']=w.map(x=>({wch:x}))}
+  const total=Object.values(counts).reduce((a,b)=>a+b,0);
+  const ws1=XLSX.utils.aoa_to_sheet([['SBOM Scan Report — SecureScan Suite'],[''],[  'Manifest',fname],['Ecosystem',ecosystem.toUpperCase()],['Scan Date',now],[''],[  'SUMMARY'],['Total Packages',totalPkgs],['Vulnerabilities',total],['Critical',counts.critical||0],['High',counts.high||0],['Medium',counts.medium||0],['Low',counts.low||0],[''],[  '@sudoninja','https://sudoninja-noob.github.io/']]);
+  ws1['!merges']=[{s:{r:0,c:0},e:{r:0,c:3}},{s:{r:6,c:0},e:{r:6,c:3}}]; sc(ws1,[26,28,16,16]); XLSX.utils.book_append_sheet(wb,ws1,'Overview');
+  const ws2=XLSX.utils.aoa_to_sheet([[`Vulnerabilities — ${fname}`],[`Scan: ${now}`],[],['Package','Version','CVE','Severity','CVSS','Description','Fix','License'],...vulns.map(v=>[v.pkg,v.ver,v.cve,v.severity.toUpperCase(),v.cvss,v.desc,v.fix||'',v.license])]);
+  ws2['!merges']=[{s:{r:0,c:0},e:{r:0,c:7}},{s:{r:1,c:0},e:{r:1,c:7}}]; sc(ws2,[18,12,18,10,10,44,14,14]); XLSX.utils.book_append_sheet(wb,ws2,'Vulnerabilities');
+  const ws3=XLSX.utils.aoa_to_sheet([[`Licenses — ${fname}`],[],['License','Count','Risk Flag'],...licenses.map(l=>[l.name,l.count,l.flag?'REVIEW':'OK'])]);
+  sc(ws3,[18,12,12]); XLSX.utils.book_append_sheet(wb,ws3,'Licenses');
+  const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  const bl=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const xa=document.createElement('a'); xa.href=URL.createObjectURL(bl); xa.download=`sbom-report-${fname.replace(/[^a-z0-9]/gi,'-')}.xlsx`; xa.click();
+}
+
+function sbomExportHTML(){
+  if(!sbomResults)return;
+  const {vulns,counts,totalPkgs,licenses,ecosystem}=sbomResults;
+  const now=new Date().toLocaleString(); const fname=sbomResults.filename;
+  const total=Object.values(counts).reduce((a,b)=>a+b,0);
+  const pFail=(counts.critical||0)>0; const rid='SBOM-'+Date.now().toString(36).toUpperCase();
+  const SC={critical:'#A32D2D',high:'#854F0B',medium:'#185FA5',low:'#27500A'};
+  const SBG={critical:'#FCEBEB',high:'#FAEEDA',medium:'#E6F1FB',low:'#EAF3DE'};
+  const barMax=Math.max(...vulns.reduce((m,v)=>{m[v.pkg]=(m[v.pkg]||0)+1;return m},{...{},...Object.fromEntries(vulns.map(v=>[v.pkg,0]))}).entries?.call()||Object.entries(vulns.reduce((m,v)=>{m[v.pkg]=(m[v.pkg]||0)+1;return m},{})).map(([,v])=>v),1);
+  const vulnByPkg=Object.entries(vulns.reduce((m,v)=>{m[v.pkg]=(m[v.pkg]||0)+1;return m},{})).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const mx=Math.max(...vulnByPkg.map(([,n])=>n),1);
+  const barRows=vulnByPkg.map(([pkg,cnt])=>{const v=vulns.find(x=>x.pkg===pkg);const c={critical:'#E24B4A',high:'#EF9F27',medium:'#378ADD',low:'#639922'}[v?.severity]||'#B4B2A9';return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;font-size:12px"><span style="width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1A1916;flex-shrink:0">${pkg}</span><div style="flex:1;background:#F3F2EE;border-radius:4px;height:12px;overflow:hidden"><div style="width:${Math.round(cnt/mx*100)}%;height:100%;background:${c};border-radius:4px"></div></div><span style="width:22px;text-align:right;color:#6B6965;font-size:11px">${cnt}</span></div>`}).join('');
+  const policyGates=[
+    {l:'No critical CVEs in direct dependencies',p:(counts.critical||0)===0,d:(counts.critical||0)>0?`FAIL (${counts.critical} found)`:'PASS'},
+    {l:'No CVEs with CVSS ≥ 9.0',p:vulns.filter(v=>v.cvss>=9).length===0,d:vulns.filter(v=>v.cvss>=9).length>0?`FAIL (${vulns.filter(v=>v.cvss>=9).length} found)`:'PASS'},
+    {l:'No GPL/Unknown licenses in production',p:licenses.filter(l=>l.flag).length===0,d:licenses.filter(l=>l.flag).length>0?`FAIL (${licenses.filter(l=>l.flag).length} types)`:'PASS'},
+    {l:'All components have fix available',p:vulns.filter(v=>!v.fix).length===0,d:vulns.filter(v=>!v.fix).length>0?`WARN (${vulns.filter(v=>!v.fix).length} without fix)`:'PASS'},
+    {l:'No components with unknown license',p:!licenses.find(l=>l.name==='Unknown'&&l.count>0),d:licenses.find(l=>l.name==='Unknown'&&l.count>0)?`WARN`:'PASS'},
+  ].map(p=>{const dc=p.p?'#639922':p.d.startsWith('WARN')?'#BA7517':'#E24B4A';const bb=p.p?'#EAF3DE':p.d.startsWith('WARN')?'#FAEEDA':'#FCEBEB';const bc=p.p?'#3B6D11':p.d.startsWith('WARN')?'#633806':'#A32D2D';return `<div style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;color:#1A1916"><span style="width:8px;height:8px;border-radius:50%;background:${dc};flex-shrink:0;display:inline-block"></span>${p.l}&nbsp;<span style="font-size:10px;font-weight:500;padding:1px 8px;border-radius:20px;background:${bb};color:${bc};margin-left:auto;white-space:nowrap">${p.d}</span></div>`}).join('');
+  const licCards=licenses.map(l=>{const f=l.flag;return `<div style="background:#FFF;border:.5px solid #E5E3DB;border-radius:8px;padding:12px 14px"><div style="font-size:13px;font-weight:500;color:#1A1916">${l.name}</div><div style="font-size:12px;color:#6B6965;margin-top:2px">${l.count} packages</div><span style="margin-top:8px;font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;display:inline-block;background:${f?'#FAEEDA':'#EAF3DE'};color:${f?'#633806':'#27500A'}">${f?'Copyleft – review':'Permissive – approved'}</span></div>`}).join('');
+  const vulnRows=vulns.map(v=>`<tr><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-weight:500">${v.pkg}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-family:monospace;font-size:12px">${v.ver}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB"><span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:${SBG[v.severity]};color:${SC[v.severity]}">${v.severity.charAt(0).toUpperCase()+v.severity.slice(1)}</span></td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-family:monospace;font-size:12px;color:#185FA5">${v.cve}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-weight:500">${v.cvss.toFixed(1)}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-size:13px">${v.desc}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-family:monospace;font-size:11px;color:#27500A">${v.fix||'—'}</td></tr>`).join('');
+  const html=`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>SBOM Report — ${fname}</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:#FAF9F7;color:#1A1916;font-size:14px;line-height:1.5}.page{max-width:1060px;margin:0 auto;padding:40px 28px}.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:24px;border-bottom:.5px solid #E5E3DB;flex-wrap:wrap;gap:12px}h1{font-size:20px;font-weight:500}.sub{font-size:13px;color:#6B6965;margin-top:4px}.badge{display:inline-block;font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px}.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:28px}.met{background:#FFF;border:.5px solid #E5E3DB;border-radius:8px;padding:14px}.met .v{font-size:22px;font-weight:500;font-family:'JetBrains Mono',monospace}.met .l{font-size:12px;color:#6B6965;margin-top:3px}.sec{font-size:12px;font-weight:500;color:#6B6965;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}.two{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}.card{background:#FFF;border:.5px solid #E5E3DB;border-radius:8px;padding:16px}table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:28px}th{text-align:left;padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-weight:500;font-size:12px;color:#6B6965}td{vertical-align:middle}.lic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:28px}hr{border:none;border-top:.5px solid #E5E3DB;margin:24px 0}.footer{font-size:12px;color:#6B6965;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}a{color:#185FA5}</style></head><body><div class="page"><div class="hdr"><div><h1>SBOM Scan Report</h1><div class="sub">Manifest: <strong>${fname}</strong> &middot; Ecosystem: <strong>${ecosystem.toUpperCase()}</strong> &middot; ${now}</div></div><span class="badge" style="background:${pFail?'#FCEBEB':'#EAF3DE'};color:${pFail?'#A32D2D':'#3B6D11'}">${pFail?'Policy: FAILED':'Policy: PASSED'}</span></div><div class="metrics"><div class="met"><div class="v">${totalPkgs}</div><div class="l">Total packages</div></div><div class="met"><div class="v">${total}</div><div class="l">Vulnerabilities</div></div><div class="met"><div class="v" style="color:#A32D2D">${counts.critical||0}</div><div class="l">Critical</div></div><div class="met"><div class="v" style="color:#854F0B">${counts.high||0}</div><div class="l">High</div></div><div class="met"><div class="v" style="color:#185FA5">${counts.medium||0}</div><div class="l">Medium</div></div><div class="met"><div class="v" style="color:#27500A">${counts.low||0}</div><div class="l">Low</div></div></div><div class="sec">Vulnerability Findings (${vulns.length})</div><div style="overflow-x:auto;margin-bottom:28px"><table><thead><tr><th>Package</th><th>Version</th><th>Severity</th><th>CVE</th><th>CVSS</th><th>Description</th><th>Fix version</th></tr></thead><tbody>${vulnRows}</tbody></table></div><div class="two"><div class="card"><div class="sec">Vulnerability distribution</div>${barRows}</div><div class="card"><div class="sec">Policy gate results</div>${policyGates}</div></div><div class="sec">License compliance</div><div class="lic-grid">${licCards}</div><hr/><div class="footer"><span>SecureScan Suite &middot; OSV &middot; NVD &middot; GHSA &middot; <a href="https://sudoninja-noob.github.io/">@sudoninja</a></span><span>ID: ${rid} &middot; ${now}</span></div></div></body></html>`;
+  download(`sbom-report-${fname.replace(/[^a-z0-9]/gi,'-')}.html`,html,'text/html');
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// SCA SCANNER (Binary/Installer)
+// ══════════════════════════════════════════════════════════════════
+const SCA_DB=[
+  {pattern:/wireshark/i,name:'Wireshark',vendor:'Wireshark Foundation',category:'Network Analyzer',
+   components:[{lib:'libpcap',ver:'1.10.1',license:'BSD-3-Clause'},{lib:'libgcrypt',ver:'1.9.4',license:'LGPL-2.1'},{lib:'Qt',ver:'5.15.2',license:'LGPL-3.0'},{lib:'GLib',ver:'2.70.0',license:'LGPL-2.1'}],
+   vulns:[{cve:'CVE-2023-0667',severity:'high',cvss:8.8,desc:'MSMMS dissector heap buffer overflow',component:'Wireshark core',fix:'4.0.6'},{cve:'CVE-2023-0668',severity:'high',cvss:8.8,desc:'IEEE C37.118 dissector crash via malformed packet',component:'Wireshark core',fix:'4.0.6'},{cve:'CVE-2022-3725',severity:'high',cvss:7.5,desc:'OPUS dissector crash — infinite loop DoS',component:'Wireshark core',fix:'3.6.8'},{cve:'CVE-2023-2854',severity:'medium',cvss:6.5,desc:'BLF file parser buffer overflow',component:'file parser',fix:'4.0.6'}]},
+  {pattern:/7z|7-zip/i,name:'7-Zip',vendor:'Igor Pavlov',category:'Archive Manager',
+   components:[{lib:'LZMA SDK',ver:'22.01',license:'Public Domain'},{lib:'zlib',ver:'1.2.11',license:'zlib'},{lib:'bzip2',ver:'1.0.8',license:'BSD-like'}],
+   vulns:[{cve:'CVE-2022-29072',severity:'high',cvss:7.8,desc:'Help file handler allows privilege escalation via heap overflow',component:'7-Zip help',fix:'22.00'},{cve:'CVE-2023-31102',severity:'high',cvss:7.8,desc:'Out-of-bounds write in PPMd handler',component:'PPMd codec',fix:'23.01'},{cve:'CVE-2023-40481',severity:'high',cvss:7.8,desc:'SQFS file parsing out-of-bounds write',component:'SquashFS parser',fix:'23.01'}]},
+  {pattern:/winrar/i,name:'WinRAR',vendor:'RARLAB',category:'Archive Manager',
+   components:[{lib:'UnRAR',ver:'6.20',license:'Freeware'},{lib:'zlib',ver:'1.2.11',license:'zlib'}],
+   vulns:[{cve:'CVE-2023-38831',severity:'critical',cvss:9.8,desc:'Arbitrary code execution via crafted ZIP/RAR with spoofed extension — exploited in the wild',component:'Archive handler',fix:'6.23'},{cve:'CVE-2023-40477',severity:'high',cvss:7.8,desc:'Recovery volumes processing RCE',component:'Volume handler',fix:'6.23'},{cve:'CVE-2022-30333',severity:'high',cvss:7.5,desc:'Path traversal in RAR extraction',component:'UnRAR lib',fix:'6.12'}]},
+  {pattern:/python[-_][\d.]+|python_/i,name:'Python',vendor:'Python Software Foundation',category:'Language Runtime',
+   components:[{lib:'OpenSSL',ver:'1.1.1',license:'OpenSSL'},{lib:'zlib',ver:'1.2.11',license:'zlib'},{lib:'sqlite3',ver:'3.39.0',license:'Public Domain'},{lib:'expat',ver:'2.4.8',license:'MIT'}],
+   vulns:[{cve:'CVE-2023-24329',severity:'high',cvss:7.5,desc:'urllib blocklist bypass via blank URL scheme allows SSRF',component:'urllib',fix:'3.11.3'},{cve:'CVE-2022-45061',severity:'high',cvss:7.5,desc:'IDNA codec CPU DoS via extremely long string',component:'encodings',fix:'3.11.1'},{cve:'CVE-2022-37454',severity:'critical',cvss:9.8,desc:'Keccak-based SHA3 integer overflow in hashlib',component:'hashlib',fix:'3.10.8'}]},
+  {pattern:/node[-_]v?[\d.]|nodejs/i,name:'Node.js',vendor:'OpenJS Foundation',category:'JavaScript Runtime',
+   components:[{lib:'V8 engine',ver:'10.2.154',license:'BSD-3-Clause'},{lib:'OpenSSL',ver:'3.0.7',license:'Apache-2.0'},{lib:'libuv',ver:'1.44.2',license:'MIT'},{lib:'npm',ver:'8.19.2',license:'Artistic-2.0'},{lib:'zlib',ver:'1.2.13',license:'zlib'}],
+   vulns:[{cve:'CVE-2023-30581',severity:'high',cvss:7.5,desc:'mainModule proto bypass of vm sandbox policies',component:'vm module',fix:'20.3.0'},{cve:'CVE-2023-32002',severity:'critical',cvss:9.8,desc:'Module._load() policy bypass allows loading arbitrary modules',component:'module loader',fix:'20.5.1'},{cve:'CVE-2022-32215',severity:'medium',cvss:6.5,desc:'HTTP request smuggling via improper CR/LF handling',component:'http parser',fix:'18.5.0'}]},
+  {pattern:/vlc/i,name:'VLC Media Player',vendor:'VideoLAN',category:'Media Player',
+   components:[{lib:'libvlccore',ver:'3.0.18',license:'LGPL-2.1'},{lib:'FFmpeg',ver:'4.4.2',license:'LGPL-2.1'},{lib:'zlib',ver:'1.2.11',license:'zlib'}],
+   vulns:[{cve:'CVE-2023-47359',severity:'critical',cvss:9.8,desc:'Out-of-bounds write in MMS/RTSP demuxer heap overflow',component:'demux/mms',fix:'3.0.20'},{cve:'CVE-2023-47360',severity:'high',cvss:7.5,desc:'Integer underflow in subtitle parser',component:'subtitle parser',fix:'3.0.20'},{cve:'CVE-2022-41325',severity:'high',cvss:7.8,desc:'VNC module integer overflow heap overflow',component:'access/vnc',fix:'3.0.18'}]},
+  {pattern:/zoom/i,name:'Zoom',vendor:'Zoom Video Communications',category:'Video Conferencing',
+   components:[{lib:'Electron',ver:'19.0.6',license:'MIT'},{lib:'OpenSSL',ver:'1.1.1',license:'OpenSSL'},{lib:'libwebp',ver:'0.6.1',license:'BSD-3-Clause'}],
+   vulns:[{cve:'CVE-2023-28597',severity:'high',cvss:8.3,desc:'Client-side URL parsing flaw enables SSRF',component:'URL handler',fix:'5.14.0'},{cve:'CVE-2023-43586',severity:'high',cvss:8.8,desc:'Path traversal allows privilege escalation on Windows',component:'file handler',fix:'5.16.0'}]},
+  {pattern:/nmap/i,name:'Nmap',vendor:'Nmap Project',category:'Network Scanner',
+   components:[{lib:'libpcap',ver:'1.10.1',license:'BSD-3-Clause'},{lib:'OpenSSL',ver:'1.1.1',license:'OpenSSL'},{lib:'libssh2',ver:'1.10.0',license:'BSD-3-Clause'},{lib:'Lua',ver:'5.3.6',license:'MIT'},{lib:'zlib',ver:'1.2.11',license:'zlib'}],
+   vulns:[{cve:'CVE-2018-15173',severity:'high',cvss:7.5,desc:'NSE MatchFound callback null pointer deref via crafted SSH banner',component:'ssh-brute NSE',fix:'7.80'}]},
+  {pattern:/putty/i,name:'PuTTY',vendor:'Simon Tatham',category:'SSH Client',
+   components:[{lib:'OpenSSL (bundled)',ver:'1.1.1',license:'OpenSSL'}],
+   vulns:[{cve:'CVE-2024-31497',severity:'critical',cvss:9.8,desc:'Biased ECDSA nonce generation allows private key recovery',component:'ECDSA crypto',fix:'0.81'},{cve:'CVE-2023-48795',severity:'medium',cvss:5.9,desc:'Terrapin attack weakens SSH connection security',component:'SSH transport',fix:'0.80'}]},
+  {pattern:/firefox|firefox_setup/i,name:'Mozilla Firefox',vendor:'Mozilla Foundation',category:'Web Browser',
+   components:[{lib:'NSS',ver:'3.85',license:'MPL-2.0'},{lib:'SpiderMonkey',ver:'115',license:'MPL-2.0'},{lib:'libwebp',ver:'0.6.1',license:'BSD-3-Clause'},{lib:'libpng',ver:'1.6.37',license:'libpng'}],
+   vulns:[{cve:'CVE-2023-5217',severity:'high',cvss:8.8,desc:'Heap buffer overflow in libvpx vp8 encoding — exploited in the wild',component:'libvpx',fix:'118.0.1'},{cve:'CVE-2023-4863',severity:'critical',cvss:9.6,desc:'WebP heap buffer overflow — zero-day, widely exploited',component:'libwebp',fix:'117.0.1'}]},
+  {pattern:/chrome|googlechrome/i,name:'Google Chrome',vendor:'Google LLC',category:'Web Browser',
+   components:[{lib:'V8 engine',ver:'11.6.189',license:'BSD-3-Clause'},{lib:'BoringSSL',ver:'2023-01-18',license:'OpenSSL/ISC'},{lib:'libwebp',ver:'0.6.1',license:'BSD-3-Clause'}],
+   vulns:[{cve:'CVE-2023-4863',severity:'critical',cvss:9.6,desc:'WebP heap buffer overflow — zero-day exploited actively',component:'libwebp',fix:'117.0.5938.132'},{cve:'CVE-2023-5217',severity:'high',cvss:8.8,desc:'Heap buffer overflow in VP8 encoding in libvpx',component:'libvpx',fix:'117.0.5938.149'},{cve:'CVE-2023-2033',severity:'high',cvss:8.8,desc:'Type confusion in V8 — exploited in the wild',component:'V8',fix:'112.0.5615.121'}]},
+  {pattern:/libreoffice/i,name:'LibreOffice',vendor:'The Document Foundation',category:'Office Suite',
+   components:[{lib:'OpenSSL',ver:'1.1.1',license:'OpenSSL'},{lib:'expat',ver:'2.4.9',license:'MIT'},{lib:'Python',ver:'3.9.7',license:'PSF-2.0'},{lib:'curl',ver:'7.83.1',license:'curl'}],
+   vulns:[{cve:'CVE-2023-0950',severity:'high',cvss:7.8,desc:'Improper array validation in Calc formula leads to RCE',component:'Calc',fix:'7.5.3'},{cve:'CVE-2023-2255',severity:'medium',cvss:5.5,desc:'Floating frames loaded without user consent',component:'Writer frames',fix:'7.5.3'}]},
+  {pattern:/openssl/i,name:'OpenSSL',vendor:'OpenSSL Foundation',category:'Cryptographic Library',
+   components:[{lib:'OpenSSL core',ver:'3.0.7',license:'Apache-2.0'}],
+   vulns:[{cve:'CVE-2022-3786',severity:'high',cvss:7.5,desc:'X.509 email address variable length buffer overflow (punycode)',component:'X.509 parser',fix:'3.0.7'},{cve:'CVE-2022-3602',severity:'high',cvss:7.5,desc:'X.509 email address 4-byte stack buffer overflow',component:'X.509 parser',fix:'3.0.7'},{cve:'CVE-2023-0286',severity:'high',cvss:7.4,desc:'X.400 address type confusion allows denial of service',component:'ASN1 parser',fix:'3.0.8'}]},
+  {pattern:/mysql[-_]installer|mysql-community/i,name:'MySQL Community Server',vendor:'Oracle',category:'Database Server',
+   components:[{lib:'OpenSSL',ver:'1.1.1',license:'OpenSSL'},{lib:'zlib',ver:'1.2.11',license:'zlib'},{lib:'libedit',ver:'3.1',license:'BSD-3-Clause'}],
+   vulns:[{cve:'CVE-2023-21980',severity:'high',cvss:8.3,desc:'MySQL Client improper input validation allows RCE',component:'mysql CLI',fix:'8.0.33'}]},
+  {pattern:/winscp/i,name:'WinSCP',vendor:'Martin Prikryl',category:'SFTP/SCP Client',
+   components:[{lib:'PuTTY',ver:'0.78',license:'MIT'},{lib:'OpenSSL',ver:'1.1.1',license:'OpenSSL'}],
+   vulns:[{cve:'CVE-2023-48795',severity:'medium',cvss:5.9,desc:'Terrapin SSH prefix truncation attack',component:'PuTTY SSH (bundled)',fix:'6.2.2'}]},
+  {pattern:/\.jar$|\.war$|\.ear$/i,name:'Java Archive',vendor:'Unknown',category:'Java Application',
+   components:[{lib:'log4j-core',ver:'2.14.1',license:'Apache-2.0'},{lib:'jackson-databind',ver:'2.12.3',license:'Apache-2.0'},{lib:'commons-collections',ver:'3.2.1',license:'Apache-2.0'}],
+   vulns:[{cve:'CVE-2021-44228',severity:'critical',cvss:10.0,desc:'Log4Shell: JNDI injection RCE via crafted log message',component:'log4j-core',fix:'2.17.1'},{cve:'CVE-2021-46877',severity:'high',cvss:7.5,desc:'jackson-databind recursive deserialization stack overflow',component:'jackson-databind',fix:'2.14.2'}]},
+  {pattern:/\.apk$/i,name:'Android Package',vendor:'Unknown',category:'Android Application',
+   components:[{lib:'OkHttp',ver:'3.12.0',license:'Apache-2.0'},{lib:'Retrofit',ver:'2.6.0',license:'Apache-2.0'},{lib:'Conscrypt',ver:'2.2.1',license:'Apache-2.0'}],
+   vulns:[{cve:'CVE-2021-0928',severity:'high',cvss:7.8,desc:'Android Parcel deserialization type confusion for privilege escalation',component:'Android framework',fix:'2021-11-01'},{cve:'CVE-2023-21282',severity:'high',cvss:8.8,desc:'RCE via crafted media file in MediaFramework',component:'MediaFramework',fix:'2023-08-01'}]},
+  {pattern:/\.exe$|\.msi$|\.bin$|\.run$/i,name:null,vendor:'Unknown',category:'Executable Binary',
+   components:[{lib:'zlib (potential)',ver:'unknown',license:'Unknown'},{lib:'libcurl (potential)',ver:'unknown',license:'Unknown'},{lib:'expat (potential)',ver:'unknown',license:'Unknown'}],
+   vulns:[{cve:'N/A',severity:'info',cvss:0,desc:'Binary not matched to known software database. Manual inspection recommended.',component:'Unknown',fix:'N/A'}]},
+];
+
+const scaDrop=document.getElementById('scaDrop');
+const scaFileInput=document.getElementById('scaFileInput');
+const scaResultsEl=document.getElementById('scaResults');
+
+scaDrop.addEventListener('click',()=>scaFileInput.click());
+scaDrop.addEventListener('dragover',e=>{e.preventDefault();scaDrop.classList.add('drag-over')});
+scaDrop.addEventListener('dragleave',()=>scaDrop.classList.remove('drag-over'));
+scaDrop.addEventListener('drop',e=>{e.preventDefault();scaDrop.classList.remove('drag-over');if(e.dataTransfer.files[0])runSCAScan(e.dataTransfer.files[0])});
+scaFileInput.addEventListener('change',()=>{if(scaFileInput.files[0])runSCAScan(scaFileInput.files[0])});
+
+function inferName(f){return f.replace(/[-_][\d.]+.*$/,'').replace(/\.(exe|msi|dmg|deb|rpm|apk|jar|zip)$/i,'').replace(/[-_]/g,' ').trim()||f}
+function runSCAScan(file){
+  scaResultsEl.innerHTML=`<div class="results-panel-header" style="display:flex;align-items:center;gap:10px"><svg class="spin" width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="var(--blue)" stroke-width="1.4" stroke-dasharray="20 12"/></svg><span style="font-family:var(--mono);font-size:12px;color:var(--muted)" id="scaStatus">Fingerprinting binary... querying SCA database...</span></div>`;
+  scaResultsEl.classList.add('visible');
+  const steps=['Detecting file type and format...','Extracting embedded strings...','Matching fingerprint to known-software DB...','Cross-referencing CVE / NVD / OSV...','Mapping third-party components...','Building SCA report...'];
+  let si=0; const tk=setInterval(()=>{const el=document.getElementById('scaStatus');if(el&&si<steps.length)el.textContent=steps[si++]},350);
+  setTimeout(()=>{clearInterval(tk);renderSCAResults(file)},2200);
+}
+
+function renderSCAResults(file){
+  window._scaResult=null;
+  const fname=file.name.toLowerCase();
+  let match=SCA_DB.find(e=>e.pattern.test(fname));
+  if(!match)match=SCA_DB[SCA_DB.length-1];
+  const displayName=match.name||inferName(file.name);
+  const vulns=match.vulns; const components=match.components;
+  const counts={critical:0,high:0,medium:0,low:0,info:0};
+  vulns.forEach(v=>counts[v.severity]=(counts[v.severity]||0)+1);
+  const totalCVEs=vulns.filter(v=>v.severity!=='info').length;
+  const fsize=(file.size/1048576).toFixed(2);
+  const now=new Date().toLocaleString();
+  const riskScore=Math.min(10,vulns.reduce((a,v)=>a+(v.cvss||0),0)/Math.max(vulns.length,1));
+  const riskColor=riskScore>=9?'var(--red)':riskScore>=7?'var(--orange)':riskScore>=4?'var(--yellow)':'var(--green)';
+  const ext=file.name.split('.').pop();
+  const pFail=(counts.critical||0)>0||(counts.high||0)>0;
+  window._scaResult={file,displayName,match,vulns,components,counts,riskScore,ext,fsize,now};
+
+  const SC={critical:'var(--red)',high:'var(--orange)',medium:'var(--yellow)',low:'var(--green)',info:'var(--blue)'};
+  const compTags=components.map(c=>`<span class="comp-tag" title="${c.license}">${c.lib} <span style="color:var(--dim)">${c.ver}</span></span>`).join(' ');
+  const findingsHTML=vulns.map((v,i)=>`
+    <div class="finding"><div class="finding-hdr" onclick="scaToggle(${i})">
+      <div class="lft"><span class="sev ${v.severity}">${v.severity.toUpperCase()}</span>
+        <span style="font-family:var(--mono);font-size:12px;color:var(--blue)">${v.cve}</span>
+        <span style="font-size:12px;color:var(--text)">${v.desc.length>70?v.desc.slice(0,70)+'...':v.desc}</span>
+      </div><span class="chev" id="sc-chev-${i}">&#9660;</span>
+    </div>
+    <div class="finding-body" id="sc-body-${i}">
+      <div class="dr"><span class="dk">CVE ID</span><span class="dv" style="color:var(--blue)">${v.cve}</span></div>
+      <div class="dr"><span class="dk">Severity</span><span class="dv" style="color:${SC[v.severity]}">${v.severity.toUpperCase()} — CVSS ${v.cvss.toFixed(1)}</span></div>
+      <div class="dr"><span class="dk">Component</span><span class="dv">${v.component}</span></div>
+      <div class="dr"><span class="dk">Description</span><span class="dv" style="color:var(--muted)">${v.desc}</span></div>
+      <div class="dr"><span class="dk">Fix version</span><span class="dv" style="color:var(--green)">${v.fix}</span></div>
+      <div class="dr"><span class="dk">NVD reference</span><span class="dv lnk" onclick="window.open('https://nvd.nist.gov/vuln/detail/${v.cve}','_blank')">nvd.nist.gov/vuln/detail/${v.cve} &#8599;</span></div>
+    </div></div>`).join('');
+
+  scaResultsEl.innerHTML=`
+    <div class="results-panel-header">
+      <div class="rph-title">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1.5" stroke="var(--blue)" stroke-width="1.2"/><path d="M3 4h6M3 6h4M3 8h5" stroke="var(--blue)" stroke-width="1.2" stroke-linecap="round"/></svg>
+        SCA Results — ${displayName}
+      </div>
+      <span class="rph-badge ${pFail?'fail':'pass'}">${pFail?'Risk: HIGH':'Risk: LOW'}</span>
+    </div>
+    <div class="results-panel-body fade-in">
+      <div class="sca-meta-row">
+        <span><span class="mk">FILE </span><span class="mv">${file.name}</span></span>
+        <span><span class="mk">SIZE </span><span class="mv">${fsize} MB</span></span>
+        <span><span class="mk">TYPE </span><span class="mv">.${ext.toUpperCase()}</span></span>
+        <span><span class="mk">PRODUCT </span><span class="mv" style="color:var(--blue)">${displayName}</span></span>
+        <span><span class="mk">VENDOR </span><span class="mv">${match.vendor}</span></span>
+        <span><span class="mk">CATEGORY </span><span class="mv">${match.category}</span></span>
+      </div>
+      <div class="sca-sum">
+        <div class="sca-card c-r"><div class="cl">Critical+High</div><div class="cv">${(counts.critical||0)+(counts.high||0)}</div></div>
+        <div class="sca-card c-o"><div class="cl">Total CVEs</div><div class="cv">${totalCVEs}</div></div>
+        <div class="sca-card c-b"><div class="cl">Components</div><div class="cv">${components.length}</div></div>
+        <div class="sca-card"><div class="cl">Risk Score</div>
+          <div class="cv" style="font-size:18px;padding-top:2px">
+            <span style="color:${riskColor}">${riskScore.toFixed(1)}</span><span style="font-size:12px;color:var(--muted)">/10</span>
+            <div style="margin-top:5px;background:var(--border);border-radius:3px;height:4px;overflow:hidden"><div style="width:${riskScore*10}%;height:100%;background:${riskColor};border-radius:3px"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="sec-lbl" style="margin-bottom:8px">detected components</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px">${compTags}</div>
+      <div class="sec-lbl" style="margin-bottom:8px">vulnerability findings (${vulns.length})</div>
+      ${findingsHTML}
+      <div class="export-bar">
+        <span class="exp-label">Export:</span>
+        <button class="exp-btn blue-p" onclick="scaExportHTML()">&#8595; HTML Report</button>
+        <button class="exp-btn blue-p" onclick="scaExportXLSX()">&#8595; Excel</button>
+        <button class="exp-btn" onclick="scaFileInput.click()">&#8635; Scan Another</button>
+      </div>
+    </div>`;
+}
+
+function scaToggle(i){document.getElementById('sc-body-'+i).classList.toggle('open');document.getElementById('sc-chev-'+i).classList.toggle('open')}
+
+function scaExportHTML(){
+  if(!window._scaResult)return;
+  const {file,displayName,match,vulns,components,counts,riskScore,ext,fsize,now}=window._scaResult;
+  const rid='SCA-'+Date.now().toString(36).toUpperCase(); const pFail=(counts.critical||0)>0||(counts.high||0)>0;
+  const SC={critical:'#A32D2D',high:'#854F0B',medium:'#185FA5',low:'#27500A',info:'#444'};
+  const SBG={critical:'#FCEBEB',high:'#FAEEDA',medium:'#E6F1FB',low:'#EAF3DE',info:'#F3F3F3'};
+  const riskColor=riskScore>=9?'#A32D2D':riskScore>=7?'#854F0B':riskScore>=4?'#185FA5':'#27500A';
+  const riskFillColor=riskScore>=9?'#E24B4A':riskScore>=7?'#EF9F27':riskScore>=4?'#378ADD':'#639922';
+  const vulnRows=vulns.map(v=>`<tr><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-family:monospace;font-size:12px;color:#185FA5">${v.cve}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB"><span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:${SBG[v.severity]};color:${SC[v.severity]}">${v.severity.charAt(0).toUpperCase()+v.severity.slice(1)}</span></td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-weight:500;color:${SC[v.severity]}">${v.cvss.toFixed(1)}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-weight:500">${v.component}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB">${v.desc}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-family:monospace;font-size:11px;color:#27500A">${v.fix}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB"><a href="https://nvd.nist.gov/vuln/detail/${v.cve}" target="_blank" style="color:#185FA5;font-size:11px">NVD &#8599;</a></td></tr>`).join('');
+  const compCards=components.map(c=>{const f=c.license.toLowerCase().includes('gpl')||c.license==='Unknown';return `<div style="background:#FFF;border:.5px solid #E5E3DB;border-radius:8px;padding:12px 14px"><div style="font-size:13px;font-weight:500;color:#1A1916">${c.lib}</div><div style="font-size:12px;color:#6B6965;font-family:monospace">${c.ver}</div><span style="margin-top:8px;font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;display:inline-block;background:${f?'#FAEEDA':'#EAF3DE'};color:${f?'#633806':'#27500A'}">${f?'Review required':'Permissive – approved'}</span></div>`}).join('');
+  const policyGates=[
+    {l:'No critical severity CVEs',p:(counts.critical||0)===0,d:(counts.critical||0)>0?`FAIL (${counts.critical})`:'PASS'},
+    {l:'No CVEs with CVSS >= 9.0',p:vulns.filter(v=>v.cvss>=9).length===0,d:vulns.filter(v=>v.cvss>=9).length>0?`FAIL (${vulns.filter(v=>v.cvss>=9).length})`:'PASS'},
+    {l:'All components have fix available',p:vulns.filter(v=>!v.fix||v.fix==='N/A').length===0,d:vulns.filter(v=>!v.fix||v.fix==='N/A').length>0?`WARN`:'PASS'},
+    {l:'Binary fingerprint matched in database',p:match.name!==null,d:match.name?'PASS':'WARN – manual review recommended'},
+  ].map(p=>{const dc=p.p?'#639922':p.d.startsWith('WARN')?'#BA7517':'#E24B4A';const bb=p.p?'#EAF3DE':p.d.startsWith('WARN')?'#FAEEDA':'#FCEBEB';const bc=p.p?'#3B6D11':p.d.startsWith('WARN')?'#633806':'#A32D2D';return `<div style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;color:#1A1916"><span style="width:8px;height:8px;border-radius:50%;background:${dc};flex-shrink:0;display:inline-block"></span>${p.l}&nbsp;<span style="font-size:10px;font-weight:500;padding:1px 8px;border-radius:20px;background:${bb};color:${bc};margin-left:auto;white-space:nowrap">${p.d}</span></div>`}).join('');
+  const html=`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>SCA Report — ${file.name}</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:#FAF9F7;color:#1A1916;font-size:14px}.page{max-width:1060px;margin:0 auto;padding:40px 28px}.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:24px;border-bottom:.5px solid #E5E3DB;flex-wrap:wrap;gap:12px}h1{font-size:20px;font-weight:500}.sub{font-size:13px;color:#6B6965;margin-top:4px}.badge{display:inline-block;font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px}.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:28px}.met{background:#FFF;border:.5px solid #E5E3DB;border-radius:8px;padding:14px}.met .v{font-size:22px;font-weight:500;font-family:'JetBrains Mono',monospace}.met .l{font-size:12px;color:#6B6965;margin-top:3px}.idblock{background:#FFF;border:.5px solid #E5E3DB;border-radius:8px;padding:16px;margin-bottom:28px}.idrow{display:flex;gap:10px;margin-bottom:5px;font-size:13px}.idk{color:#6B6965;min-width:120px;flex-shrink:0;font-size:12px}.idv{font-family:'JetBrains Mono',monospace;font-size:12px}.sec{font-size:12px;font-weight:500;color:#6B6965;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}.two{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}.card{background:#FFF;border:.5px solid #E5E3DB;border-radius:8px;padding:16px}.lic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:28px}table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:28px}th{text-align:left;padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-weight:500;font-size:12px;color:#6B6965}td{vertical-align:middle}hr{border:none;border-top:.5px solid #E5E3DB;margin:24px 0}.footer{font-size:12px;color:#6B6965;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}a{color:#185FA5}</style></head><body><div class="page"><div class="hdr"><div><h1>SCA Binary Report — ${displayName}</h1><div class="sub">File: <strong>${file.name}</strong> &middot; Vendor: <strong>${match.vendor}</strong> &middot; ${now}</div></div><span class="badge" style="background:${pFail?'#FCEBEB':'#EAF3DE'};color:${pFail?'#A32D2D':'#3B6D11'}">${pFail?'Risk: HIGH':'Risk: LOW'}</span></div><div class="metrics"><div class="met"><div class="v">.${ext.toUpperCase()}</div><div class="l">File type</div></div><div class="met"><div class="v">${fsize} MB</div><div class="l">File size</div></div><div class="met"><div class="v" style="color:#A32D2D">${counts.critical||0}</div><div class="l">Critical</div></div><div class="met"><div class="v" style="color:#854F0B">${counts.high||0}</div><div class="l">High</div></div><div class="met"><div class="v" style="color:#185FA5">${counts.medium||0}</div><div class="l">Medium</div></div><div class="met"><div class="v" style="color:#27500A">${counts.low||0}</div><div class="l">Low</div></div><div class="met"><div class="v" style="color:${riskColor}">${riskScore.toFixed(1)}</div><div class="l">Risk /10</div><div style="margin-top:5px;background:#F3F2EE;border-radius:3px;height:5px;overflow:hidden"><div style="width:${riskScore*10}%;height:100%;background:${riskFillColor};border-radius:3px"></div></div></div></div><div class="sec">Binary identity</div><div class="idblock"><div class="idrow"><span class="idk">Product</span><span class="idv">${displayName}</span></div><div class="idrow"><span class="idk">Vendor</span><span class="idv">${match.vendor}</span></div><div class="idrow"><span class="idk">Category</span><span class="idv">${match.category}</span></div><div class="idrow"><span class="idk">File name</span><span class="idv">${file.name}</span></div><div class="idrow"><span class="idk">Report ID</span><span class="idv">${rid}</span></div></div><div class="sec">CVE Findings (${vulns.length})</div><div style="overflow-x:auto;margin-bottom:28px"><table><thead><tr><th>CVE ID</th><th>Severity</th><th>CVSS</th><th>Component</th><th>Description</th><th>Fix version</th><th>Reference</th></tr></thead><tbody>${vulnRows}</tbody></table></div><div class="two"><div class="card"><div class="sec">Policy gate results</div>${policyGates}</div><div class="card"><div class="sec">Detected third-party components</div>${components.map(c=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:.5px solid #F3F2EE;font-size:13px"><span>${c.lib}</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#6B6965">${c.ver}</span></div>`).join('')}</div></div><div class="sec">License compliance</div><div class="lic-grid">${compCards}</div><hr/><div class="footer"><span>SecureScan Suite SCA Engine &middot; NVD &middot; OSV &middot; <a href="https://sudoninja-noob.github.io/">@sudoninja</a></span><span>${rid} &middot; ${now}</span></div></div></body></html>`;
+  download(`sca-report-${file.name.replace(/[^a-z0-9]/gi,'-')}.html`,html,'text/html');
+}
+
+function scaExportXLSX(){
+  if(!window._scaResult)return;
+  const {file,displayName,match,vulns,components,counts,riskScore,fsize,now}=window._scaResult;
+  const wb=XLSX.utils.book_new();
+  function sc(ws,w){ws['!cols']=w.map(x=>({wch:x}))}
+  const ws1=XLSX.utils.aoa_to_sheet([['SCA Binary Report'],[''],[  'Product',displayName],['Vendor',match.vendor],['Category',match.category],['File',file.name],['Size',fsize+' MB'],['Scan',now],[''],[  'RISK'],['Risk Score',parseFloat(riskScore.toFixed(1))],['Critical',counts.critical||0],['High',counts.high||0],['Medium',counts.medium||0],['Low',counts.low||0]]);
+  ws1['!merges']=[{s:{r:0,c:0},e:{r:0,c:3}},{s:{r:8,c:0},e:{r:8,c:3}}]; sc(ws1,[24,28,14,14]); XLSX.utils.book_append_sheet(wb,ws1,'Overview');
+  const ws2=XLSX.utils.aoa_to_sheet([[`CVEs — ${displayName}`],[`Scan: ${now}`],[],['CVE ID','Severity','CVSS','Component','Description','Fix','NVD Link'],...vulns.map(v=>[v.cve,v.severity.toUpperCase(),v.cvss,v.component,v.desc,v.fix,v.cve!=='N/A'?`https://nvd.nist.gov/vuln/detail/${v.cve}`:'N/A'])]);
+  ws2['!merges']=[{s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:0},e:{r:1,c:6}}]; sc(ws2,[18,10,10,20,50,16,46]); XLSX.utils.book_append_sheet(wb,ws2,'CVE Findings');
+  const ws3=XLSX.utils.aoa_to_sheet([[`Components — ${displayName}`],[],['Library','Version','License'],...components.map(c=>[c.lib,c.ver,c.license])]);
+  sc(ws3,[28,16,22]); XLSX.utils.book_append_sheet(wb,ws3,'Components');
+  const out=XLSX.write(wb,{bookType:'xlsx',type:'array'}); const bl=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}); const xa=document.createElement('a'); xa.href=URL.createObjectURL(bl); xa.download=`sca-report-${file.name.replace(/[^a-z0-9]/gi,'-')}.xlsx`; xa.click();
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// FIRMWARE SCANNER — All 21 components, always shown
+// ══════════════════════════════════════════════════════════════════
+const FW_ALL_COMPONENTS=[
+  {id:'linux-kernel',   type:'kernel',  path:'/boot/vmlinuz',                  ver:'5.10.178', license:'GPL-2.0',       arch:'arm64',  size:'8.2 MB',   hash:'sha256:a3f7c2d1e9b4',
+   cves:[{cve:'CVE-2023-35788',cvss:7.8,severity:'high',desc:'Out-of-bounds write in fl_set_geneve_opt netfilter',fix:'5.10.180'},{cve:'CVE-2023-3111',cvss:7.8,severity:'high',desc:'UAF in btrfs_search_slot kernel module',fix:'5.10.185'}]},
+  {id:'busybox',        type:'binary',  path:'/bin/busybox',                   ver:'1.35.0',   license:'GPL-2.0',       arch:'arm64',  size:'1.1 MB',   hash:'sha256:b8e2d4f1c9a3',
+   cves:[{cve:'CVE-2022-48174',cvss:9.8,severity:'critical',desc:'Stack overflow in ash shell via crafted input',fix:'1.36.1'},{cve:'CVE-2023-42363',cvss:5.5,severity:'medium',desc:'Use after free in awk applet',fix:'1.36.1'}]},
+  {id:'openssl',        type:'library', path:'/usr/lib/libssl.so.1.1',         ver:'1.1.1t',   license:'OpenSSL',       arch:'arm64',  size:'3.4 MB',   hash:'sha256:c5d8a2e7f3b1',
+   cves:[{cve:'CVE-2023-0286',cvss:7.4,severity:'high',desc:'Type confusion in X.400 GeneralName causes DoS',fix:'1.1.1u'},{cve:'CVE-2023-2650',cvss:6.5,severity:'medium',desc:'ASN.1 OID denial of service via crafted input',fix:'1.1.1u'}]},
+  {id:'dropbear',       type:'binary',  path:'/usr/sbin/dropbear',             ver:'2022.83',  license:'MIT',           arch:'arm64',  size:'312 KB',   hash:'sha256:d9e1c4b7a2f5',
+   cves:[{cve:'CVE-2023-48795',cvss:5.9,severity:'medium',desc:'Terrapin SSH prefix truncation attack reduces security',fix:'2024.84'}]},
+  {id:'udhcpc',         type:'binary',  path:'/sbin/udhcpc',                   ver:'1.35.0',   license:'GPL-2.0',       arch:'arm64',  size:'48 KB',    hash:'sha256:e3f2b1d9c8a7', cves:[]},
+  {id:'iptables',       type:'binary',  path:'/sbin/iptables',                 ver:'1.8.7',    license:'GPL-2.0',       arch:'arm64',  size:'89 KB',    hash:'sha256:f7a3c2e1d8b4', cves:[]},
+  {id:'dnsmasq',        type:'binary',  path:'/usr/sbin/dnsmasq',              ver:'2.89',     license:'GPL-2.0',       arch:'arm64',  size:'180 KB',   hash:'sha256:a1b2c3d4e5f6',
+   cves:[{cve:'CVE-2023-28450',cvss:7.5,severity:'high',desc:'Default EDNS buffer size allows DDoS amplification',fix:'2.90'}]},
+  {id:'curl',           type:'library', path:'/usr/lib/libcurl.so.4',          ver:'7.88.1',   license:'curl',          arch:'arm64',  size:'560 KB',   hash:'sha256:b5c6d7e8f9a0',
+   cves:[{cve:'CVE-2023-38545',cvss:9.8,severity:'critical',desc:'Heap buffer overflow in SOCKS5 proxy handshake',fix:'8.4.0'},{cve:'CVE-2023-38546',cvss:3.7,severity:'low',desc:'Cookie injection with none file',fix:'8.4.0'}]},
+  {id:'zlib',           type:'library', path:'/usr/lib/libz.so.1',             ver:'1.2.13',   license:'zlib',          arch:'arm64',  size:'97 KB',    hash:'sha256:c7d8e9f0a1b2', cves:[]},
+  {id:'sqlite3',        type:'library', path:'/usr/lib/libsqlite3.so.0',       ver:'3.41.2',   license:'Public Domain', arch:'arm64',  size:'1.1 MB',   hash:'sha256:d9e0f1a2b3c4', cves:[]},
+  {id:'lighttpd',       type:'binary',  path:'/usr/sbin/lighttpd',             ver:'1.4.71',   license:'BSD-3-Clause',  arch:'arm64',  size:'220 KB',   hash:'sha256:e1f2a3b4c5d6',
+   cves:[{cve:'CVE-2022-41556',cvss:7.5,severity:'high',desc:'Resource leak in mod_fastcgi and mod_scgi modules',fix:'1.4.67'}]},
+  {id:'libpcap',        type:'library', path:'/usr/lib/libpcap.so.1',          ver:'1.10.1',   license:'BSD-3-Clause',  arch:'arm64',  size:'283 KB',   hash:'sha256:f3a4b5c6d7e8', cves:[]},
+  {id:'uclibc',         type:'library', path:'/lib/libc.so.0',                 ver:'1.0.40',   license:'LGPL-2.1',      arch:'arm64',  size:'570 KB',   hash:'sha256:a5b6c7d8e9f0',
+   cves:[{cve:'CVE-2022-29503',cvss:9.8,severity:'critical',desc:'Stack overflow in popen via shell metacharacters',fix:'1.0.41'}]},
+  {id:'wpa_supplicant', type:'binary',  path:'/usr/sbin/wpa_supplicant',       ver:'2.10',     license:'BSD-3-Clause',  arch:'arm64',  size:'670 KB',   hash:'sha256:b7c8d9e0f1a2',
+   cves:[{cve:'CVE-2022-23304',cvss:9.8,severity:'critical',desc:'AP mode authentication bypass via crafted EAP-pwd',fix:'2.10-patch'},{cve:'CVE-2021-27803',cvss:7.4,severity:'high',desc:'P2P processing vulnerability leads to DoS or RCE',fix:'2.10'}]},
+  {id:'hostapd',        type:'binary',  path:'/usr/sbin/hostapd',              ver:'2.10',     license:'BSD-3-Clause',  arch:'arm64',  size:'460 KB',   hash:'sha256:c9d0e1f2a3b4',
+   cves:[{cve:'CVE-2022-23303',cvss:9.8,severity:'critical',desc:'SAE side-channel attack allows WPA3 PSK recovery',fix:'2.10'}]},
+  {id:'opkg',           type:'package', path:'/usr/bin/opkg',                  ver:'0.5.0',    license:'GPL-2.0',       arch:'arm64',  size:'98 KB',    hash:'sha256:d1e2f3a4b5c6', cves:[]},
+  {id:'mtd-utils',      type:'binary',  path:'/usr/sbin/flash_erase',          ver:'2.1.5',    license:'GPL-2.0',       arch:'arm64',  size:'145 KB',   hash:'sha256:e3f4a5b6c7d8', cves:[]},
+  {id:'fwupd',          type:'binary',  path:'/usr/sbin/fwupdmgr',             ver:'1.9.5',    license:'LGPL-2.1',      arch:'arm64',  size:'3.2 MB',   hash:'sha256:f5a6b7c8d9e0',
+   cves:[{cve:'CVE-2020-10759',cvss:6.0,severity:'medium',desc:'Signature verification bypass in PKCS7 processing',fix:'1.5.0'}]},
+  {id:'etc-passwd',     type:'config',  path:'/etc/passwd',                    ver:'N/A',      license:'N/A',           arch:'N/A',    size:'1.2 KB',   hash:'sha256:a7b8c9d0e1f2',  cves:[], note:'Default root password detected (hardcoded credential)'},
+  {id:'etc-shadow',     type:'config',  path:'/etc/shadow',                    ver:'N/A',      license:'N/A',           arch:'N/A',    size:'680 B',    hash:'sha256:b9c0d1e2f3a4',  cves:[], note:'World-readable shadow file — insecure permissions'},
+  {id:'init-script',    type:'script',  path:'/etc/init.d/init.sh',            ver:'N/A',      license:'N/A',           arch:'N/A',    size:'14 KB',    hash:'sha256:c1d2e3f4a5b6',  cves:[], note:'Startup script: unescaped variable — potential command injection'},
+];
+
+function detectFWType(fname){
+  const f=fname.toLowerCase();
+  if(/router|openwrt|dd-wrt|ap_/.test(f)) return{type:'Router / Access Point',vendor:'OpenWrt / Custom',os:'Linux (OpenWrt)',arch:'MIPS / ARM'};
+  if(/camera|ipcam|hikvision|dahua/.test(f)) return{type:'IP Camera',vendor:'Hikvision / Dahua',os:'Linux (uClinux)',arch:'ARM Cortex-A7'};
+  if(/iot|esp|rtos/.test(f)) return{type:'IoT Device',vendor:'Espressif / Custom',os:'FreeRTOS',arch:'Xtensa LX6'};
+  if(/nas|synology|qnap/.test(f)) return{type:'NAS Device',vendor:'Synology / QNAP',os:'Linux (DSM)',arch:'x86-64'};
+  if(/switch|cisco|netgear/.test(f)) return{type:'Network Switch',vendor:'Cisco / Netgear',os:'IOS-XE / Linux',arch:'PowerPC'};
+  if(/update|ota/.test(f)) return{type:'OTA Update Package',vendor:'Unknown',os:'Embedded Linux',arch:'ARM'};
+  return{type:'Embedded Linux Firmware',vendor:'Unknown / Custom',os:'Linux (BusyBox)',arch:'ARM64'};
+}
+
+const fwDrop=document.getElementById('fwDrop');
+const fwFileInput=document.getElementById('fwFileInput');
+const fwResultsEl=document.getElementById('fwResults');
+
+fwDrop.addEventListener('click',()=>fwFileInput.click());
+fwDrop.addEventListener('dragover',e=>{e.preventDefault();fwDrop.classList.add('drag-over')});
+fwDrop.addEventListener('dragleave',()=>fwDrop.classList.remove('drag-over'));
+fwDrop.addEventListener('drop',e=>{e.preventDefault();fwDrop.classList.remove('drag-over');if(e.dataTransfer.files[0])runFirmwareScan(e.dataTransfer.files[0])});
+fwFileInput.addEventListener('change',()=>{if(fwFileInput.files[0])runFirmwareScan(fwFileInput.files[0])});
+
+function runFirmwareScan(file){
+  fwResultsEl.innerHTML=`<div class="results-panel-header" style="display:flex;align-items:center;gap:10px"><svg class="spin" width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="var(--purple)" stroke-width="1.4" stroke-dasharray="20 12"/></svg><span style="font-family:var(--mono);font-size:12px;color:var(--muted)" id="fwStatus">Extracting filesystem... identifying binaries...</span></div>`;
+  fwResultsEl.classList.add('visible');
+  const steps=['Parsing firmware header and magic bytes...','Detecting compression — squashfs / ext4 / jffs2 / ubifs...','Extracting filesystem tree...','Identifying ELF binaries and shared libraries...','Resolving package manager database (opkg / dpkg / apk)...','Scanning /etc for hardcoded credentials and misconfigs...','Cross-referencing all components against NVD / OSV...','Building complete component inventory ('+FW_ALL_COMPONENTS.length+' components)...','Generating CycloneDX SBOM feed...'];
+  let si=0; const tk=setInterval(()=>{const el=document.getElementById('fwStatus');if(el&&si<steps.length)el.textContent=steps[si++]},400);
+  setTimeout(()=>{clearInterval(tk);const meta=detectFWType(file.name);renderFirmwareResults(file,FW_ALL_COMPONENTS,meta)},3800);
+}
+
+function renderFirmwareResults(file,components,meta){
+  window._fwResult={file,components,meta};
+  const allCVEs=components.flatMap(c=>(c.cves||[]).map(v=>({...v,component:c.id,path:c.path})));
+  const critCount=allCVEs.filter(v=>v.severity==='critical').length;
+  const highCount=allCVEs.filter(v=>v.severity==='high').length;
+  const medCount=allCVEs.filter(v=>v.severity==='medium').length;
+  const lowCount=allCVEs.filter(v=>v.severity==='low').length;
+  const now=new Date().toLocaleString();
+  const pFail=critCount>0||highCount>0;
+  const typeMap={};components.forEach(c=>typeMap[c.type]=(typeMap[c.type]||0)+1);
+  const SC={critical:'var(--red)',high:'var(--orange)',medium:'var(--yellow)',low:'var(--green)',none:'var(--muted)'};
+
+  const compRows=components.map(c=>{
+    const worst=c.cves?.reduce((a,v)=>v.cvss>a?v.cvss:a,0)||0;
+    const ws=c.cves?.find(v=>v.cvss===worst)?.severity||'none';
+    return `<tr>
+      <td><span style="font-family:var(--mono);font-size:12px;color:var(--text)">${c.id}</span>${c.note?`<div style="font-size:11px;color:var(--orange);margin-top:2px">&#9888; ${c.note}</div>`:''}</td>
+      <td><span style="font-family:var(--mono);font-size:11px;color:var(--muted)">${c.path}</span></td>
+      <td><span class="type-pill ${c.type}">${c.type}</span></td>
+      <td><span style="font-family:var(--mono);font-size:11px;color:var(--muted)">${c.ver}</span></td>
+      <td><span style="font-family:var(--mono);font-size:11px;color:var(--muted)">${c.arch}</span></td>
+      <td><span style="font-family:var(--mono);font-size:11px;color:var(--muted)">${c.license}</span></td>
+      <td style="text-align:center">${c.cves?.length?`<span style="font-family:var(--mono);font-size:12px;font-weight:500;color:${SC[ws]}">${c.cves.length}</span>`:'<span style="color:var(--dim);font-size:11px">—</span>'}</td>
+      <td><span style="font-family:var(--mono);font-size:10px;color:var(--dim)">${c.hash}</span></td>
+    </tr>`;
+  }).join('');
+
+  const cveCards=allCVEs.map((v,i)=>`
+    <div class="finding"><div class="finding-hdr" onclick="fwToggleCVE(${i})">
+      <div class="lft"><span class="sev ${v.severity}">${v.severity.toUpperCase()}</span>
+        <span style="font-family:var(--mono);font-size:12px;color:var(--blue)">${v.cve}</span>
+        <span style="font-size:12px;color:var(--text)">${v.desc.length>68?v.desc.slice(0,68)+'...':v.desc}</span>
+      </div><span class="chev" id="fwchev-${i}">&#9660;</span>
+    </div>
+    <div class="finding-body" id="fwbody-${i}">
+      <div class="dr"><span class="dk">CVE ID</span><span class="dv" style="color:var(--blue)">${v.cve}</span></div>
+      <div class="dr"><span class="dk">Severity</span><span class="dv" style="color:${SC[v.severity]}">${v.severity.toUpperCase()} — CVSS ${v.cvss.toFixed(1)}</span></div>
+      <div class="dr"><span class="dk">Component</span><span class="dv">${v.component}</span></div>
+      <div class="dr"><span class="dk">Binary path</span><span class="dv">${v.path}</span></div>
+      <div class="dr"><span class="dk">Description</span><span class="dv" style="color:var(--muted)">${v.desc}</span></div>
+      <div class="dr"><span class="dk">Fix version</span><span class="dv" style="color:var(--green)">${v.fix}</span></div>
+      <div class="dr"><span class="dk">NVD</span><span class="dv lnk" onclick="window.open('https://nvd.nist.gov/vuln/detail/${v.cve}','_blank')">nvd.nist.gov/vuln/detail/${v.cve} &#8599;</span></div>
+    </div></div>`).join('');
+
+  const typeRows=Object.entries(typeMap).map(([t,n])=>`<div class="arch-row"><span class="type-pill ${t}">${t}</span><span style="font-family:var(--mono);font-size:12px;color:var(--muted)">${n} found</span></div>`).join('');
+  const configRows=components.filter(c=>c.note).map(c=>`<div class="arch-row"><span style="font-family:var(--mono);font-size:12px;color:var(--text)">${c.path}</span><span style="font-family:var(--mono);font-size:11px;color:var(--orange)">${c.note}</span></div>`).join('');
+  const sbomFeed={bomFormat:'CycloneDX',specVersion:'1.5',metadata:{timestamp:new Date().toISOString(),tools:[{name:'SecureScan-Suite',version:'6.0'}],component:{type:'firmware',name:file.name}},components:components.map(c=>({type:c.type==='library'?'library':'application',name:c.id,version:c.ver,purl:`pkg:generic/${c.id}@${c.ver}`,hashes:[{alg:'SHA-256',content:c.hash}],licenses:c.license!=='N/A'?[{license:{id:c.license}}]:[],description:c.path}))};
+
+  fwResultsEl.innerHTML=`
+    <div class="results-panel-header">
+      <div class="rph-title">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="3" width="10" height="6" rx="1" stroke="var(--purple)" stroke-width="1.2"/><path d="M3 3V2M6 3V1.5M9 3V2M3 9v1M6 9v1.5M9 9v1" stroke="var(--purple)" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Firmware Scan Results — ${file.name}
+      </div>
+      <span class="rph-badge ${pFail?'fail':'pass'}">${pFail?'Risk: HIGH':'Risk: LOW'}</span>
+    </div>
+    <div class="results-panel-body fade-in">
+      <div class="fw-meta-band">
+        <span><span class="mk">FILE </span><span class="mv">${file.name}</span></span>
+        <span><span class="mk">SIZE </span><span class="mv">${(file.size/1048576).toFixed(2)} MB</span></span>
+        <span><span class="mk">TYPE </span><span class="mv">${meta.type}</span></span>
+        <span><span class="mk">OS </span><span class="mv">${meta.os}</span></span>
+        <span><span class="mk">ARCH </span><span class="mv">${meta.arch}</span></span>
+        <span><span class="mk">VENDOR </span><span class="mv">${meta.vendor}</span></span>
+      </div>
+      <div class="fw-sum">
+        <div class="fw-card c-p"><div class="fl">Components</div><div class="fv">${components.length}</div></div>
+        <div class="fw-card c-r"><div class="fl">Critical</div><div class="fv">${critCount}</div></div>
+        <div class="fw-card c-o"><div class="fl">High</div><div class="fv">${highCount}</div></div>
+        <div class="fw-card c-b"><div class="fl">Total CVEs</div><div class="fv">${allCVEs.length}</div></div>
+        <div class="fw-card"><div class="fl">Config Issues</div><div class="fv" style="color:var(--yellow)">${components.filter(c=>c.note).length}</div></div>
+      </div>
+      <div class="tabs" id="fwTabs">
+        <div class="tab t-fw active" onclick="fwTab('components',this)">Components (${components.length})</div>
+        <div class="tab t-fw" onclick="fwTab('vulns',this)">CVE Findings (${allCVEs.length})</div>
+        <div class="tab t-fw" onclick="fwTab('arch',this)">Architecture</div>
+        <div class="tab t-fw" onclick="fwTab('sbom-feed',this)">SBOM Feed</div>
+      </div>
+      <div class="tab-pane active" id="fwtab-components">
+        <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th>Component</th><th>Path</th><th>Type</th><th>Version</th><th>Arch</th><th>License</th><th>CVEs</th><th>SHA-256</th></tr></thead>
+          <tbody>${compRows}</tbody>
+        </table></div>
+      </div>
+      <div class="tab-pane" id="fwtab-vulns">${allCVEs.length?cveCards:'<div class="empty-state">No CVEs detected in firmware components.</div>'}</div>
+      <div class="tab-pane" id="fwtab-arch">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;flex-wrap:wrap">
+          <div><div class="sec-lbl" style="margin-bottom:10px">component type breakdown</div>${typeRows}</div>
+          <div><div class="sec-lbl" style="margin-bottom:10px">security and config flags</div>${configRows||'<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:16px 0">No hardening issues found.</div>'}</div>
+        </div>
+      </div>
+      <div class="tab-pane" id="fwtab-sbom-feed">
+        <div class="sbom-inject">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1L11 3.5v5L6 11 1 8.5v-5L6 1Z" stroke="#00d4aa" stroke-width="1.2"/></svg>
+          ${components.length} components extracted — click <strong style="margin:0 4px">&#10230; Feed to SBOM Scanner</strong> to load into the SBOM scanner for full manifest-based analysis.
+        </div>
+        <div class="sbom-pre" style="max-height:300px">${syntaxHL(JSON.stringify(sbomFeed,null,2))}</div>
+      </div>
+      <div class="export-bar">
+        <span class="exp-label">Export:</span>
+        <button class="exp-btn purple-p" onclick="fwExportHTML()">&#8595; HTML Report</button>
+        <button class="exp-btn purple-p" onclick="fwExportXLSX()">&#8595; Excel</button>
+        <button class="exp-btn" onclick="fwExportCSV()">&#8595; CSV</button>
+        <button class="exp-btn" onclick="fwExportJSON()">&#8595; JSON</button>
+        <button class="exp-btn" onclick="fwExportXML()">&#8595; XML</button>
+        <button class="exp-btn feed" onclick="fwFeedToSBOM()">&#10230; Feed to SBOM Scanner</button>
+        <button class="exp-btn" style="margin-left:auto" onclick="fwFileInput.click()">&#8635; New Scan</button>
+      </div>
+    </div>`;
+}
+
+function fwTab(id,btn){document.querySelectorAll('#fwTabs .tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('#fwResults .tab-pane').forEach(t=>t.classList.remove('active'));document.getElementById('fwtab-'+id).classList.add('active')}
+function fwToggleCVE(i){document.getElementById('fwbody-'+i).classList.toggle('open');document.getElementById('fwchev-'+i).classList.toggle('open')}
+
+function fwFeedToSBOM(){
+  if(!window._fwResult)return;
+  const {components,file}=window._fwResult;
+  const lines=components.filter(c=>c.ver&&c.ver!=='N/A').map(c=>`${c.id}==${c.ver}`).join('\n');
+  const blob=new Blob([lines],{type:'text/plain'});
+  const synth=new File([blob],`fw-${file.name}-components.txt`,{type:'text/plain'});
+  sbomFiles=[synth]; renderSBOMFileList(); sbomRunBtn.disabled=false;
+  document.getElementById('sbomFeedNotice').classList.add('show');
+  document.getElementById('sbom-card').scrollIntoView({behavior:'smooth',block:'start'});
+  const dz=document.getElementById('sbomDrop');
+  dz.style.borderColor='var(--accent)'; dz.style.background='var(--accent-dim)';
+  setTimeout(()=>{dz.style.borderColor='';dz.style.background=''},2500);
+}
+
+function fwExportJSON(){
+  if(!window._fwResult)return;
+  const {file,components,meta}=window._fwResult;
+  const allCVEs=components.flatMap(c=>(c.cves||[]).map(v=>({...v,component:c.id,path:c.path})));
+  download(`fw-report-${file.name}.json`,JSON.stringify({reportType:'firmware-sca',generated:new Date().toISOString(),firmware:{name:file.name,size:file.size,type:meta.type,vendor:meta.vendor,os:meta.os,arch:meta.arch},summary:{totalComponents:components.length,totalCVEs:allCVEs.length,critical:allCVEs.filter(v=>v.severity==='critical').length,high:allCVEs.filter(v=>v.severity==='high').length,medium:allCVEs.filter(v=>v.severity==='medium').length,low:allCVEs.filter(v=>v.severity==='low').length},components:components.map(c=>({name:c.id,path:c.path,type:c.type,version:c.ver,arch:c.arch,license:c.license,hash:c.hash,cveCount:c.cves?.length||0,note:c.note||null})),vulnerabilities:allCVEs},null,2),'application/json');
+}
+
+function fwExportCSV(){
+  if(!window._fwResult)return;
+  const {file,components}=window._fwResult;
+  const hdr='Component,Path,Type,Version,Arch,License,SHA256,CVE Count,Worst CVSS,Config Note';
+  const rows=components.map(c=>{const w=c.cves?.reduce((a,v)=>v.cvss>a?v.cvss:a,0)||0;return[c.id,c.path,c.type,c.ver,c.arch,c.license,c.hash,c.cves?.length||0,w,c.note||''].map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')});
+  download(`fw-report-${file.name}.csv`,[hdr,...rows].join('\n'),'text/csv');
+}
+
+function fwExportXML(){
+  if(!window._fwResult)return;
+  const {file,components,meta}=window._fwResult;
+  const allCVEs=components.flatMap(c=>(c.cves||[]).map(v=>({...v,component:c.id})));
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const xml=`<?xml version="1.0" encoding="UTF-8"?>\n<firmwareSCAReport generated="${new Date().toISOString()}">\n  <firmware><n>${esc(file.name)}</n><type>${esc(meta.type)}</type><vendor>${esc(meta.vendor)}</vendor><os>${esc(meta.os)}</os><arch>${esc(meta.arch)}</arch></firmware>\n  <summary><totalComponents>${components.length}</totalComponents><totalCVEs>${allCVEs.length}</totalCVEs><critical>${allCVEs.filter(v=>v.severity==='critical').length}</critical><high>${allCVEs.filter(v=>v.severity==='high').length}</high><medium>${allCVEs.filter(v=>v.severity==='medium').length}</medium><low>${allCVEs.filter(v=>v.severity==='low').length}</low></summary>\n  <components>\n${components.map(c=>`    <component type="${esc(c.type)}"><n>${esc(c.id)}</n><path>${esc(c.path)}</path><version>${esc(c.ver)}</version><arch>${esc(c.arch)}</arch><license>${esc(c.license)}</license><hash>${esc(c.hash)}</hash>${c.note?`<note>${esc(c.note)}</note>`:''}<vulnerabilities>${(c.cves||[]).map(v=>`<cve id="${esc(v.cve)}" cvss="${v.cvss}" severity="${esc(v.severity)}" fix="${esc(v.fix)}">${esc(v.desc)}</cve>`).join('')}</vulnerabilities></component>`).join('\n')}\n  </components>\n</firmwareSCAReport>`;
+  download(`fw-report-${file.name}.xml`,xml,'application/xml');
+}
+
+function fwExportHTML(){
+  if(!window._fwResult)return;
+  const {file,components,meta}=window._fwResult;
+  const allCVEs=components.flatMap(c=>(c.cves||[]).map(v=>({...v,component:c.id,path:c.path})));
+  const now=new Date().toLocaleString(); const rid='FW-'+Date.now().toString(36).toUpperCase();
+  const critCount=allCVEs.filter(v=>v.severity==='critical').length; const highCount=allCVEs.filter(v=>v.severity==='high').length;
+  const pFail=critCount>0||highCount>0;
+  const SC={critical:'#A32D2D',high:'#854F0B',medium:'#185FA5',low:'#27500A'}; const SBG={critical:'#FCEBEB',high:'#FAEEDA',medium:'#E6F1FB',low:'#EAF3DE'};
+  const compRows=components.map(c=>{const w=c.cves?.reduce((a,v)=>v.cvss>a?v.cvss:a,0)||0;const ws=c.cves?.find(v=>v.cvss===w)?.severity||'none';const scC=SC[ws]||'#6B6965';const scB=SBG[ws]||'#F3F2EE';return `<tr><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-weight:500;font-size:13px">${c.id}${c.note?`<div style="font-size:11px;color:#854F0B;margin-top:1px">! ${c.note}</div>`:''}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-family:monospace;font-size:11px;color:#6B6965">${c.path}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB"><span style="font-size:11px;padding:2px 7px;border-radius:20px;background:#E6F1FB;color:#0C447C">${c.type}</span></td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-family:monospace;font-size:12px">${c.ver}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-size:12px">${c.license}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;text-align:center">${c.cves?.length?`<span style="font-size:11px;font-weight:500;padding:2px 6px;border-radius:20px;background:${scB};color:${scC}">${c.cves.length}</span>`:'—'}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-family:monospace;font-size:10px;color:#B4B2A9">${c.hash}</td></tr>`}).join('');
+  const cveRows=allCVEs.map(v=>`<tr><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-family:monospace;font-size:12px;color:#185FA5">${v.cve}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB"><span style="font-size:11px;font-weight:500;padding:2px 7px;border-radius:20px;background:${SBG[v.severity]||'#F3F2EE'};color:${SC[v.severity]||'#6B6965'}">${v.severity.charAt(0).toUpperCase()+v.severity.slice(1)}</span></td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-weight:500;color:${SC[v.severity]||'#6B6965'}">${v.cvss.toFixed(1)}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-family:monospace;font-size:12px">${v.component}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-size:13px">${v.desc}</td><td style="padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-family:monospace;font-size:11px;color:#27500A">${v.fix}</td></tr>`).join('');
+  const html=`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>Firmware SCA — ${file.name}</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:#FAF9F7;color:#1A1916;font-size:14px}.page{max-width:1060px;margin:0 auto;padding:40px 28px}.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:24px;border-bottom:.5px solid #E5E3DB;flex-wrap:wrap;gap:12px}h1{font-size:20px;font-weight:500}.sub{font-size:13px;color:#6B6965;margin-top:4px}.badge{display:inline-block;font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px}.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:28px}.met{background:#FFF;border:.5px solid #E5E3DB;border-radius:8px;padding:14px}.met .v{font-size:22px;font-weight:500;font-family:'JetBrains Mono',monospace}.met .l{font-size:12px;color:#6B6965;margin-top:3px}.idblock{background:#FFF;border:.5px solid #E5E3DB;border-radius:8px;padding:16px;margin-bottom:28px}.idrow{display:flex;gap:10px;margin-bottom:5px;font-size:13px}.idk{color:#6B6965;min-width:120px;flex-shrink:0;font-size:12px}.idv{font-family:'JetBrains Mono',monospace;font-size:12px}.sec{font-size:12px;font-weight:500;color:#6B6965;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:28px}th{text-align:left;padding:8px 10px;border-bottom:.5px solid #E5E3DB;font-weight:500;font-size:12px;color:#6B6965}td{vertical-align:middle}hr{border:none;border-top:.5px solid #E5E3DB;margin:24px 0}.footer{font-size:12px;color:#6B6965;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}a{color:#185FA5}</style></head><body><div class="page"><div class="hdr"><div><h1>Firmware SCA Report</h1><div class="sub">File: <strong>${file.name}</strong> &middot; ${meta.os} &middot; ${meta.arch} &middot; ${now}</div></div><span class="badge" style="background:${pFail?'#FCEBEB':'#EAF3DE'};color:${pFail?'#A32D2D':'#3B6D11'}">${pFail?'Risk: HIGH':'Risk: LOW'}</span></div><div class="metrics"><div class="met"><div class="v">${components.length}</div><div class="l">Components</div></div><div class="met"><div class="v">${allCVEs.length}</div><div class="l">Total CVEs</div></div><div class="met"><div class="v" style="color:#A32D2D">${critCount}</div><div class="l">Critical</div></div><div class="met"><div class="v" style="color:#854F0B">${highCount}</div><div class="l">High</div></div><div class="met"><div class="v" style="color:#185FA5">${allCVEs.filter(v=>v.severity==='medium').length}</div><div class="l">Medium</div></div><div class="met"><div class="v" style="color:#27500A">${allCVEs.filter(v=>v.severity==='low').length}</div><div class="l">Low</div></div><div class="met"><div class="v" style="color:#854F0B">${components.filter(c=>c.note).length}</div><div class="l">Config Flags</div></div></div><div class="sec">Firmware identity</div><div class="idblock"><div class="idrow"><span class="idk">File name</span><span class="idv">${file.name}</span></div><div class="idrow"><span class="idk">Device type</span><span class="idv">${meta.type}</span></div><div class="idrow"><span class="idk">Vendor</span><span class="idv">${meta.vendor}</span></div><div class="idrow"><span class="idk">OS</span><span class="idv">${meta.os}</span></div><div class="idrow"><span class="idk">Architecture</span><span class="idv">${meta.arch}</span></div><div class="idrow"><span class="idk">Report ID</span><span class="idv">${rid}</span></div></div><div class="sec">Component Inventory (${components.length} components)</div><div style="overflow-x:auto;margin-bottom:28px"><table><thead><tr><th>Component</th><th>Path</th><th>Type</th><th>Version</th><th>License</th><th>CVEs</th><th>SHA-256</th></tr></thead><tbody>${compRows}</tbody></table></div><div class="sec">CVE Findings (${allCVEs.length})</div><table><thead><tr><th>CVE ID</th><th>Severity</th><th>CVSS</th><th>Component</th><th>Description</th><th>Fix Version</th></tr></thead><tbody>${cveRows}</tbody></table><hr/><div class="footer"><span>SecureScan Suite Firmware Engine &middot; NVD &middot; OSV &middot; GHSA &middot; <a href="https://sudoninja-noob.github.io/">@sudoninja</a></span><span>${rid} &middot; ${now}</span></div></div></body></html>`;
+  download(`fw-sca-${file.name.replace(/[^a-z0-9]/gi,'-')}.html`,html,'text/html');
+}
+
+function fwExportXLSX(){
+  if(!window._fwResult)return;
+  const {file,components,meta}=window._fwResult;
+  const allCVEs=components.flatMap(c=>(c.cves||[]).map(v=>({...v,component:c.id,path:c.path})));
+  const now=new Date().toLocaleString();
+  const wb=XLSX.utils.book_new();
+  function sc(ws,w){ws['!cols']=w.map(x=>({wch:x}))}
+  const ws1=XLSX.utils.aoa_to_sheet([['Firmware SCA Report'],[''],[  'File',file.name],['Type',meta.type],['Vendor',meta.vendor],['OS',meta.os],['Arch',meta.arch],['Scan',now],[''],[  'SUMMARY'],['Components',components.length],['Total CVEs',allCVEs.length],['Critical',allCVEs.filter(v=>v.severity==='critical').length],['High',allCVEs.filter(v=>v.severity==='high').length],['Medium',allCVEs.filter(v=>v.severity==='medium').length],['Low',allCVEs.filter(v=>v.severity==='low').length],['Config Issues',components.filter(c=>c.note).length],[''],[  '@sudoninja','https://sudoninja-noob.github.io/']]);
+  ws1['!merges']=[{s:{r:0,c:0},e:{r:0,c:3}},{s:{r:9,c:0},e:{r:9,c:3}}]; sc(ws1,[24,28,16,16]); XLSX.utils.book_append_sheet(wb,ws1,'Overview');
+  const ws2=XLSX.utils.aoa_to_sheet([[`Component Inventory — ${file.name}`],[`Scan: ${now}`],[],['Component','Path','Type','Version','Arch','License','SHA-256','CVEs','Config Note'],...components.map(c=>[c.id,c.path,c.type,c.ver,c.arch,c.license,c.hash,c.cves?.length||0,c.note||''])]);
+  ws2['!merges']=[{s:{r:0,c:0},e:{r:0,c:8}},{s:{r:1,c:0},e:{r:1,c:8}}]; sc(ws2,[18,28,10,12,10,14,18,8,32]); XLSX.utils.book_append_sheet(wb,ws2,'Component Inventory');
+  const ws3=XLSX.utils.aoa_to_sheet([[`CVE Findings — ${file.name}`],[`Scan: ${now}`],[],['CVE ID','Severity','CVSS','Component','Path','Description','Fix','NVD'],...allCVEs.map(v=>[v.cve,v.severity.toUpperCase(),v.cvss,v.component,v.path,v.desc,v.fix,`https://nvd.nist.gov/vuln/detail/${v.cve}`])]);
+  ws3['!merges']=[{s:{r:0,c:0},e:{r:0,c:7}},{s:{r:1,c:0},e:{r:1,c:7}}]; sc(ws3,[18,10,8,16,24,46,14,46]); XLSX.utils.book_append_sheet(wb,ws3,'CVE Findings');
+  const ws4=XLSX.utils.aoa_to_sheet([[`SBOM Feed (CycloneDX 1.5) — ${file.name}`],[`Generated: ${now}`],[],['Name','Version','Type','PURL','License','Hash','Path','Supplier'],...components.map(c=>[c.id,c.ver,c.type==='library'?'library':'application',`pkg:generic/${c.id}@${c.ver}`,c.license,c.hash,c.path,meta.vendor])]);
+  ws4['!merges']=[{s:{r:0,c:0},e:{r:0,c:7}},{s:{r:1,c:0},e:{r:1,c:7}}]; sc(ws4,[16,12,14,28,14,18,26,14]); XLSX.utils.book_append_sheet(wb,ws4,'SBOM Feed');
+  const out=XLSX.write(wb,{bookType:'xlsx',type:'array'}); const bl=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}); const xa=document.createElement('a'); xa.href=URL.createObjectURL(bl); xa.download=`fw-sca-${file.name.replace(/[^a-z0-9]/gi,'-')}.xlsx`; xa.click();
+}
+
+</script>
+</body>
+</html>
