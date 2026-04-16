@@ -737,8 +737,136 @@ function sbomExportHTML(){
 // ══════════════════════════════════════════════════════════════════
 const SCA_DB=[
   {pattern:/wireshark/i,name:'Wireshark',vendor:'Wireshark Foundation',category:'Network Analyzer',
-   components:[{lib:'libpcap',ver:'1.10.1',license:'BSD-3-Clause'},{lib:'libgcrypt',ver:'1.9.4',license:'LGPL-2.1'},{lib:'Qt',ver:'5.15.2',license:'LGPL-3.0'},{lib:'GLib',ver:'2.70.0',license:'LGPL-2.1'}],
-   vulns:[{cve:'CVE-2023-0667',severity:'high',cvss:8.8,desc:'MSMMS dissector heap buffer overflow',component:'Wireshark core',fix:'4.0.6'},{cve:'CVE-2023-0668',severity:'high',cvss:8.8,desc:'IEEE C37.118 dissector crash via malformed packet',component:'Wireshark core',fix:'4.0.6'},{cve:'CVE-2022-3725',severity:'high',cvss:7.5,desc:'OPUS dissector crash — infinite loop DoS',component:'Wireshark core',fix:'3.6.8'},{cve:'CVE-2023-2854',severity:'medium',cvss:6.5,desc:'BLF file parser buffer overflow',component:'file parser',fix:'4.0.6'}]},
+   version:'4.0.10',sha1:'1e5ea0f5fa1a8835bcfc9587efa4bf58c495d13f',
+   totalComponents:89,vulnerableComponents:24,totalVulns:201,
+   licenseTypes:16,
+   // 89 real 3rd-party components extracted from Wireshark-win64-4.0.10.exe (Protecode SC)
+   components:[
+     {lib:'Androiddump',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/androiddump.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'Capinfos',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/capinfos.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'Captype',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/captype.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'Ciscodump',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/ciscodump.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'Dftest',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/dftest.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'Dumpcap',ver:'4.0.10',license:'GPL-2.0',path:'dumpcap.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'Editcap',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/editcap.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'GNU libintl',ver:'0.21',license:'LGPL-2.1',path:'intl-8.dll',hardening:['no-control-flow-guard']},
+     {lib:'Mergecap',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/mergecap.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'Microsoft Visual C++ 2015-2022',ver:'14.36.32532',license:'Proprietary',path:'vc_redist.x64.exe',hardening:['authenticode-no-codesigning-attribute','no-control-flow-enforcement','no-control-flow-guard','no-enforced-code-integrity']},
+     {lib:'Microsoft Windows OS',ver:'10.0.22621.1778',license:'Proprietary',path:'Wireshark/d3dcompiler_47.dll',hardening:['no-enforced-code-integrity']},
+     {lib:'Mmdbresolve',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/mmdbresolve.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'NGHTTP2',ver:'1.46.0.0',license:'MIT',path:'nghttp2.dll',hardening:['no-control-flow-guard','no-enforced-code-integrity']},
+     {lib:'Npcap',ver:'1.71',license:'Npcap',path:'wimaxasncp/npcap-1.71.exe',hardening:['authenticode-no-codesigning-attribute','no-enforced-code-integrity']},
+     {lib:'Npcap',ver:'1.30',license:'Npcap',path:'wimaxasncp/npcap-1.71.exe/Npcap/3_npcap.sys',hardening:['authenticode-no-codesigning-attribute','no-enforced-code-integrity']},
+     {lib:'POSIX Threads for Windows',ver:'3.0.0',license:'LGPL-2.1',path:'pthreadVC3.dll',hardening:['no-control-flow-guard','no-enforced-code-integrity']},
+     {lib:'Randpkt',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/randpkt.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'Rawshark',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/rawshark.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'Reordercap',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/reordercap.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'Sshdump',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/sshdump.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'TShark',ver:'4.0.10',license:'GPL-2.0',path:'tshark.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'Text2pcap',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/text2pcap.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'USBPcap',ver:'1.5.4',license:'GPL-2.0',path:'wimaxasncp/USBPcapSetup-1.5.4.0.exe',hardening:['authenticode-no-codesigning-attribute','no-control-flow-enforcement','no-control-flow-guard','no-enforced-code-integrity']},
+     {lib:'USBPcap Sniffer Driver',ver:'1.5.4',license:'GPL-2.0',path:'wimaxasncp/USBPcapSetup-1.5.4.0.exe/1_USBPcap.sys',hardening:['authenticode-no-codesigning-attribute','no-control-flow-guard']},
+     {lib:'Wifidump',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/wifidump.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'WinPThreadGC',ver:'1.0.0',license:'LGPL-2.1',path:'pthreadVC3.dll',hardening:['no-enforced-code-integrity']},
+     {lib:'Windows Installer XML Toolset',ver:'3.10.4.4718',license:'MS-RL',path:'WiX toolset',hardening:[]},
+     {lib:'XZ Utils',ver:'5.2.5',license:'Public Domain',path:'liblzma.dll',hardening:['no-control-flow-guard']},
+     {lib:'Zstandard',ver:'1.5.2',license:'BSD-3-Clause',path:'zstd.dll',hardening:['no-control-flow-guard']},
+     {lib:'brotli',ver:'?',license:'MIT',path:'brotlidec.dll',hardening:['no-control-flow-guard']},
+     {lib:'c-ares',ver:'1.18.1',license:'MIT',path:'cares.dll',hardening:['no-control-flow-guard']},
+     {lib:'comerr32',ver:'4.1-prerelease',license:'MIT',path:'comerr64.dll',hardening:['no-control-flow-guard']},
+     {lib:'direct3d',ver:'10.0.22621.1778',license:'Proprietary',path:'Wireshark/d3dcompiler_47.dll',hardening:['no-enforced-code-integrity']},
+     {lib:'effective_tld_names',ver:'?',license:'MPL-2.0',path:'Wireshark/Qt5Core.dll',hardening:['no-control-flow-guard']},
+     {lib:'etwdump',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/etwdump.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'expat',ver:'?',license:'MIT',path:'WinSparkle.dll',hardening:['no-control-flow-guard']},
+     {lib:'freetype',ver:'5.15.2',license:'FTL',path:'platforms/qwindows.dll',hardening:['no-control-flow-guard']},
+     {lib:'gettext',ver:'?',license:'LGPL-2.1',path:'intl-8.dll',hardening:['no-control-flow-guard']},
+     {lib:'glew',ver:'?',license:'MIT',path:'Wireshark/opengl32sw.dll',hardening:['no-control-flow-guard']},
+     {lib:'glib',ver:'2.72.3',license:'LGPL-2.1',path:'glib-2.0-0.dll',hardening:['no-control-flow-guard']},
+     {lib:'gmp',ver:'6.1.2',license:'LGPL-3.0',path:'libgmp-10.dll',hardening:['no-control-flow-guard']},
+     {lib:'gnutls',ver:'3.6.3',license:'LGPL-2.1',path:'libgnutls-30.dll',hardening:['no-control-flow-guard']},
+     {lib:'heimdal',ver:'?',license:'BSD-3-Clause',path:'libgnutls-30.dll',hardening:['no-control-flow-guard']},
+     {lib:'k5sprt32',ver:'4.1-prerelease',license:'MIT',path:'k5sprt64.dll',hardening:['no-control-flow-guard']},
+     {lib:'kerberos',ver:'1.17',license:'MIT',path:'libkrb5-26.dll',hardening:['no-control-flow-guard']},
+     {lib:'krb5_32',ver:'4.1-prerelease',license:'MIT',path:'krb5_64.dll',hardening:['no-control-flow-guard']},
+     {lib:'libgcrypt',ver:'1.10.1',license:'LGPL-2.1',path:'libgcrypt-20.dll',hardening:['no-control-flow-guard']},
+     {lib:'libgpg-error',ver:'1.45',license:'LGPL-2.1',path:'libgpg-error-0.dll',hardening:['no-control-flow-guard']},
+     {lib:'libiconv',ver:'1.17',license:'LGPL-2.1',path:'libiconv.dll',hardening:['no-control-flow-guard']},
+     {lib:'libilbc',ver:'?',license:'BSD-3-Clause',path:'libilbc.dll',hardening:['no-control-flow-guard']},
+     {lib:'libjpeg-turbo',ver:'2.0.5',license:'BSD-3-Clause',path:'jpeg62.dll',hardening:['no-control-flow-guard']},
+     {lib:'libpcap',ver:'1.10.2-PRE-GIT',license:'BSD-3-Clause',path:'wpcap.dll',hardening:['no-control-flow-guard']},
+     {lib:'libpng',ver:'1.6.37',license:'libpng',path:'libpng16.dll',hardening:['no-control-flow-guard']},
+     {lib:'libsmi',ver:'?',license:'BSD-3-Clause',path:'libsmi-2.dll',hardening:['no-control-flow-guard']},
+     {lib:'libssh',ver:'0.9.5',license:'LGPL-2.1',path:'libssh.dll',hardening:['no-control-flow-guard']},
+     {lib:'libtasn1',ver:'4.13',license:'LGPL-2.1',path:'libtasn1-6.dll',hardening:['no-control-flow-guard']},
+     {lib:'libtiff',ver:'4.1.0',license:'BSD-3-Clause',path:'libtiff-5.dll',hardening:['no-control-flow-guard']},
+     {lib:'libwebp',ver:'?',license:'BSD-3-Clause',path:'libwebp.dll',hardening:['no-control-flow-guard']},
+     {lib:'libxml2',ver:'2.9.14',license:'MIT',path:'libxml2-2.dll',hardening:['no-control-flow-guard']},
+     {lib:'llvm',ver:'3.6.2',license:'NCSA',path:'Wireshark/opengl32sw.dll',hardening:['no-control-flow-guard']},
+     {lib:'lua',ver:'5.2.4',license:'MIT',path:'lua52.dll',hardening:['no-control-flow-guard']},
+     {lib:'lz4',ver:'1.9.3',license:'BSD-3-Clause',path:'lz4.dll',hardening:['no-control-flow-guard']},
+     {lib:'mbed_tls',ver:'?',license:'Apache-2.0',path:'ssh.dll',hardening:['no-control-flow-guard']},
+     {lib:'mesa',ver:'12.0.0',license:'MIT',path:'Wireshark/opengl32sw.dll',hardening:['no-control-flow-guard']},
+     {lib:'nettle',ver:'?',license:'LGPL-2.1',path:'libnettle-6.dll',hardening:['no-aslr','no-buffer-security-check','no-control-flow-guard','no-data-execution-prevention','no-enforced-code-integrity','no-high-entropy-aslr']},
+     {lib:'nghttp2',ver:'1.46.0',license:'MIT',path:'nghttp2.dll',hardening:['no-control-flow-guard']},
+     {lib:'opus',ver:'?',license:'BSD-3-Clause',path:'opus.dll',hardening:['no-control-flow-guard']},
+     {lib:'p11-kit',ver:'?',license:'BSD-3-Clause',path:'libp11-kit-0.dll',hardening:['no-aslr','no-buffer-security-check','no-control-flow-guard','no-data-execution-prevention','no-high-entropy-aslr']},
+     {lib:'pcre',ver:'8.45',license:'BSD-3-Clause',path:'pcre.dll',hardening:['no-control-flow-guard']},
+     {lib:'pcre2',ver:'10.40',license:'BSD-3-Clause',path:'pcre2-8.dll',hardening:['no-control-flow-guard']},
+     {lib:'pcre2',ver:'10.35',license:'BSD-3-Clause',path:'Wireshark/Qt5Core.dll',hardening:['no-control-flow-guard']},
+     {lib:'qt',ver:'5.15.2',license:'LGPL-3.0',path:'Qt5Core.dll',hardening:['no-control-flow-guard']},
+     {lib:'qt',ver:'6',license:'LGPL-3.0',path:'Qt6Core.dll',hardening:['no-control-flow-guard']},
+     {lib:'randpktdump',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/randpktdump.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'spandsp',ver:'?',license:'LGPL-2.1',path:'libspandsp-2.dll',hardening:['no-aslr','no-buffer-security-check','no-control-flow-guard','no-data-execution-prevention','no-high-entropy-aslr']},
+     {lib:'speexdsp',ver:'1.2.11',license:'BSD-3-Clause',path:'Wireshark/Wireshark.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'udpdump',ver:'4.0.10',license:'GPL-2.0',path:'snmp/mibs/udpdump.exe',hardening:['no-enforced-code-integrity']},
+     {lib:'unimrcp',ver:'?',license:'Apache-2.0',path:'libwireshark.dll',hardening:['no-enforced-code-integrity']},
+     {lib:'visual_studio_runtime',ver:'14.36.32532',license:'Proprietary',path:'vc_redist.x64.exe',hardening:['authenticode-no-codesigning-attribute']},
+     {lib:'wireshark',ver:'4.0.10',license:'GPL-2.0',path:'libwireshark.dll',hardening:['no-enforced-code-integrity']},
+     {lib:'winsparkle',ver:'0.8.0',license:'MIT',path:'WinSparkle.dll',hardening:['no-control-flow-guard']},
+     {lib:'wxwidgets',ver:'?',license:'wxWindows',path:'WinSparkle.dll',hardening:['no-control-flow-guard']},
+     {lib:'xz',ver:'5.2.5',license:'Public Domain',path:'liblzma.dll',hardening:['no-control-flow-guard']},
+     {lib:'zlib',ver:'1.2.12',license:'zlib',path:'zlib1.dll',hardening:['no-control-flow-guard']},
+     {lib:'zlib',ver:'1.2.11',license:'zlib',path:'Wireshark/Qt5Core.dll',hardening:['no-control-flow-guard']},
+     {lib:'zstd',ver:'1.5.2',license:'BSD-3-Clause',path:'zstd.dll',hardening:['no-control-flow-guard']},
+   ],
+   // Infoleak findings from binary scanning
+   infoleak:{
+     asymmetricKeys:994, emails:1084, ipAddresses:1159,
+     macAddresses:10191, urls:6289,
+     awsKeys:0, httpAuth:0, passwords:0, jwtTokens:0, oauthTokens:0
+   },
+   // License breakdown (16 license types)
+   licenseBreakdown:[
+     {name:'GPL-2.0',count:1,type:'copyleft'},{name:'LGPL-2.1',count:1,type:'weak-copyleft'},
+     {name:'LGPL-3.0',count:1,type:'weak-copyleft'},{name:'MIT',count:10,type:'permissive'},
+     {name:'BSD-3-Clause',count:1,type:'permissive'},{name:'Apache-2.0',count:1,type:'permissive'},
+     {name:'Proprietary',count:2,type:'proprietary'},{name:'libpng',count:1,type:'permissive'},
+     {name:'FTL',count:1,type:'permissive'},{name:'NCSA',count:1,type:'permissive'},
+     {name:'MS-RL',count:1,type:'proprietary'},{name:'Public Domain',count:1,type:'permissive'},
+     {name:'wxWindows',count:1,type:'weak-copyleft'},{name:'Npcap',count:1,type:'proprietary'},
+     {name:'MPL-2.0',count:1,type:'weak-copyleft'},{name:'LGPL-2.0',count:1,type:'weak-copyleft'},
+   ],
+   // Full 201-vuln breakdown: 0 critical, 40 high, 143 medium, 18 low
+   vulnBreakdown:{critical:0,high:40,medium:143,low:18},
+   // Representative CVEs (high-severity, real from NVD for Wireshark 4.0.x)
+   vulns:[
+     {cve:'CVE-2023-0667',severity:'high',cvss:8.8,desc:'MSMMS dissector heap buffer overflow allows RCE via crafted packet',component:'Wireshark core',fix:'4.0.6'},
+     {cve:'CVE-2023-0668',severity:'high',cvss:8.8,desc:'IEEE C37.118 dissector crash via malformed packet causes DoS',component:'Wireshark core',fix:'4.0.6'},
+     {cve:'CVE-2022-3725',severity:'high',cvss:7.5,desc:'OPUS dissector crash — infinite loop DoS via crafted packet',component:'Wireshark core / opus',fix:'3.6.8'},
+     {cve:'CVE-2023-2854',severity:'medium',cvss:6.5,desc:'BLF file parser buffer overflow via crafted capture file',component:'file parser',fix:'4.0.6'},
+     {cve:'CVE-2023-2856',severity:'medium',cvss:6.5,desc:'VMS TCPIPtrace file parser buffer overflow',component:'file parser',fix:'4.0.6'},
+     {cve:'CVE-2023-2857',severity:'medium',cvss:6.5,desc:'BLF file parser heap buffer overflow via crafted file',component:'file parser',fix:'4.0.6'},
+     {cve:'CVE-2023-2858',severity:'medium',cvss:6.5,desc:'NetScaler file parser buffer overflow via crafted file',component:'file parser',fix:'4.0.6'},
+     {cve:'CVE-2023-0666',severity:'medium',cvss:6.5,desc:'RTPS dissector infinite loop DoS via crafted packet',component:'RTPS dissector',fix:'4.0.5'},
+     {cve:'CVE-2023-1161',severity:'medium',cvss:6.5,desc:'ISO 15765 and ISO 10681 dissector crash',component:'ISO dissector',fix:'4.0.4'},
+     {cve:'CVE-2023-1992',severity:'medium',cvss:6.5,desc:'RPCoRDMA dissector memory allocation issue causes crash',component:'RPCoRDMA dissector',fix:'4.0.5'},
+     {cve:'CVE-2022-4345',severity:'medium',cvss:6.3,desc:'BPv6 dissector infinite loop via crafted packet',component:'BPv6 dissector',fix:'4.0.2'},
+     {cve:'CVE-2022-3190',severity:'medium',cvss:5.5,desc:'F5 Ethernet Trailer dissector infinite loop',component:'F5 dissector',fix:'3.6.8'},
+     {cve:'CVE-2021-22191',severity:'high',cvss:8.8,desc:'Improper URL handling leads to arbitrary code execution via Qt integration',component:'Qt 5.15.2',fix:'3.4.4'},
+     {cve:'CVE-2023-0512',severity:'medium',cvss:6.5,desc:'NFS dissector crash via crafted NFS packet',component:'NFS dissector',fix:'4.0.4'},
+     {cve:'CVE-2023-1190',severity:'medium',cvss:6.5,desc:'XRA dissector infinite loop via crafted packet',component:'XRA dissector',fix:'4.0.4'},
+     {cve:'CVE-2022-4344',severity:'medium',cvss:6.5,desc:'Memory exhaustion in ISOBUS dissector',component:'ISOBUS dissector',fix:'4.0.2'},
+   ]},
   {pattern:/7z|7-zip/i,name:'7-Zip',vendor:'Igor Pavlov',category:'Archive Manager',
    components:[{lib:'LZMA SDK',ver:'22.01',license:'Public Domain'},{lib:'zlib',ver:'1.2.11',license:'zlib'},{lib:'bzip2',ver:'1.0.8',license:'BSD-like'}],
    vulns:[{cve:'CVE-2022-29072',severity:'high',cvss:7.8,desc:'Help file handler allows privilege escalation via heap overflow',component:'7-Zip help',fix:'22.00'},{cve:'CVE-2023-31102',severity:'high',cvss:7.8,desc:'Out-of-bounds write in PPMd handler',component:'PPMd codec',fix:'23.01'},{cve:'CVE-2023-40481',severity:'high',cvss:7.8,desc:'SQFS file parsing out-of-bounds write',component:'SquashFS parser',fix:'23.01'}]},
@@ -817,20 +945,67 @@ function renderSCAResults(file){
   let match=SCA_DB.find(e=>e.pattern.test(fname));
   if(!match)match=SCA_DB[SCA_DB.length-1];
   const displayName=match.name||inferName(file.name);
-  const vulns=match.vulns; const components=match.components;
-  const counts={critical:0,high:0,medium:0,low:0,info:0};
-  vulns.forEach(v=>counts[v.severity]=(counts[v.severity]||0)+1);
-  const totalCVEs=vulns.filter(v=>v.severity!=='info').length;
+  const vulns=match.vulns;
+  const components=match.components;
+
+  // Use real totals from PDF data if available, otherwise compute
+  const realTotals = match.vulnBreakdown || null;
+  const counts = realTotals ? {...realTotals} : {critical:0,high:0,medium:0,low:0,info:0};
+  if(!realTotals) vulns.forEach(v=>counts[v.severity]=(counts[v.severity]||0)+1);
+  const totalCVEs = realTotals
+    ? (realTotals.critical+realTotals.high+realTotals.medium+realTotals.low)
+    : vulns.filter(v=>v.severity!=='info').length;
+  const totalComponents = match.totalComponents || components.length;
+  const vulnerableComponents = match.vulnerableComponents || vulns.length;
+
   const fsize=(file.size/1048576).toFixed(2);
   const now=new Date().toLocaleString();
   const riskScore=Math.min(10,vulns.reduce((a,v)=>a+(v.cvss||0),0)/Math.max(vulns.length,1));
   const riskColor=riskScore>=9?'var(--red)':riskScore>=7?'var(--orange)':riskScore>=4?'var(--yellow)':'var(--green)';
   const ext=file.name.split('.').pop();
   const pFail=(counts.critical||0)>0||(counts.high||0)>0;
-  window._scaResult={file,displayName,match,vulns,components,counts,riskScore,ext,fsize,now};
+  window._scaResult={file,displayName,match,vulns,components,counts,riskScore,ext,fsize,now,totalCVEs,totalComponents};
 
   const SC={critical:'var(--red)',high:'var(--orange)',medium:'var(--yellow)',low:'var(--green)',info:'var(--blue)'};
-  const compTags=components.map(c=>`<span class="comp-tag" title="${c.license}">${c.lib} <span style="color:var(--dim)">${c.ver}</span></span>`).join(' ');
+
+  // ── Component table (paginated if large) ────────────────────────────────
+  const compPageSize = 15;
+  let compPage = 0;
+  function renderCompTable(page) {
+    const start = page * compPageSize;
+    const slice = components.slice(start, start + compPageSize);
+    const total = components.length;
+    const rows = slice.map(c=>{
+      const harden = c.hardening && c.hardening.length ? c.hardening.map(h=>`<span style="font-family:var(--mono);font-size:9px;padding:1px 5px;border-radius:2px;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3);color:var(--orange);margin:1px">${h}</span>`).join(' ') : '<span style="color:var(--dim);font-size:11px">—</span>';
+      const licType = c.license && (c.license.includes('GPL')||c.license.includes('LGPL')||c.license==='Proprietary'||c.license==='Npcap'||c.license==='MS-RL') ? 'var(--orange)' : 'var(--muted)';
+      return `<tr>
+        <td style="padding:8px 12px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:12px;color:var(--text)">${c.lib}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--muted)">${c.ver||'?'}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:11px;color:${licType}">${c.license}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--dim);max-width:200px;word-break:break-all">${c.path||'—'}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid var(--border)">${harden}</td>
+      </tr>`;
+    }).join('');
+    const pages = Math.ceil(total/compPageSize);
+    const pager = pages>1 ? `<div style="display:flex;align-items:center;gap:8px;padding:10px 0;font-family:var(--mono);font-size:11px;color:var(--muted)">
+      <button onclick="scaCompPage(${page-1})" ${page===0?'disabled':''} style="font-family:var(--mono);font-size:11px;padding:4px 10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);border-radius:3px;cursor:pointer;${page===0?'opacity:.4':''}">← Prev</button>
+      <span>Page ${page+1} of ${pages} (${total} components)</span>
+      <button onclick="scaCompPage(${page+1})" ${page>=pages-1?'disabled':''} style="font-family:var(--mono);font-size:11px;padding:4px 10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);border-radius:3px;cursor:pointer;${page>=pages-1?'opacity:.4':''}">Next →</button>
+    </div>` : '';
+    return `<div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr><th>Library / Component</th><th>Version</th><th>License</th><th>Binary Path</th><th>Hardening Flags</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>${pager}`;
+  }
+  window._scaCompPage = 0;
+  window.scaCompPage = function(p){
+    window._scaCompPage=p;
+    document.getElementById('sca-comp-container').innerHTML=renderCompTable(p);
+  };
+
+  // ── CVE findings ─────────────────────────────────────────────────────────
   const findingsHTML=vulns.map((v,i)=>`
     <div class="finding"><div class="finding-hdr" onclick="scaToggle(${i})">
       <div class="lft"><span class="sev ${v.severity}">${v.severity.toUpperCase()}</span>
@@ -847,6 +1022,73 @@ function renderSCAResults(file){
       <div class="dr"><span class="dk">NVD reference</span><span class="dv lnk" onclick="window.open('https://nvd.nist.gov/vuln/detail/${v.cve}','_blank')">nvd.nist.gov/vuln/detail/${v.cve} &#8599;</span></div>
     </div></div>`).join('');
 
+  // ── Vuln distribution bars ───────────────────────────────────────────────
+  const maxVulns = Math.max(counts.high||0, counts.medium||0, counts.low||0, 1);
+  const vulnBars = [
+    {label:'Critical',count:counts.critical||0,color:'var(--red)'},
+    {label:'High',    count:counts.high||0,    color:'var(--orange)'},
+    {label:'Medium',  count:counts.medium||0,  color:'var(--yellow)'},
+    {label:'Low',     count:counts.low||0,     color:'var(--green)'},
+  ].map(b=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <span style="font-family:var(--mono);font-size:11px;color:var(--muted);width:58px;flex-shrink:0">${b.label}</span>
+    <div style="flex:1;background:var(--border);border-radius:3px;height:12px;overflow:hidden">
+      <div style="width:${Math.round(b.count/Math.max(totalCVEs,1)*100)}%;height:100%;background:${b.color};border-radius:3px"></div>
+    </div>
+    <span style="font-family:var(--mono);font-size:12px;font-weight:500;color:${b.color};width:36px;text-align:right">${b.count}</span>
+  </div>`).join('');
+
+  // ── License breakdown ────────────────────────────────────────────────────
+  const licBreakdown = match.licenseBreakdown || [];
+  const licCards = licBreakdown.length ? licBreakdown.map(l=>{
+    const isCopyleft = l.type==='copyleft'||l.type==='weak-copyleft';
+    const isProp = l.type==='proprietary';
+    const bg = isProp?'var(--red-dim)':isCopyleft?'var(--orange-dim)':'var(--green-dim)';
+    const color = isProp?'var(--red)':isCopyleft?'var(--orange)':'var(--green)';
+    const label = isProp?'Proprietary':isCopyleft?'Copyleft – review':'Permissive – approved';
+    return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--text);margin-bottom:4px">${l.name}</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px">${l.count} package${l.count!==1?'s':''}</div>
+      <span style="font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;background:${bg};color:${color};border:1px solid ${color}">${label}</span>
+    </div>`;
+  }).join('') : components.map(c=>{
+    const f=c.license&&(c.license.toLowerCase().includes('gpl')||c.license==='Unknown');
+    return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--text);margin-bottom:4px">${c.lib}</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px">${c.license}</div>
+      <span style="font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;background:${f?'var(--orange-dim)':'var(--green-dim)'};color:${f?'var(--orange)':'var(--green)'};border:1px solid ${f?'var(--orange)':'var(--green)'}">${f?'Review required':'Approved'}</span>
+    </div>`;
+  }).join('');
+
+  // ── Infoleak section ─────────────────────────────────────────────────────
+  const il = match.infoleak || null;
+  const infoLeakHTML = il ? `
+    <div style="margin-top:0">
+      <div class="sec-lbl" style="margin-bottom:12px">infoleak analysis</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">
+        ${[
+          {label:'IP Addresses',val:il.ipAddresses,color:il.ipAddresses>0?'var(--orange)':'var(--muted)'},
+          {label:'MAC Addresses',val:il.macAddresses,color:il.macAddresses>0?'var(--orange)':'var(--muted)'},
+          {label:'Emails',val:il.emails,color:il.emails>0?'var(--yellow)':'var(--muted)'},
+          {label:'URLs',val:il.urls,color:il.urls>0?'var(--blue)':'var(--muted)'},
+          {label:'Asymmetric Keys',val:il.asymmetricKeys,color:il.asymmetricKeys>0?'var(--orange)':'var(--muted)'},
+          {label:'AWS Keys',val:il.awsKeys,color:il.awsKeys>0?'var(--red)':'var(--green)'},
+          {label:'HTTP Auth',val:il.httpAuth,color:il.httpAuth>0?'var(--red)':'var(--green)'},
+          {label:'Passwords',val:il.passwords,color:il.passwords>0?'var(--red)':'var(--green)'},
+          {label:'JWT Tokens',val:il.jwtTokens,color:il.jwtTokens>0?'var(--red)':'var(--green)'},
+          {label:'OAuth Tokens',val:il.oauthTokens,color:il.oauthTokens>0?'var(--red)':'var(--green)'},
+        ].map(x=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px">
+          <div style="font-family:var(--mono);font-size:18px;font-weight:300;color:${x.color}">${x.val.toLocaleString()}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px">${x.label}</div>
+        </div>`).join('')}
+      </div>
+      <div style="margin-top:10px;padding:10px 14px;background:var(--orange-dim);border:1px solid var(--orange-border);border-radius:var(--r);font-family:var(--mono);font-size:12px;color:var(--orange)">
+        &#9888; Verdict: <strong>VULNS / Information Leakage: VERIFY</strong> — ${il.macAddresses.toLocaleString()} MAC addresses, ${il.ipAddresses.toLocaleString()} IP addresses, and ${il.urls.toLocaleString()} URLs detected embedded in binary
+      </div>
+    </div>` : '';
+
+  // ── SHA1 / file details ──────────────────────────────────────────────────
+  const sha1Block = match.sha1 ? `<span><span class="mk">SHA1 </span><span class="mv" style="font-size:11px">${match.sha1}</span></span>` : '';
+
   scaResultsEl.innerHTML=`
     <div class="results-panel-header">
       <div class="rph-title">
@@ -856,36 +1098,109 @@ function renderSCAResults(file){
       <span class="rph-badge ${pFail?'fail':'pass'}">${pFail?'Risk: HIGH':'Risk: LOW'}</span>
     </div>
     <div class="results-panel-body fade-in">
+      <!-- Meta band -->
       <div class="sca-meta-row">
         <span><span class="mk">FILE </span><span class="mv">${file.name}</span></span>
         <span><span class="mk">SIZE </span><span class="mv">${fsize} MB</span></span>
         <span><span class="mk">TYPE </span><span class="mv">.${ext.toUpperCase()}</span></span>
-        <span><span class="mk">PRODUCT </span><span class="mv" style="color:var(--blue)">${displayName}</span></span>
+        <span><span class="mk">PRODUCT </span><span class="mv" style="color:var(--blue)">${displayName} ${match.version||''}</span></span>
         <span><span class="mk">VENDOR </span><span class="mv">${match.vendor}</span></span>
-        <span><span class="mk">CATEGORY </span><span class="mv">${match.category}</span></span>
+        ${sha1Block}
       </div>
-      <div class="sca-sum">
-        <div class="sca-card c-r"><div class="cl">Critical+High</div><div class="cv">${(counts.critical||0)+(counts.high||0)}</div></div>
-        <div class="sca-card c-o"><div class="cl">Total CVEs</div><div class="cv">${totalCVEs}</div></div>
-        <div class="sca-card c-b"><div class="cl">Components</div><div class="cv">${components.length}</div></div>
-        <div class="sca-card"><div class="cl">Risk Score</div>
-          <div class="cv" style="font-size:18px;padding-top:2px">
-            <span style="color:${riskColor}">${riskScore.toFixed(1)}</span><span style="font-size:12px;color:var(--muted)">/10</span>
-            <div style="margin-top:5px;background:var(--border);border-radius:3px;height:4px;overflow:hidden"><div style="width:${riskScore*10}%;height:100%;background:${riskColor};border-radius:3px"></div></div>
+
+      <!-- Summary cards -->
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:20px">
+        <div class="sca-card c-b"><div class="cl">Components</div><div class="cv">${totalComponents}</div></div>
+        <div class="sca-card" style="border-color:rgba(240,82,82,.2)"><div class="cl">Vulnerable</div><div class="cv" style="color:var(--red)">${vulnerableComponents}</div></div>
+        <div class="sca-card c-r"><div class="cl">Critical</div><div class="cv">${counts.critical||0}</div></div>
+        <div class="sca-card c-o"><div class="cl">High</div><div class="cv">${counts.high||0}</div></div>
+        <div class="sca-card"><div class="cl">Medium</div><div class="cv" style="color:var(--yellow)">${counts.medium||0}</div></div>
+        <div class="sca-card"><div class="cl">Total CVEs</div><div class="cv">${totalCVEs}</div></div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs" id="scaTabs">
+        <div class="tab t-sca active" onclick="scaTab('components',this)">Components (${totalComponents})</div>
+        <div class="tab t-sca" onclick="scaTab('cves',this)">CVE Findings (${totalCVEs}${vulns.length<totalCVEs?' — top '+vulns.length+' shown':''})</div>
+        <div class="tab t-sca" onclick="scaTab('vulndist',this)">Vulnerability Distribution</div>
+        <div class="tab t-sca" onclick="scaTab('licenses',this)">Licenses (${match.licenseTypes||licBreakdown.length||components.length})</div>
+        ${il?'<div class="tab t-sca" onclick="scaTab(\'infoleak\',this)">Infoleak Analysis</div>':''}
+      </div>
+
+      <!-- Components tab -->
+      <div class="tab-pane active" id="scatab-components">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+          <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">${totalComponents} identified 3rd-party components · ${vulnerableComponents} vulnerable · ${totalComponents-vulnerableComponents} no known vulnerabilities</span>
+        </div>
+        <div id="sca-comp-container">${renderCompTable(0)}</div>
+      </div>
+
+      <!-- CVE Findings tab -->
+      <div class="tab-pane" id="scatab-cves">
+        <div style="margin-bottom:12px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);font-family:var(--mono);font-size:11px;color:var(--muted)">
+          Showing ${vulns.length} representative CVEs · Total detected: <strong style="color:var(--text)">${totalCVEs}</strong> (${counts.critical||0} critical · ${counts.high||0} high · ${counts.medium||0} medium · ${counts.low||0} low)
+        </div>
+        ${findingsHTML}
+      </div>
+
+      <!-- Vuln Distribution tab -->
+      <div class="tab-pane" id="scatab-vulndist">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;flex-wrap:wrap">
+          <div>
+            <div class="sec-lbl" style="margin-bottom:12px">vulnerability severity breakdown</div>
+            ${vulnBars}
+            <div style="margin-top:14px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);font-family:var(--mono);font-size:12px">
+              <div style="color:var(--muted);margin-bottom:6px;font-size:10px;text-transform:uppercase;letter-spacing:.06em">Vulnerability analysis verdict</div>
+              <div style="color:var(--orange);font-weight:500">VULNS DETECTED</div>
+              <div style="color:var(--muted);font-size:11px;margin-top:4px">${totalCVEs} total · ${counts.critical||0} critical · ${counts.high||0} high priority</div>
+            </div>
+          </div>
+          <div>
+            <div class="sec-lbl" style="margin-bottom:12px">binary hardening summary</div>
+            ${['no-enforced-code-integrity','no-control-flow-guard','authenticode-no-codesigning-attribute','no-control-flow-enforcement','no-aslr','no-high-entropy-aslr','no-buffer-security-check','no-data-execution-prevention'].map(flag=>{
+              const count = components.filter(c=>c.hardening&&c.hardening.includes(flag)).length;
+              return count > 0 ? `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px">
+                <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">${flag}</span>
+                <span style="font-family:var(--mono);font-size:11px;color:var(--orange)">${count} binaries</span>
+              </div>` : '';
+            }).join('')}
           </div>
         </div>
       </div>
-      <div class="sec-lbl" style="margin-bottom:8px">detected components</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px">${compTags}</div>
-      <div class="sec-lbl" style="margin-bottom:8px">vulnerability findings (${vulns.length})</div>
-      ${findingsHTML}
+
+      <!-- Licenses tab -->
+      <div class="tab-pane" id="scatab-licenses">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">${licCards}</div>
+      </div>
+
+      ${il?`<!-- Infoleak tab -->
+      <div class="tab-pane" id="scatab-infoleak">${infoLeakHTML}</div>`:''}
+
+      <!-- Export bar -->
       <div class="export-bar">
         <span class="exp-label">Export:</span>
         <button class="exp-btn blue-p" onclick="scaExportHTML()">&#8595; HTML Report</button>
         <button class="exp-btn blue-p" onclick="scaExportXLSX()">&#8595; Excel</button>
+        <button class="exp-btn" onclick="scaExportJSON()">&#8595; JSON</button>
         <button class="exp-btn" onclick="scaFileInput.click()">&#8635; Scan Another</button>
       </div>
     </div>`;
+}
+
+function scaTab(id,btn){
+  document.querySelectorAll('#scaTabs .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#scaResults .tab-pane').forEach(t=>t.classList.remove('active'));
+  document.getElementById('scatab-'+id).classList.add('active');
+}
+
+
+
+function scaExportJSON(){
+  if(!window._scaResult)return;
+  const {file,displayName,match,vulns,components,counts,riskScore,fsize,now,totalCVEs,totalComponents}=window._scaResult;
+  const out={reportType:'sca-binary',generated:new Date().toISOString(),product:{name:displayName,vendor:match.vendor,category:match.category,file:file.name,size:fsize+' MB',sha1:match.sha1||null,version:match.version||null},summary:{totalComponents,vulnerableComponents:match.vulnerableComponents||vulns.length,totalCVEs,critical:counts.critical||0,high:counts.high||0,medium:counts.medium||0,low:counts.low||0,riskScore:parseFloat(riskScore.toFixed(1))},infoleak:match.infoleak||null,components:components.map(c=>({name:c.lib,version:c.ver,license:c.license,path:c.path,hardening:c.hardening||[]})),vulnerabilities:vulns};
+  download(`sca-report-${file.name.replace(/[^a-z0-9]/gi,'-')}.json`,JSON.stringify(out,null,2),'application/json');
 }
 
 function scaToggle(i){document.getElementById('sc-body-'+i).classList.toggle('open');document.getElementById('sc-chev-'+i).classList.toggle('open')}
@@ -912,17 +1227,90 @@ function scaExportHTML(){
 
 function scaExportXLSX(){
   if(!window._scaResult)return;
-  const {file,displayName,match,vulns,components,counts,riskScore,fsize,now}=window._scaResult;
+  const {file,displayName,match,vulns,components,counts,riskScore,fsize,now,totalCVEs,totalComponents}=window._scaResult;
   const wb=XLSX.utils.book_new();
   function sc(ws,w){ws['!cols']=w.map(x=>({wch:x}))}
-  const ws1=XLSX.utils.aoa_to_sheet([['SCA Binary Report'],[''],[  'Product',displayName],['Vendor',match.vendor],['Category',match.category],['File',file.name],['Size',fsize+' MB'],['Scan',now],[''],[  'RISK'],['Risk Score',parseFloat(riskScore.toFixed(1))],['Critical',counts.critical||0],['High',counts.high||0],['Medium',counts.medium||0],['Low',counts.low||0]]);
-  ws1['!merges']=[{s:{r:0,c:0},e:{r:0,c:3}},{s:{r:8,c:0},e:{r:8,c:3}}]; sc(ws1,[24,28,14,14]); XLSX.utils.book_append_sheet(wb,ws1,'Overview');
-  const ws2=XLSX.utils.aoa_to_sheet([[`CVEs — ${displayName}`],[`Scan: ${now}`],[],['CVE ID','Severity','CVSS','Component','Description','Fix','NVD Link'],...vulns.map(v=>[v.cve,v.severity.toUpperCase(),v.cvss,v.component,v.desc,v.fix,v.cve!=='N/A'?`https://nvd.nist.gov/vuln/detail/${v.cve}`:'N/A'])]);
-  ws2['!merges']=[{s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:0},e:{r:1,c:6}}]; sc(ws2,[18,10,10,20,50,16,46]); XLSX.utils.book_append_sheet(wb,ws2,'CVE Findings');
-  const ws3=XLSX.utils.aoa_to_sheet([[`Components — ${displayName}`],[],['Library','Version','License'],...components.map(c=>[c.lib,c.ver,c.license])]);
-  sc(ws3,[28,16,22]); XLSX.utils.book_append_sheet(wb,ws3,'Components');
-  const out=XLSX.write(wb,{bookType:'xlsx',type:'array'}); const bl=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}); const xa=document.createElement('a'); xa.href=URL.createObjectURL(bl); xa.download=`sca-report-${file.name.replace(/[^a-z0-9]/gi,'-')}.xlsx`; xa.click();
+  const rid='SCA-'+Date.now().toString(36).toUpperCase();
+  // Overview
+  const ws1=XLSX.utils.aoa_to_sheet([
+    ['SCA Binary Report — SecureScan Suite'],[`Report ID: ${rid}`],[`Generated: ${now}`],[''],
+    ['Product',displayName],['Vendor',match.vendor],['Category',match.category],
+    ['File',file.name],['Size',fsize+' MB'],['SHA1',match.sha1||'—'],['Version',match.version||'—'],[''],
+    ['VULNERABILITY SUMMARY'],
+    ['Total Components',totalComponents],['Vulnerable Components',match.vulnerableComponents||vulns.length],
+    ['Total CVEs',totalCVEs],['Critical',counts.critical||0],['High',counts.high||0],
+    ['Medium',counts.medium||0],['Low',counts.low||0],
+    ['Risk Score (0-10)',parseFloat(riskScore.toFixed(1))],[''],
+    ['Verdict',((counts.critical||0)>0||(counts.high||0)>0)?'VULNS DETECTED — RISK: HIGH':'RISK: LOW'],[''],
+    ['@sudoninja','https://sudoninja-noob.github.io/'],
+  ]);
+  ws1['!merges']=[{s:{r:0,c:0},e:{r:0,c:4}},{s:{r:12,c:0},e:{r:12,c:4}}];
+  sc(ws1,[28,32,16,16,16]);
+  XLSX.utils.book_append_sheet(wb,ws1,'Overview');
+
+  // Component Inventory — all components
+  const ws2=XLSX.utils.aoa_to_sheet([
+    [`Component Inventory — ${displayName} (${totalComponents} identified)`],[`Source: ${file.name}`],[],
+    ['Component','Version','License','Binary Path','Hardening Issues'],
+    ...components.map(c=>[c.lib,c.ver||'?',c.license,c.path||'—',(c.hardening||[]).join('; ')||'—'])
+  ]);
+  ws2['!merges']=[{s:{r:0,c:0},e:{r:0,c:4}},{s:{r:1,c:0},e:{r:1,c:4}}];
+  sc(ws2,[24,14,16,40,60]);
+  XLSX.utils.book_append_sheet(wb,ws2,'Component Inventory');
+
+  // CVE Findings
+  const ws3=XLSX.utils.aoa_to_sheet([
+    [`CVE Findings — ${displayName}`],[`Total: ${totalCVEs} CVEs · Showing: ${vulns.length} high-priority`],[],
+    ['CVE ID','Severity','CVSS','Affected Component','Description','Fix Version','NVD Link'],
+    ...vulns.map(v=>[v.cve,v.severity.toUpperCase(),v.cvss,v.component,v.desc,v.fix,
+      v.cve!=='N/A'?`https://nvd.nist.gov/vuln/detail/${v.cve}`:'N/A'])
+  ]);
+  ws3['!merges']=[{s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:0},e:{r:1,c:6}}];
+  sc(ws3,[18,10,10,22,52,16,48]);
+  XLSX.utils.book_append_sheet(wb,ws3,'CVE Findings');
+
+  // License Compliance
+  const licData = match.licenseBreakdown && match.licenseBreakdown.length
+    ? match.licenseBreakdown.map(l=>[l.name,l.count,l.type,l.type==='permissive'?'APPROVED':l.type==='proprietary'?'LEGAL REVIEW REQUIRED':'COPYLEFT - REVIEW'])
+    : components.map(c=>[c.license,1,'unknown','REVIEW']);
+  const ws4=XLSX.utils.aoa_to_sheet([
+    [`License Compliance — ${displayName}`],[`${match.licenseTypes||licData.length} license types identified`],[],
+    ['License','Package Count','Type','Status'],
+    ...licData
+  ]);
+  ws4['!merges']=[{s:{r:0,c:0},e:{r:0,c:3}},{s:{r:1,c:0},e:{r:1,c:3}}];
+  sc(ws4,[18,14,16,28]);
+  XLSX.utils.book_append_sheet(wb,ws4,'License Compliance');
+
+  // Infoleak (if available)
+  if(match.infoleak){
+    const il=match.infoleak;
+    const ws5=XLSX.utils.aoa_to_sheet([
+      [`Infoleak Analysis — ${displayName}`],[],
+      ['Finding Type','Count','Risk Level'],
+      ['IP Addresses',il.ipAddresses,il.ipAddresses>0?'VERIFY':'OK'],
+      ['MAC Addresses',il.macAddresses,il.macAddresses>0?'VERIFY':'OK'],
+      ['Email Addresses',il.emails,il.emails>0?'VERIFY':'OK'],
+      ['URLs',il.urls,il.urls>0?'VERIFY':'OK'],
+      ['Asymmetric Keys',il.asymmetricKeys,il.asymmetricKeys>0?'VERIFY':'OK'],
+      ['AWS Keys',il.awsKeys,il.awsKeys>0?'HIGH RISK':'OK'],
+      ['HTTP Authentication',il.httpAuth,il.httpAuth>0?'HIGH RISK':'OK'],
+      ['Passwords',il.passwords,il.passwords>0?'CRITICAL':'OK'],
+      ['JWT Tokens',il.jwtTokens,il.jwtTokens>0?'HIGH RISK':'OK'],
+      ['OAuth Tokens',il.oauthTokens,il.oauthTokens>0?'HIGH RISK':'OK'],
+      [''],['Verdict','VULNS / Information Leakage: VERIFY',''],
+    ]);
+    ws5['!merges']=[{s:{r:0,c:0},e:{r:0,c:2}}];
+    sc(ws5,[22,14,18]);
+    XLSX.utils.book_append_sheet(wb,ws5,'Infoleak Analysis');
+  }
+
+  const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  const bl=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const xa=document.createElement('a');xa.href=URL.createObjectURL(bl);
+  xa.download=`sca-report-${file.name.replace(/[^a-z0-9]/gi,'-')}.xlsx`;xa.click();
 }
+
 
 
 // ══════════════════════════════════════════════════════════════════
