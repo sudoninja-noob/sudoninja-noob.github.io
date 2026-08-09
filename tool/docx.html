@@ -1,0 +1,1932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocX Pro — Advanced Word Document Suite</title>
+
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#0d0d10;
+  --bg2:#13131a;
+  --bg3:#1a1a24;
+  --bg4:#21212e;
+  --surf:#252535;
+  --surf2:#2e2e42;
+  --bdr:rgba(120,120,180,0.12);
+  --bdr-em:rgba(120,120,180,0.28);
+  --text:#e8e8f0;
+  --text2:#a0a0c0;
+  --text3:#60607a;
+  --accent:#6c63ff;
+  --accent-l:rgba(108,99,255,0.15);
+  --accent-em:#8a82ff;
+  --green:#22c55e;
+  --green-bg:rgba(34,197,94,0.1);
+  --green-bdr:rgba(34,197,94,0.3);
+  --red:#ef4444;
+  --red-bg:rgba(239,68,68,0.1);
+  --red-bdr:rgba(239,68,68,0.3);
+  --amber:#f59e0b;
+  --amber-bg:rgba(245,158,11,0.1);
+  --amber-bdr:rgba(245,158,11,0.3);
+  --cyan:#06b6d4;
+  --cyan-bg:rgba(6,182,212,0.1);
+  --r:6px;
+  --rl:10px;
+  --font:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+[data-theme="light"] {
+  --bg:#f0f0f8;
+  --bg2:#e8e8f4;
+  --bg3:#ffffff;
+  --bg4:#f5f5ff;
+  --surf:#ffffff;
+  --surf2:#f0f0fa;
+  --bdr:rgba(80,80,160,0.12);
+  --bdr-em:rgba(80,80,160,0.25);
+  --text:#1a1a2e;
+  --text2:#5050a0;
+  --text3:#9090c0;
+  --accent-l:rgba(108,99,255,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;font-size:14px;line-height:1.5;transition:background .2s,color .2s}
+a{color:var(--accent);text-decoration:none}
+input,textarea,select{font-family:var(--font);font-size:14px;background:var(--bg3);color:var(--text);border:1px solid var(--bdr);border-radius:var(--r);padding:8px 11px;outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-l)}
+select option{background:var(--bg3)}
+
+/* ── TOPBAR ── */
+.topbar{
+  background:linear-gradient(135deg,var(--bg2) 0%,var(--bg3) 100%);
+  border-bottom:1px solid var(--bdr);
+  padding:0 28px;
+  display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:100;
+  backdrop-filter:blur(12px);
+  height:58px;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-badge{
+  background:linear-gradient(135deg,var(--accent),#a855f7);
+  border-radius:8px;width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+  box-shadow:0 2px 12px rgba(108,99,255,.35);
+}
+.logo-text{font-size:16px;font-weight:700;letter-spacing:-.3px}
+.logo-text span{color:var(--accent-em)}
+.logo-ver{font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:1px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.pill{font-size:10px;font-family:var(--mono);padding:3px 9px;border-radius:99px;border:1px solid;font-weight:600;letter-spacing:.3px}
+.pill-green{background:var(--green-bg);color:var(--green);border-color:var(--green-bdr)}
+.pill-cyan{background:var(--cyan-bg);color:var(--cyan);border-color:rgba(6,182,212,.3)}
+.theme-btn{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);padding:6px 10px;cursor:pointer;color:var(--text2);font-size:14px;transition:all .15s}
+.theme-btn:hover{background:var(--surf2);border-color:var(--bdr-em)}
+
+/* ── LAYOUT ── */
+.shell{display:flex;height:calc(100vh - 58px);position:sticky;top:58px}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:200px;flex-shrink:0;
+  background:var(--bg2);
+  border-right:1px solid var(--bdr);
+  padding:16px 8px;
+  overflow-y:auto;
+  display:flex;flex-direction:column;gap:2px;
+}
+.sidebar-section{font-size:9px;font-family:var(--mono);color:var(--text3);padding:8px 10px 4px;letter-spacing:1px;text-transform:uppercase}
+.nav-btn{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 10px;border-radius:var(--r);
+  background:none;border:none;cursor:pointer;
+  color:var(--text2);text-align:left;width:100%;
+  font-family:var(--font);font-size:13px;
+  transition:all .12s;
+}
+.nav-btn:hover{background:var(--surf);color:var(--text)}
+.nav-btn.on{background:var(--accent-l);color:var(--accent-em);font-weight:600}
+.nav-btn.on .nav-dot{background:var(--accent)}
+.nav-ic{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:var(--text3);margin-left:auto;flex-shrink:0;transition:background .12s}
+.sidebar-divider{height:1px;background:var(--bdr);margin:6px 10px}
+
+/* ── MAIN CONTENT ── */
+.content{flex:1;overflow-y:auto;padding:28px 32px}
+.panel{display:none}.panel.on{display:block}
+
+/* ── PANEL HEADER ── */
+.ph{margin-bottom:22px}
+.ph-title{font-size:20px;font-weight:700;letter-spacing:-.4px;display:flex;align-items:center;gap:10px}
+.ph-title .ph-ic{font-size:22px}
+.ph-sub{font-size:13px;color:var(--text2);margin-top:5px}
+
+/* ── DROP ZONE ── */
+.dz{
+  border:2px dashed var(--bdr-em);border-radius:var(--rl);
+  padding:36px 24px;text-align:center;cursor:pointer;
+  transition:all .15s;margin-bottom:16px;
+  background:var(--bg3);position:relative;overflow:hidden;
+}
+.dz::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--accent-l),transparent 60%);
+  opacity:0;transition:opacity .2s;
+}
+.dz:hover,.dz.over{border-color:var(--accent);background:var(--bg4)}
+.dz:hover::before,.dz.over::before{opacity:1}
+.dz-icon{font-size:40px;display:block;margin-bottom:10px;line-height:1;position:relative}
+.dz-title{font-size:15px;font-weight:600;margin-bottom:4px;position:relative}
+.dz-sub{font-size:12px;color:var(--text2);position:relative}
+input[type=file]{display:none}
+
+/* ── FILE CARDS ── */
+.fc{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 13px;background:var(--bg3);
+  border-radius:var(--r);border:1px solid var(--bdr);margin-bottom:6px;
+  transition:border-color .12s;
+}
+.fc:hover{border-color:var(--bdr-em)}
+.fc-icon{font-size:22px;flex-shrink:0}
+.fc-info{flex:1;min-width:0}
+.fc-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc-meta{font-size:11px;color:var(--text2);margin-top:2px;font-family:var(--mono)}
+.fc-num{font-size:11px;color:var(--text3);font-weight:700;font-family:var(--mono);min-width:24px;text-align:right}
+.ord{display:flex;flex-direction:column;gap:0}
+.ord button{background:none;border:none;cursor:pointer;padding:2px 5px;color:var(--text3);font-size:11px;line-height:1;transition:color .1s}
+.ord button:hover{color:var(--text)}
+.ord button:disabled{opacity:.2;cursor:default}
+.rm-btn{background:none;border:none;cursor:pointer;padding:6px;color:var(--text3);border-radius:var(--r);font-size:14px;display:flex;align-items:center;transition:all .12s}
+.rm-btn:hover{background:var(--red-bg);color:var(--red)}
+
+/* ── BUTTONS ── */
+.act-btn{
+  width:100%;padding:12px;cursor:pointer;
+  background:linear-gradient(135deg,var(--accent),#7c3aed);
+  color:#fff;border:none;border-radius:var(--r);
+  font-weight:600;font-size:14px;font-family:var(--font);
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  transition:all .15s;margin-top:8px;
+  box-shadow:0 2px 12px rgba(108,99,255,.25);
+  letter-spacing:.1px;
+}
+.act-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 18px rgba(108,99,255,.4)}
+.act-btn:active:not(:disabled){transform:translateY(0)}
+.act-btn:disabled{background:var(--surf2);color:var(--text3);cursor:not-allowed;box-shadow:none}
+.sec-btn{
+  padding:8px 16px;cursor:pointer;background:var(--surf);
+  border:1px solid var(--bdr-em);border-radius:var(--r);
+  color:var(--text);font-family:var(--font);font-size:13px;font-weight:500;
+  display:inline-flex;align-items:center;gap:6px;transition:all .12s;
+}
+.sec-btn:hover{background:var(--surf2);border-color:var(--accent)}
+.dl-btn{
+  font-size:12px;font-family:var(--mono);
+  padding:6px 12px;cursor:pointer;
+  background:var(--bg);border:1px solid var(--bdr-em);
+  border-radius:var(--r);color:var(--text);
+  display:flex;align-items:center;gap:6px;
+  font-weight:600;flex-shrink:0;transition:all .12s;white-space:nowrap;
+}
+.dl-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ── STATUS BOXES ── */
+.err-box{padding:10px 14px;background:var(--red-bg);border:1px solid var(--red-bdr);border-radius:var(--r);font-size:13px;color:var(--red);margin-bottom:10px;display:flex;align-items:flex-start;gap:8px}
+.warn-box{padding:10px 14px;background:var(--amber-bg);border:1px solid var(--amber-bdr);border-radius:var(--r);font-size:13px;color:var(--amber);margin:0 0 10px}
+.prog-box{padding:10px 14px;background:var(--accent-l);border:1px solid rgba(108,99,255,.3);border-radius:var(--r);font-size:13px;color:var(--accent-em);display:flex;align-items:center;gap:10px;margin-top:12px}
+.info-box{padding:10px 14px;background:var(--cyan-bg);border:1px solid rgba(6,182,212,.3);border-radius:var(--r);font-size:13px;color:var(--cyan);margin-bottom:10px}
+
+/* ── RESULT BOX ── */
+.res-box{margin-top:16px;padding:16px;background:var(--green-bg);border:1px solid var(--green-bdr);border-radius:var(--rl)}
+.res-hdr{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.res-hdr span{font-size:13px;font-weight:600;color:var(--green);flex:1}
+.clr-btn{background:none;border:none;cursor:pointer;font-size:12px;color:var(--text3);padding:0;font-family:var(--font)}
+.clr-btn:hover{color:var(--text)}
+.rf{display:flex;align-items:center;gap:10px;padding:9px 13px;background:var(--bg);border-radius:var(--r);border:1px solid var(--bdr);margin-bottom:6px}
+.rf:last-child{margin-bottom:0}
+.rf-name{flex:1;font-size:13px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rf-size{font-size:11px;color:var(--text2);margin-top:2px;font-family:var(--mono)}
+
+/* ── FORM CONTROLS ── */
+.form-row{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;display:block;letter-spacing:.3px;text-transform:uppercase;font-family:var(--mono)}
+.form-row input,.form-row textarea,.form-row select{width:100%}
+.form-row textarea{resize:vertical;min-height:80px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+/* ── INFO GRID (stats) ── */
+.info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.info-card{padding:14px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);text-align:center}
+.info-val{font-size:22px;font-weight:700;color:var(--accent-em);font-family:var(--mono)}
+.info-lbl{font-size:10px;color:var(--text2);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── PREVIEW ── */
+.preview-wrap{margin-top:16px}
+.preview-label{font-size:10px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px;font-family:var(--mono)}
+.preview-box{
+  background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
+  padding:16px;font-size:13px;line-height:1.8;color:var(--text);
+  max-height:320px;overflow-y:auto;
+}
+.preview-box h1,.preview-box h2,.preview-box h3{font-weight:600;margin:10px 0 5px;color:var(--text)}
+.preview-box h1{font-size:18px;color:var(--accent-em)}
+.preview-box h2{font-size:15px}
+.preview-box p{margin:5px 0}
+.preview-box table{border-collapse:collapse;width:100%;margin:8px 0;font-size:12px}
+.preview-box td,.preview-box th{border:1px solid var(--bdr);padding:5px 8px}
+.preview-box th{background:var(--surf);font-weight:600}
+.preview-box mark{background:rgba(245,158,11,.3);color:var(--amber);border-radius:2px;padding:0 2px}
+
+/* ── SPINNER + PROGRESS ── */
+.spin{display:inline-block;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.pbar-wrap{height:3px;background:var(--bdr-em);border-radius:2px;margin-top:8px;overflow:hidden;flex:1}
+.pbar{height:100%;background:linear-gradient(90deg,var(--accent),var(--cyan));border-radius:2px;transition:width .3s}
+
+/* ── TABS within panel ── */
+.sub-tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--bdr);padding-bottom:0}
+.sub-tab{padding:8px 16px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:var(--font);font-size:13px;color:var(--text2);transition:all .12s;margin-bottom:-1px}
+.sub-tab:hover{color:var(--text)}
+.sub-tab.on{color:var(--accent-em);border-bottom-color:var(--accent);font-weight:600}
+.sub-panel{display:none}.sub-panel.on{display:block}
+
+/* ── TAG / CHIP ── */
+.chip{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-family:var(--mono);font-weight:600}
+.chip-purple{background:var(--accent-l);color:var(--accent-em)}
+.chip-green{background:var(--green-bg);color:var(--green)}
+.chip-red{background:var(--red-bg);color:var(--red)}
+
+/* ── METADATA TABLE ── */
+.meta-table{width:100%;border-collapse:collapse;margin:12px 0}
+.meta-table td{padding:8px 10px;border-bottom:1px solid var(--bdr);font-size:13px;vertical-align:middle}
+.meta-table td:first-child{font-family:var(--mono);font-size:11px;color:var(--text2);width:150px;font-weight:600}
+.meta-table input{width:100%;background:transparent;border:none;border-bottom:1px solid transparent;padding:0;font-size:13px;border-radius:0}
+.meta-table input:focus{border-bottom-color:var(--accent);box-shadow:none;background:var(--accent-l)}
+
+/* ── DIFF VIEW ── */
+.diff-container{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.diff-box{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;font-size:12px;line-height:1.8;max-height:380px;overflow-y:auto;font-family:var(--mono)}
+.diff-add{background:rgba(34,197,94,.15);color:var(--green)}
+.diff-del{background:rgba(239,68,68,.15);color:var(--red);text-decoration:line-through}
+.diff-hdr{font-size:11px;color:var(--text3);padding:6px 10px;background:var(--surf);border-radius:var(--r) var(--r) 0 0;border-bottom:1px solid var(--bdr);font-family:var(--mono);font-weight:600}
+
+/* ── FIND-REPLACE ── */
+.fr-grid{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:10px;margin-bottom:12px}
+.fr-arrow{text-align:center;color:var(--accent);font-size:18px;padding-bottom:8px}
+.match-count{font-family:var(--mono);font-size:12px;color:var(--amber);font-weight:600}
+
+/* ── WATERMARK OPTIONS ── */
+.wm-preview{
+  position:relative;width:100%;height:160px;
+  border:1px solid var(--bdr);border-radius:var(--r);
+  background:linear-gradient(white,#f8f8f8);
+  overflow:hidden;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:center;
+}
+.wm-preview-text{
+  font-size:14px;color:#ccc;
+  font-family:var(--font);
+  transform-origin:center;
+}
+.wm-preview-lines{position:absolute;inset:0;background-image:repeating-linear-gradient(transparent 0,transparent 24px,#eee 24px,#eee 25px)}
+
+/* ── FOOTER ── */
+.footer{position:fixed;bottom:0;left:0;right:0;padding:8px 20px;background:var(--bg2);border-top:1px solid var(--bdr);font-size:11px;color:var(--text3);text-align:center;font-family:var(--mono);display:flex;align-items:center;justify-content:center;gap:12px}
+.footer-dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;box-shadow:0 0 6px var(--green)}
+
+/* ── HINT ROW ── */
+.hint-row{font-size:11px;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:5px;font-family:var(--mono)}
+
+/* ── TOOLTIP ── */
+[data-tip]{position:relative}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100%+6px);left:50%;transform:translateX(-50%);background:var(--bg4);color:var(--text);font-size:11px;padding:4px 8px;border-radius:4px;border:1px solid var(--bdr);white-space:nowrap;pointer-events:none;z-index:999}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .shell{flex-direction:column}
+  .sidebar{width:100%;flex-direction:row;flex-wrap:wrap;height:auto;overflow-x:auto;padding:8px 12px}
+  .sidebar-section,.sidebar-divider,.nav-dot{display:none}
+  .nav-btn{padding:7px 10px;font-size:12px}
+  .content{padding:16px}
+  .form-grid{grid-template-columns:1fr}
+  .info-grid{grid-template-columns:repeat(2,1fr)}
+  .diff-container{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body data-theme="dark">
+
+<!-- ── TOPBAR ── -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-badge">⚡</div>
+    <div>
+      <div class="logo-text">DocX<span> Pro</span></div>
+      <div class="logo-ver">v2.0 — Advanced Document Suite</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="pill pill-green">🔒 100% LOCAL</span>
+    <span class="pill pill-cyan" id="file-counter" style="display:none">0 files</span>
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-toggle" title="Toggle theme">🌙</button>
+  </div>
+</div>
+
+<!-- ── SHELL ── -->
+<div class="shell">
+
+  <!-- ── SIDEBAR ── -->
+  <nav class="sidebar">
+    <div class="sidebar-section">Operations</div>
+    <button class="nav-btn on" onclick="swTab('merge',this)" data-tab="merge">
+      <span class="nav-ic">🗂️</span>Merge<span class="nav-dot"></span>
+    </button>
+    <button class="nav-btn" onclick="swTab('split',this)" data-tab="split">
+      <span class="nav-ic">✂️</span>Split<span class="nav-dot"></span>
+    </button>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Convert</div>
+    <button class="nav-btn" onclick="swTab('topdf',this)" data-tab="topdf">
+      <span class="nav-ic">📄</span>→ PDF<span class="nav-dot"></span>
+    </button>
+    <button class="nav-btn" onclick="swTab('totxt',this)" data-tab="totxt">
+      <span class="nav-ic">📝</span>→ Text<span class="nav-dot"></span>
+    </button>
+    <button class="nav-btn" onclick="swTab('tohtml',this)" data-tab="tohtml">
+      <span class="nav-ic">🌐</span>→ HTML<span class="nav-dot"></span>
+    </button>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Edit &amp; Inspect</div>
+    <button class="nav-btn" onclick="swTab('findreplace',this)" data-tab="findreplace">
+      <span class="nav-ic">🔍</span>Find &amp; Replace<span class="nav-dot"></span>
+    </button>
+    <button class="nav-btn" onclick="swTab('metadata',this)" data-tab="metadata">
+      <span class="nav-ic">🏷️</span>Metadata<span class="nav-dot"></span>
+    </button>
+    <button class="nav-btn" onclick="swTab('watermark',this)" data-tab="watermark">
+      <span class="nav-ic">🔏</span>Watermark<span class="nav-dot"></span>
+    </button>
+    <button class="nav-btn" onclick="swTab('redact',this)" data-tab="redact">
+      <span class="nav-ic">⬛</span>Redact<span class="nav-dot"></span>
+    </button>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Analysis</div>
+    <button class="nav-btn" onclick="swTab('inspect',this)" data-tab="inspect">
+      <span class="nav-ic">🔬</span>Inspect<span class="nav-dot"></span>
+    </button>
+    <button class="nav-btn" onclick="swTab('compare',this)" data-tab="compare">
+      <span class="nav-ic">⚖️</span>Compare<span class="nav-dot"></span>
+    </button>
+  </nav>
+
+  <!-- ── CONTENT ── -->
+  <main class="content">
+
+    <!-- ════ MERGE ════ -->
+    <div id="p-merge" class="panel on">
+      <div class="ph">
+        <div class="ph-title"><span class="ph-ic">🗂️</span> Merge Documents</div>
+        <div class="ph-sub">Combine multiple .docx files into one. Drag to reorder, then merge.</div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Separator between documents</label>
+        <select id="merge-separator">
+          <option value="pagebreak">Page Break (default)</option>
+          <option value="sectionbreak">Section Break</option>
+          <option value="nothing">Nothing (continuous)</option>
+        </select>
+      </div>
+      <div id="dz-merge" class="dz"
+        onclick="document.getElementById('inp-merge').click()"
+        ondragover="dzOver(event,'dz-merge')"
+        ondragleave="dzOut('dz-merge')"
+        ondrop="dzDrop(event,'dz-merge','multi')">
+        <span class="dz-icon">📂</span>
+        <div class="dz-title">Drop .docx files here</div>
+        <div class="dz-sub">or click to browse — select multiple files</div>
+      </div>
+      <input id="inp-merge" type="file" accept=".docx" multiple onchange="addMerge(event)">
+      <div id="fl-merge" class="file-list"></div>
+      <div id="err-merge"></div>
+      <div id="prog-merge"></div>
+      <button class="act-btn" id="btn-merge" onclick="doMerge()" disabled>
+        🗂️ &nbsp;Merge Files
+      </button>
+      <div id="res-merge"></div>
+    </div>
+
+    <!-- ════ SPLIT ════ -->
+    <div id="p-split" class="panel">
+      <div class="ph">
+        <div class="ph-title"><span class="ph-ic">✂️</span> Split Document</div>
+        <div class="ph-sub">Split a .docx at page breaks or by paragraph count.</div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label">Split Mode</label>
+          <select id="split-mode" onchange="renderSplitMode()">
+            <option value="pagebreak">By Page Breaks</option>
+            <option value="paragraphs">Every N Paragraphs</option>
+            <option value="headings">By Heading (H1/H2)</option>
+          </select>
+        </div>
+        <div class="form-row" id="split-n-row" style="display:none">
+          <label class="form-label">Paragraphs per part</label>
+          <input type="number" id="split-n" value="10" min="1" max="500">
+        </div>
+      </div>
+      <div id="dz-split" class="dz"
+        onclick="document.getElementById('inp-split').click()"
+        ondragover="dzOver(event,'dz-split')"
+        ondragleave="dzOut('dz-split')"
+        ondrop="dzDrop(event,'dz-split','single')">
+        <span class="dz-icon">📄</span>
+        <div class="dz-title">Drop a .docx file here</div>
+        <div class="dz-sub">or click to browse</div>
+      </div>
+      <input id="inp-split" type="file" accept=".docx" onchange="setSingle(event,'split')">
+      <div id="fl-split" class="file-list"></div>
+      <div id="err-split"></div>
+      <div id="prog-split"></div>
+      <button class="act-btn" id="btn-split" onclick="doSplit()" disabled>✂️ &nbsp;Split Document</button>
+      <div id="res-split"></div>
+    </div>
+
+    <!-- ════ TO PDF ════ -->
+    <div id="p-topdf" class="panel">
+      <div class="ph">
+        <div class="ph-title"><span class="ph-ic">📄</span> Convert to PDF</div>
+        <div class="ph-sub">Convert .docx to PDF with layout options.</div>
+      </div>
+      <div class="warn-box">⚠️ <strong>Browser PDF:</strong> Complex layouts (images, custom fonts, columns) may differ. For pixel-perfect output, use LibreOffice CLI.</div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label">Page Size</label>
+          <select id="pdf-pagesize">
+            <option value="a4">A4 (210 × 297 mm)</option>
+            <option value="letter">US Letter (8.5 × 11 in)</option>
+            <option value="a3">A3 (297 × 420 mm)</option>
+            <option value="legal">US Legal (8.5 × 14 in)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Font Size</label>
+          <select id="pdf-fontsize">
+            <option value="9">9 pt (compact)</option>
+            <option value="10" selected>10 pt (default)</option>
+            <option value="11">11 pt</option>
+            <option value="12">12 pt (large)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Orientation</label>
+          <select id="pdf-orient">
+            <option value="portrait">Portrait</option>
+            <option value="landscape">Landscape</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Margin (mm)</label>
+          <input type="number" id="pdf-margin" value="20" min="5" max="50">
+        </div>
+      </div>
+      <div id="dz-topdf" class="dz"
+        onclick="document.getElementById('inp-topdf').click()"
+        ondragover="dzOver(event,'dz-topdf')"
+        ondragleave="dzOut('dz-topdf')"
+        ondrop="dzDrop(event,'dz-topdf','single')">
+        <span class="dz-icon">📄</span>
+        <div class="dz-title">Drop a .docx file here</div>
+        <div class="dz-sub">or click to browse</div>
+      </div>
+      <input id="inp-topdf" type="file" accept=".docx" onchange="setSingle(event,'topdf')">
+      <div id="fl-topdf" class="file-list"></div>
+      <div id="err-topdf"></div>
+      <div id="prog-topdf"></div>
+      <button class="act-btn" id="btn-topdf" onclick="doPdf()" disabled>📄 &nbsp;Convert to PDF</button>
+      <div id="res-topdf"></div>
+    </div>
+
+    <!-- ════ TO TEXT ════ -->
+    <div id="p-totxt" class="panel">
+      <div class="ph">
+        <div class="ph-title"><span class="ph-ic">📝</span> Extract Text</div>
+        <div class="ph-sub">Extract all text content from a .docx as plain text.</div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Output Format</label>
+        <select id="txt-format">
+          <option value="plain">Plain Text (.txt)</option>
+          <option value="markdown">Markdown (.md)</option>
+          <option value="csv">Words as CSV (word list)</option>
+        </select>
+      </div>
+      <div id="dz-totxt" class="dz"
+        onclick="document.getElementById('inp-totxt').click()"
+        ondragover="dzOver(event,'dz-totxt')"
+        ondragleave="dzOut('dz-totxt')"
+        ondrop="dzDrop(event,'dz-totxt','single')">
+        <span class="dz-icon">📄</span>
+        <div class="dz-title">Drop a .docx file here</div>
+        <div class="dz-sub">or click to browse</div>
+      </div>
+      <input id="inp-totxt" type="file" accept=".docx" onchange="setSingle(event,'totxt')">
+      <div id="fl-totxt" class="file-list"></div>
+      <div id="err-totxt"></div>
+      <div id="prog-totxt"></div>
+      <button class="act-btn" id="btn-totxt" onclick="doTxt()" disabled>📝 &nbsp;Extract Text</button>
+      <div id="res-totxt"></div>
+    </div>
+
+    <!-- ════ TO HTML ════ -->
+    <div id="p-tohtml" class="panel">
+      <div class="ph">
+        <div class="ph-title"><span class="ph-ic">🌐</span> Convert to HTML</div>
+        <div class="ph-sub">Convert .docx to a styled, self-contained HTML page.</div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label">Theme</label>
+          <select id="html-theme">
+            <option value="light">Clean Light</option>
+            <option value="dark">Dark Mode</option>
+            <option value="print">Print-ready</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Include Styles</label>
+          <select id="html-styles">
+            <option value="1">Yes — embed CSS</option>
+            <option value="0">No — raw HTML only</option>
+          </select>
+        </div>
+      </div>
+      <div id="dz-tohtml" class="dz"
+        onclick="document.getElementById('inp-tohtml').click()"
+        ondragover="dzOver(event,'dz-tohtml')"
+        ondragleave="dzOut('dz-tohtml')"
+        ondrop="dzDrop(event,'dz-tohtml','single')">
+        <span class="dz-icon">🌐</span>
+        <div class="dz-title">Drop a .docx file here</div>
+        <div class="dz-sub">or click to browse</div>
+      </div>
+      <input id="inp-tohtml" type="file" accept=".docx" onchange="setSingle(event,'tohtml')">
+      <div id="fl-tohtml" class="file-list"></div>
+      <div id="err-tohtml"></div>
+      <div id="prog-tohtml"></div>
+      <button class="act-btn" id="btn-tohtml" onclick="doHtml()" disabled>🌐 &nbsp;Convert to HTML</button>
+      <div id="res-tohtml"></div>
+    </div>
+
+    <!-- ════ FIND & REPLACE ════ -->
+    <div id="p-findreplace" class="panel">
+      <div class="ph">
+        <div class="ph-title"><span class="ph-ic">🔍</span> Find &amp; Replace</div>
+        <div class="ph-sub">Search and replace text inside a .docx without opening Word. Supports plain text and regex.</div>
+      </div>
+      <div id="dz-findreplace" class="dz"
+        onclick="document.getElementById('inp-findreplace').click()"
+        ondragover="dzOver(event,'dz-findreplace')"
+        ondragleave="dzOut('dz-findreplace')"
+        ondrop="dzDrop(event,'dz-findreplace','single')">
+        <span class="dz-icon">📄</span>
+        <div class="dz-title">Drop a .docx file here</div>
+        <div class="dz-sub">or click to browse</div>
+      </div>
+      <input id="inp-findreplace" type="file" accept=".docx" onchange="setSingle(event,'findreplace')">
+      <div id="fl-findreplace" class="file-list"></div>
+
+      <div class="fr-grid">
+        <div class="form-row" style="margin:0">
+          <label class="form-label">Find</label>
+          <input type="text" id="fr-find" placeholder="Text or /regex/flags" oninput="frPreview()">
+        </div>
+        <div class="fr-arrow">→</div>
+        <div class="form-row" style="margin:0">
+          <label class="form-label">Replace With</label>
+          <input type="text" id="fr-replace" placeholder="Replacement text">
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="fr-case" style="width:auto"> Case-sensitive
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="fr-regex" style="width:auto" onchange="frPreview()"> Regex mode
+        </label>
+        <span id="fr-match-count" class="match-count"></span>
+      </div>
+      <div id="fr-preview-box" class="preview-wrap" style="display:none">
+        <div class="preview-label">Preview (first 1000 chars)</div>
+        <div class="preview-box" id="fr-preview"></div>
+      </div>
+      <div id="err-findreplace"></div>
+      <div id="prog-findreplace"></div>
+      <button class="act-btn" id="btn-findreplace" onclick="doFindReplace()" disabled>🔍 &nbsp;Apply Find &amp; Replace</button>
+      <div id="res-findreplace"></div>
+    </div>
+
+    <!-- ════ METADATA ════ -->
+    <div id="p-metadata" class="panel">
+      <div class="ph">
+        <div class="ph-title"><span class="ph-ic">🏷️</span> Metadata Editor</div>
+        <div class="ph-sub">View and edit document properties (author, title, keywords, etc.) without opening Word.</div>
+      </div>
+      <div id="dz-metadata" class="dz"
+        onclick="document.getElementById('inp-metadata').click()"
+        ondragover="dzOver(event,'dz-metadata')"
+        ondragleave="dzOut('dz-metadata')"
+        ondrop="dzDrop(event,'dz-metadata','single')">
+        <span class="dz-icon">🏷️</span>
+        <div class="dz-title">Drop a .docx file here</div>
+        <div class="dz-sub">or click to browse</div>
+      </div>
+      <input id="inp-metadata" type="file" accept=".docx" onchange="loadMeta(event)">
+      <div id="fl-metadata" class="file-list"></div>
+      <div id="err-metadata"></div>
+      <div id="prog-metadata"></div>
+      <div id="meta-editor" style="display:none">
+        <div class="info-box">ℹ️ Edit the fields below, then click Save to download the modified .docx</div>
+        <table class="meta-table">
+          <tr><td>Title</td><td><input id="m-title" type="text"></td></tr>
+          <tr><td>Author / Creator</td><td><input id="m-creator" type="text"></td></tr>
+          <tr><td>Last Modified By</td><td><input id="m-lastmod" type="text"></td></tr>
+          <tr><td>Description</td><td><input id="m-desc" type="text"></td></tr>
+          <tr><td>Subject</td><td><input id="m-subject" type="text"></td></tr>
+          <tr><td>Keywords</td><td><input id="m-keywords" type="text"></td></tr>
+          <tr><td>Company</td><td><input id="m-company" type="text"></td></tr>
+          <tr><td>Category</td><td><input id="m-category" type="text"></td></tr>
+        </table>
+        <div style="margin-top:8px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="m-strip-all" style="width:auto">
+            Strip ALL metadata (anonymise document before saving)
+          </label>
+        </div>
+        <button class="act-btn" id="btn-metadata" onclick="saveMeta()">🏷️ &nbsp;Save Metadata</button>
+        <div id="res-metadata"></div>
+      </div>
+    </div>
+
+    <!-- ════ WATERMARK ════ -->
+    <div id="p-watermark" class="panel">
+      <div class="ph">
+        <div class="ph-title"><span class="ph-ic">🔏</span> Add Watermark</div>
+        <div class="ph-sub">Inject a text watermark into every page of a .docx file.</div>
+      </div>
+      <div id="dz-watermark" class="dz"
+        onclick="document.getElementById('inp-watermark').click()"
+        ondragover="dzOver(event,'dz-watermark')"
+        ondragleave="dzOut('dz-watermark')"
+        ondrop="dzDrop(event,'dz-watermark','single')">
+        <span class="dz-icon">📄</span>
+        <div class="dz-title">Drop a .docx file here</div>
+        <div class="dz-sub">or click to browse</div>
+      </div>
+      <input id="inp-watermark" type="file" accept=".docx" onchange="setSingle(event,'watermark')">
+      <div id="fl-watermark" class="file-list"></div>
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label">Watermark Text</label>
+          <input type="text" id="wm-text" value="CONFIDENTIAL" oninput="updateWmPreview()">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Colour</label>
+          <select id="wm-color" onchange="updateWmPreview()">
+            <option value="red">Red</option>
+            <option value="grey" selected>Grey</option>
+            <option value="blue">Blue</option>
+            <option value="orange">Orange</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Opacity</label>
+          <select id="wm-opacity" onchange="updateWmPreview()">
+            <option value="15">Very light (15%)</option>
+            <option value="25" selected>Light (25%)</option>
+            <option value="40">Medium (40%)</option>
+            <option value="60">Heavy (60%)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Diagonal Angle</label>
+          <select id="wm-angle" onchange="updateWmPreview()">
+            <option value="-45">-45° (default)</option>
+            <option value="0">Horizontal</option>
+            <option value="45">+45°</option>
+          </select>
+        </div>
+      </div>
+      <div class="wm-preview" id="wm-preview-box">
+        <div class="wm-preview-lines"></div>
+        <div class="wm-preview-text" id="wm-preview-text" style="color:rgba(150,150,150,0.4)">CONFIDENTIAL</div>
+      </div>
+      <div id="err-watermark"></div>
+      <div id="prog-watermark"></div>
+      <button class="act-btn" id="btn-watermark" onclick="doWatermark()" disabled>🔏 &nbsp;Add Watermark</button>
+      <div id="res-watermark"></div>
+    </div>
+
+    <!-- ════ REDACT ════ -->
+    <div id="p-redact" class="panel">
+      <div class="ph">
+        <div class="ph-title"><span class="ph-ic">⬛</span> Redact Text</div>
+        <div class="ph-sub">Permanently replace sensitive text with black bars. Supports multiple patterns.</div>
+      </div>
+      <div id="dz-redact" class="dz"
+        onclick="document.getElementById('inp-redact').click()"
+        ondragover="dzOver(event,'dz-redact')"
+        ondragleave="dzOut('dz-redact')"
+        ondrop="dzDrop(event,'dz-redact','single')">
+        <span class="dz-icon">📄</span>
+        <div class="dz-title">Drop a .docx file here</div>
+        <div class="dz-sub">or click to browse</div>
+      </div>
+      <input id="inp-redact" type="file" accept=".docx" onchange="setSingle(event,'redact')">
+      <div id="fl-redact" class="file-list"></div>
+
+      <div class="form-row">
+        <label class="form-label">Terms to Redact (one per line, or /regex/)</label>
+        <textarea id="redact-terms" rows="5" placeholder="John Smith&#10;+91 98765 43210&#10;confidential@email.com&#10;/\b[A-Z]{2}\d{6}\b/  ← regex mode"></textarea>
+      </div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="rd-case" style="width:auto"> Case-sensitive
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="rd-auto-pii" style="width:auto" onchange="toggleAutoPii()"> Auto-detect PII (email, phone, IP, Aadhaar-like)
+        </label>
+      </div>
+      <div id="err-redact"></div>
+      <div id="prog-redact"></div>
+      <button class="act-btn" id="btn-redact" onclick="doRedact()" disabled>⬛ &nbsp;Redact Document</button>
+      <div id="res-redact"></div>
+    </div>
+
+    <!-- ════ INSPECT ════ -->
+    <div id="p-inspect" class="panel">
+      <div class="ph">
+        <div class="ph-title"><span class="ph-ic">🔬</span> Document Inspector</div>
+        <div class="ph-sub">Deep-dive analysis: structure, fonts, styles, images, tables, and hidden content.</div>
+      </div>
+      <div id="dz-inspect" class="dz"
+        onclick="document.getElementById('inp-inspect').click()"
+        ondragover="dzOver(event,'dz-inspect')"
+        ondragleave="dzOut('dz-inspect')"
+        ondrop="dzDrop(event,'dz-inspect','single')">
+        <span class="dz-icon">🔬</span>
+        <div class="dz-title">Drop a .docx file here</div>
+        <div class="dz-sub">or click to browse</div>
+      </div>
+      <input id="inp-inspect" type="file" accept=".docx" onchange="doInspect(event)">
+      <div id="fl-inspect" class="file-list"></div>
+      <div id="err-inspect"></div>
+      <div id="prog-inspect"></div>
+      <div id="res-inspect"></div>
+    </div>
+
+    <!-- ════ COMPARE ════ -->
+    <div id="p-compare" class="panel">
+      <div class="ph">
+        <div class="ph-title"><span class="ph-ic">⚖️</span> Compare Documents</div>
+        <div class="ph-sub">Side-by-side diff of two .docx files at the paragraph level.</div>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label class="form-label">Original Document</label>
+          <div id="dz-cmp1" class="dz" style="padding:24px" onclick="document.getElementById('inp-cmp1').click()"
+            ondragover="dzOver(event,'dz-cmp1')" ondragleave="dzOut('dz-cmp1')" ondrop="dzDropCmp(event,1)">
+            <span class="dz-icon" style="font-size:28px">📄</span>
+            <div class="dz-title" style="font-size:13px">Original</div>
+          </div>
+          <input id="inp-cmp1" type="file" accept=".docx" onchange="loadCmp(1,event)">
+          <div id="fl-cmp1" class="file-list"></div>
+        </div>
+        <div>
+          <label class="form-label">Modified Document</label>
+          <div id="dz-cmp2" class="dz" style="padding:24px" onclick="document.getElementById('inp-cmp2').click()"
+            ondragover="dzOver(event,'dz-cmp2')" ondragleave="dzOut('dz-cmp2')" ondrop="dzDropCmp(event,2)">
+            <span class="dz-icon" style="font-size:28px">📄</span>
+            <div class="dz-title" style="font-size:13px">Modified</div>
+          </div>
+          <input id="inp-cmp2" type="file" accept=".docx" onchange="loadCmp(2,event)">
+          <div id="fl-cmp2" class="file-list"></div>
+        </div>
+      </div>
+      <div id="err-compare"></div>
+      <div id="prog-compare"></div>
+      <button class="act-btn" id="btn-compare" onclick="doCompare()" disabled>⚖️ &nbsp;Compare Documents</button>
+      <div id="res-compare"></div>
+    </div>
+
+  </main>
+</div><!-- /shell -->
+
+<div class="footer">
+  <span class="footer-dot"></span>
+  All processing is 100% local — no files uploaded, no data leaves your browser
+  <span>·</span>
+  <span id="footer-ops">0 operations completed</span>
+</div>
+
+<script>
+/* ════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════ */
+const S = {
+  merge:{ files:[] },
+  split:{ file:null },
+  topdf:{ file:null },
+  totxt:{ file:null },
+  tohtml:{ file:null },
+  findreplace:{ file:null, rawBuf:null, textCache:null },
+  metadata:{ file:null, zip:null },
+  watermark:{ file:null },
+  redact:{ file:null },
+  inspect:{ file:null },
+  compare:{ file1:null, file2:null }
+};
+let opCount = 0;
+const DL_REGISTRY = [];
+
+/* ════════════════════════════════════════
+   THEME
+   ════════════════════════════════════════ */
+function toggleTheme() {
+  const body = document.body;
+  const isDark = body.getAttribute('data-theme') === 'dark';
+  body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('theme-toggle').textContent = isDark ? '🌙' : '☀️';
+}
+
+/* ════════════════════════════════════════
+   TAB SWITCHING
+   ════════════════════════════════════════ */
+function swTab(id, btn) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.getElementById('p-' + id).classList.add('on');
+}
+
+/* ════════════════════════════════════════
+   DRAG & DROP
+   ════════════════════════════════════════ */
+function dzOver(e, id) { e.preventDefault(); document.getElementById(id).classList.add('over'); }
+function dzOut(id) { document.getElementById(id).classList.remove('over'); }
+function dzDrop(e, id, mode) {
+  e.preventDefault(); dzOut(id);
+  const files = [...e.dataTransfer.files].filter(f => f.name.toLowerCase().endsWith('.docx'));
+  if (!files.length) { showErr(id.replace('dz-',''), 'Drop .docx files only'); return; }
+  if (mode === 'multi') pushMerge(files);
+  else setSF(id.replace('dz-',''), files[0]);
+}
+function dzDropCmp(e, n) {
+  e.preventDefault(); dzOut('dz-cmp'+n);
+  const f = [...e.dataTransfer.files].find(f => f.name.toLowerCase().endsWith('.docx'));
+  if (f) loadCmpFile(n, f);
+}
+
+/* ════════════════════════════════════════
+   FILE HANDLERS
+   ════════════════════════════════════════ */
+function addMerge(e) { pushMerge([...e.target.files].filter(f=>f.name.toLowerCase().endsWith('.docx'))); e.target.value=''; }
+function setSingle(e, tab) { const f=e.target.files[0]; if(f) setSF(tab,f); e.target.value=''; }
+
+function pushMerge(files) {
+  const names = new Set(S.merge.files.map(f=>f.name));
+  files.forEach(f => { if (!names.has(f.name)) S.merge.files.push(f); });
+  renderMerge(); clrRes('merge'); clrErr('merge');
+  updateFileCounter();
+}
+function setSF(tab, f) {
+  S[tab].file = f;
+  renderSingle(tab, f);
+  clrRes(tab); clrErr(tab);
+  const btn = document.getElementById('btn-' + tab);
+  if (btn) btn.disabled = false;
+  updateFileCounter();
+  // Special: auto-load find-replace text cache
+  if (tab === 'findreplace') { S.findreplace.rawBuf=null; S.findreplace.textCache=null; frPreview(); }
+}
+function updateFileCounter() {
+  let c = S.merge.files.length;
+  ['split','topdf','totxt','tohtml','findreplace','metadata','watermark','redact','inspect'].forEach(t=>{if(S[t].file)c++});
+  if(S.compare.file1) c++; if(S.compare.file2) c++;
+  const el = document.getElementById('file-counter');
+  if (c > 0) { el.textContent = c + ' file' + (c>1?'s':'') + ' loaded'; el.style.display=''; }
+  else el.style.display='none';
+}
+function bumpOps() {
+  opCount++;
+  document.getElementById('footer-ops').textContent = opCount + ' operation' + (opCount>1?'s':'') + ' completed';
+}
+
+/* ════════════════════════════════════════
+   RENDER
+   ════════════════════════════════════════ */
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function kb(n) { return n < 1024*1024 ? (n/1024).toFixed(1)+' KB' : (n/1024/1024).toFixed(2)+' MB'; }
+
+function renderMerge() {
+  const files = S.merge.files;
+  const el = document.getElementById('fl-merge');
+  document.getElementById('btn-merge').disabled = files.length < 2;
+  if (!files.length) { el.innerHTML = ''; return; }
+  let h = files.length < 2
+    ? `<div class="hint-row">⚠️ Add at least one more file to merge</div>`
+    : `<div class="hint-row">↑↓ Reorder — merged in this sequence</div>`;
+  files.forEach((f, i) => {
+    h += `<div class="fc">
+      <div class="ord">
+        <button onclick="mv(${i},-1)" ${i===0?'disabled':''}>▲</button>
+        <button onclick="mv(${i},1)" ${i===files.length-1?'disabled':''}>▼</button>
+      </div>
+      <span class="fc-icon">📄</span>
+      <div class="fc-info">
+        <div class="fc-name">${esc(f.name)}</div>
+        <div class="fc-meta">${kb(f.size)}</div>
+      </div>
+      <span class="fc-num">#${i+1}</span>
+      <button class="rm-btn" onclick="rmMerge(${i})" title="Remove">✕</button>
+    </div>`;
+  });
+  el.innerHTML = h;
+}
+
+function renderSingle(tab, f) {
+  document.getElementById('fl-' + tab).innerHTML = `<div class="fc">
+    <span class="fc-icon">📄</span>
+    <div class="fc-info">
+      <div class="fc-name">${esc(f.name)}</div>
+      <div class="fc-meta">${kb(f.size)}</div>
+    </div>
+    <button class="rm-btn" onclick="rmSingle('${tab}')" title="Remove">✕</button>
+  </div>`;
+}
+
+function mv(i, d) { const fs=S.merge.files, j=i+d; if(j<0||j>=fs.length) return; [fs[i],fs[j]]=[fs[j],fs[i]]; renderMerge(); }
+function rmMerge(i) { S.merge.files.splice(i,1); renderMerge(); clrRes('merge'); }
+function rmSingle(tab) {
+  S[tab].file = null;
+  document.getElementById('fl-' + tab).innerHTML = '';
+  const btn = document.getElementById('btn-' + tab);
+  if (btn) btn.disabled = true;
+  clrRes(tab);
+  updateFileCounter();
+}
+
+/* ════════════════════════════════════════
+   UI HELPERS
+   ════════════════════════════════════════ */
+function showErr(tab, msg) { document.getElementById('err-'+tab).innerHTML=`<div class="err-box">⚠️ <span>${esc(msg)}</span></div>`; }
+function clrErr(tab) { document.getElementById('err-'+tab).innerHTML=''; }
+function showProg(tab, msg, pct) {
+  document.getElementById('prog-'+tab).innerHTML=`<div class="prog-box">
+    <span class="spin">⟳</span> ${esc(msg)}
+    ${pct!==undefined?`<div class="pbar-wrap"><div class="pbar" style="width:${pct}%"></div></div>`:''}
+  </div>`;
+}
+function clrProg(tab) { document.getElementById('prog-'+tab).innerHTML=''; }
+function clrRes(tab) { document.getElementById('res-'+tab).innerHTML=''; }
+
+function showRes(tab, files) {
+  let h = `<div class="res-box"><div class="res-hdr"><span>✅ ${files.length===1?'File ready':files.length+' files ready'}</span><button class="clr-btn" onclick="clrRes('${tab}')">Clear</button></div>`;
+  files.forEach(f => {
+    h += `<div class="rf"><span style="font-size:20px">📄</span><div class="fc-info"><div class="rf-name">${esc(f.name)}</div><div class="rf-size">${kb(f.size)}</div></div><button class="dl-btn" onclick="doDownload(${f._idx})">⬇ Download</button></div>`;
+  });
+  h += '</div>';
+  document.getElementById('res-'+tab).innerHTML = h;
+  bumpOps();
+}
+
+/* ════════════════════════════════════════
+   DOWNLOAD REGISTRY
+   ════════════════════════════════════════ */
+function regDl(blob, name) { const idx=DL_REGISTRY.length; DL_REGISTRY.push({blob,name}); return idx; }
+function doDownload(idx) {
+  const {blob,name}=DL_REGISTRY[idx];
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+function readBuf(file) { return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('Failed to read '+file.name));r.readAsArrayBuffer(file);}); }
+
+/* ════════════════════════════════════════
+   MERGE
+   ════════════════════════════════════════ */
+async function doMerge() {
+  const files = S.merge.files;
+  if (files.length < 2) { showErr('merge','Add at least 2 files'); return; }
+  clrErr('merge'); clrRes('merge');
+  document.getElementById('btn-merge').disabled = true;
+  const sep = document.getElementById('merge-separator').value;
+
+  try {
+    const zips = [];
+    for (let i=0; i<files.length; i++) {
+      showProg('merge',`Loading ${files[i].name}…`, Math.round(10+60*(i/files.length)));
+      const buf = await readBuf(files[i]);
+      zips.push(await JSZip.loadAsync(buf));
+    }
+    showProg('merge','Merging bodies…',75);
+    const baseZip = zips[0];
+    let baseXml = await baseZip.file('word/document.xml').async('string');
+
+    function getBody(xml) {
+      const m = xml.match(/<w:body>([\s\S]*)<\/w:body>/);
+      if (!m) return '';
+      return m[1].replace(/<w:sectPr[\s\S]*?<\/w:sectPr>\s*$/, '').trim();
+    }
+
+    let sepXml = '';
+    if (sep==='pagebreak') sepXml = `<w:p><w:r><w:br w:type="page"/></w:r></w:p>`;
+    else if (sep==='sectionbreak') sepXml = `<w:p><w:pPr><w:sectPr><w:type w:val="nextPage"/></w:sectPr></w:pPr></w:p>`;
+
+    let merged = getBody(baseXml);
+    for (let i=1; i<zips.length; i++) {
+      const xml = await zips[i].file('word/document.xml').async('string');
+      const content = getBody(xml);
+      if (content) merged += '\n' + sepXml + '\n' + content;
+    }
+
+    const sectPrM = baseXml.match(/<w:sectPr[\s\S]*?<\/w:sectPr>/);
+    const sectPr = sectPrM ? sectPrM[0] : '';
+    baseXml = baseXml.replace(/<w:body>[\s\S]*<\/w:body>/, `<w:body>${merged}\n${sectPr}\n</w:body>`);
+    baseZip.file('word/document.xml', baseXml);
+
+    // Merge media
+    for (let i=1; i<zips.length; i++) {
+      for (const [path, obj] of Object.entries(zips[i].files)) {
+        if (!obj.dir && path.startsWith('word/media/')) {
+          const np = path.replace('word/media/', `word/media/d${i}_`);
+          if (!baseZip.files[np]) baseZip.file(np, await obj.async('arraybuffer'));
+        }
+      }
+    }
+
+    showProg('merge','Generating output…',92);
+    const outBuf = await baseZip.generateAsync({type:'arraybuffer',compression:'DEFLATE'});
+    const blob = new Blob([outBuf],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+    const stem = files.map(f=>f.name.replace('.docx','')).join('_').slice(0,40);
+    const idx = regDl(blob, `merged_${stem}.docx`);
+    clrProg('merge');
+    showRes('merge',[{name:`merged_${stem}.docx`,size:blob.size,_idx:idx}]);
+  } catch(e) { clrProg('merge'); showErr('merge','Merge failed: '+e.message); console.error(e); }
+  finally { document.getElementById('btn-merge').disabled = S.merge.files.length < 2; }
+}
+
+/* ════════════════════════════════════════
+   SPLIT
+   ════════════════════════════════════════ */
+function renderSplitMode() {
+  const m = document.getElementById('split-mode').value;
+  document.getElementById('split-n-row').style.display = m==='paragraphs' ? '' : 'none';
+}
+
+async function doSplit() {
+  const file = S.split.file;
+  if (!file) return;
+  clrErr('split'); clrRes('split');
+  document.getElementById('btn-split').disabled = true;
+  const mode = document.getElementById('split-mode').value;
+  const nPerPart = parseInt(document.getElementById('split-n').value)||10;
+
+  try {
+    showProg('split','Reading…',20);
+    const buf = await readBuf(file);
+    const zip = await JSZip.loadAsync(buf);
+    const xml = await zip.file('word/document.xml').async('string');
+
+    const bodyMatch = xml.match(/<w:body>([\s\S]*)<\/w:body>/);
+    if (!bodyMatch) throw new Error('Could not parse document body');
+    const bodyContent = bodyMatch[1];
+    const sectPrMatch = xml.match(/<w:sectPr[\s\S]*?<\/w:sectPr>/);
+    const sectPr = sectPrMatch ? sectPrMatch[0] : '<w:sectPr/>';
+
+    const paraRegex = /<w:p[ >][\s\S]*?<\/w:p>/g;
+    const paras = [];
+    let match;
+    while ((match = paraRegex.exec(bodyContent)) !== null) paras.push(match[0]);
+
+    if (!paras.length) throw new Error('No paragraphs found');
+
+    let parts = [];
+    if (mode === 'pagebreak') {
+      let cur = [];
+      for (const p of paras) {
+        if ((p.includes('w:type="page"')||p.includes("w:type='page'")) && cur.length) {
+          parts.push(cur.join('\n')); cur=[];
+        } else if (!p.includes('w:type="page"')) cur.push(p);
+      }
+      if (cur.length) parts.push(cur.join('\n'));
+      if (parts.length < 2) {
+        document.getElementById('err-split').innerHTML=`<div class="warn-box">⚠️ No page breaks found — splitting by paragraph count (10)</div>`;
+        parts=[];
+        for(let i=0;i<paras.length;i+=10) parts.push(paras.slice(i,i+10).join('\n'));
+      }
+    } else if (mode === 'paragraphs') {
+      for (let i=0; i<paras.length; i+=nPerPart) parts.push(paras.slice(i,i+nPerPart).join('\n'));
+    } else if (mode === 'headings') {
+      let cur = [];
+      for (const p of paras) {
+        const isH = /<w:pStyle w:val="Heading[12]"/.test(p) || /<w:pStyle w:val="[Hh]eading/.test(p);
+        if (isH && cur.length) { parts.push(cur.join('\n')); cur=[]; }
+        cur.push(p);
+      }
+      if (cur.length) parts.push(cur.join('\n'));
+      if (parts.length < 2) {
+        document.getElementById('err-split').innerHTML=`<div class="warn-box">⚠️ No H1/H2 headings found — splitting in equal halves</div>`;
+        const mid = Math.ceil(paras.length/2);
+        parts = [paras.slice(0,mid).join('\n'), paras.slice(mid).join('\n')];
+      }
+    }
+
+    showProg('split',`Creating ${parts.length} files…`,60);
+    const stem = file.name.replace('.docx','');
+    const resultFiles = [];
+    for (let i=0; i<parts.length; i++) {
+      showProg('split',`Part ${i+1}/${parts.length}…`,60+Math.round(35*(i/parts.length)));
+      const nz = await JSZip.loadAsync(buf);
+      const nx = xml.replace(/<w:body>[\s\S]*<\/w:body>/,`<w:body>${parts[i]}\n${sectPr}\n</w:body>`);
+      nz.file('word/document.xml', nx);
+      const ob = await nz.generateAsync({type:'arraybuffer',compression:'DEFLATE'});
+      const blob = new Blob([ob],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+      const name = `${stem}_part${i+1}.docx`;
+      const idx = regDl(blob, name);
+      resultFiles.push({name,size:blob.size,_idx:idx});
+    }
+    clrProg('split');
+    showRes('split', resultFiles);
+  } catch(e) { clrProg('split'); showErr('split','Split failed: '+e.message); console.error(e); }
+  finally { document.getElementById('btn-split').disabled = false; }
+}
+
+/* ════════════════════════════════════════
+   TO PDF (enhanced)
+   ════════════════════════════════════════ */
+async function doPdf() {
+  const file = S.topdf.file;
+  if (!file) return;
+  clrErr('topdf'); clrRes('topdf');
+  document.getElementById('btn-topdf').disabled = true;
+
+  const pgSize = document.getElementById('pdf-pagesize').value;
+  const orient = document.getElementById('pdf-orient').value;
+  const baseFontSize = parseInt(document.getElementById('pdf-fontsize').value)||10;
+  const margin = parseInt(document.getElementById('pdf-margin').value)||20;
+
+  const pgDims = {
+    a4:[210,297], letter:[215.9,279.4], a3:[297,420], legal:[215.9,355.6]
+  };
+
+  try {
+    showProg('topdf','Reading document…',15);
+    const buf = await readBuf(file);
+
+    showProg('topdf','Extracting content…',35);
+    const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+    const rawText = (await mammoth.extractRawText({ arrayBuffer: buf })).value;
+
+    showProg('topdf','Building PDF…',60);
+    const { jsPDF } = window.jspdf;
+    const [w, h] = pgDims[pgSize];
+    const doc = new jsPDF({ orientation: orient, unit: 'mm', format: [w, h] });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const maxW = pageW - margin * 2;
+    let y = margin + 5;
+
+    // Render title line from filename
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(baseFontSize + 4);
+    const title = file.name.replace('.docx','');
+    doc.text(doc.splitTextToSize(title, maxW), margin, y);
+    y += 8;
+    doc.setDrawColor(180);
+    doc.line(margin, y, pageW - margin, y);
+    y += 6;
+
+    const lines = rawText.split('\n');
+    doc.setFont('helvetica','normal');
+
+    for (let i=0; i<lines.length; i++) {
+      const line = lines[i];
+      const isH = line.length > 0 && line.length < 80 &&
+        (line === line.toUpperCase() && /[A-Z]/.test(line) ||
+         (i < lines.length-1 && lines[i+1].trim() === '' && line.trim().length < 60));
+      if (line.trim() === '') { y += 3; if (y > pageH - margin) { doc.addPage(); y = margin; } continue; }
+
+      if (isH) { doc.setFont('helvetica','bold'); doc.setFontSize(baseFontSize + 2); }
+      else { doc.setFont('helvetica','normal'); doc.setFontSize(baseFontSize); }
+
+      const wrapped = doc.splitTextToSize(line, maxW);
+      const lh = isH ? baseFontSize*0.6+1 : baseFontSize*0.52+1;
+      if (y + wrapped.length * lh > pageH - margin) { doc.addPage(); y = margin; }
+      doc.text(wrapped, margin, y);
+      y += wrapped.length * lh + (isH ? 3 : 1);
+    }
+
+    // Page footers
+    const total = doc.getNumberOfPages();
+    for (let p=1; p<=total; p++) {
+      doc.setPage(p);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      doc.setTextColor(160);
+      doc.text(`${title}   •   Page ${p} of ${total}`, margin, pageH - 8);
+      doc.setTextColor(0);
+    }
+
+    showProg('topdf','Saving…',92);
+    const pdfBuf = doc.output('arraybuffer');
+    const blob = new Blob([pdfBuf],{type:'application/pdf'});
+    const name = file.name.replace('.docx','.pdf');
+    const idx = regDl(blob, name);
+    clrProg('topdf');
+    showRes('topdf',[{name,size:blob.size,_idx:idx}]);
+    if (result.messages && result.messages.length)
+      document.getElementById('err-topdf').innerHTML=`<div class="warn-box">⚠️ Some elements may differ: ${esc(result.messages.slice(0,2).map(m=>m.message).join('; '))}</div>`;
+  } catch(e) { clrProg('topdf'); showErr('topdf','PDF conversion failed: '+e.message); console.error(e); }
+  finally { document.getElementById('btn-topdf').disabled = false; }
+}
+
+/* ════════════════════════════════════════
+   TO TEXT (with markdown and CSV modes)
+   ════════════════════════════════════════ */
+async function doTxt() {
+  const file = S.totxt.file;
+  if (!file) return;
+  clrErr('totxt'); clrRes('totxt');
+  document.getElementById('btn-totxt').disabled = true;
+  const fmt = document.getElementById('txt-format').value;
+
+  try {
+    showProg('totxt','Reading…',30);
+    const buf = await readBuf(file);
+
+    let text, ext, mime;
+    if (fmt === 'markdown') {
+      showProg('totxt','Converting to Markdown…',55);
+      const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+      text = htmlToMd(result.value);
+      ext = '.md'; mime = 'text/markdown';
+    } else if (fmt === 'csv') {
+      showProg('totxt','Building word list…',55);
+      const r = await mammoth.extractRawText({ arrayBuffer: buf });
+      const words = r.value.match(/\b[\w'-]{2,}\b/g) || [];
+      const freq = {};
+      words.forEach(w => { const lw=w.toLowerCase(); freq[lw]=(freq[lw]||0)+1; });
+      const rows = Object.entries(freq).sort((a,b)=>b[1]-a[1]).map(([w,c])=>`"${w}",${c}`);
+      text = 'word,count\n' + rows.join('\n');
+      ext = '.csv'; mime = 'text/csv';
+    } else {
+      showProg('totxt','Extracting…',55);
+      const r = await mammoth.extractRawText({ arrayBuffer: buf });
+      text = r.value;
+      ext = '.txt'; mime = 'text/plain';
+    }
+
+    const wc = text.trim().split(/\s+/).filter(w=>w).length;
+    const cc = text.length;
+    showProg('totxt','Preparing…',85);
+    const blob = new Blob([text],{type:mime+';charset=utf-8'});
+    const name = file.name.replace('.docx', ext);
+    const idx = regDl(blob, name);
+    clrProg('totxt');
+
+    const stats = `<div class="info-grid">
+      <div class="info-card"><div class="info-val">${wc.toLocaleString()}</div><div class="info-lbl">Words</div></div>
+      <div class="info-card"><div class="info-val">${cc.toLocaleString()}</div><div class="info-lbl">Chars</div></div>
+      <div class="info-card"><div class="info-val">${text.split('\n').filter(l=>l.trim()).length}</div><div class="info-lbl">Lines</div></div>
+      <div class="info-card"><div class="info-val">${(cc/5/200).toFixed(0)}</div><div class="info-lbl">~Pages</div></div>
+    </div>`;
+
+    const preview = esc(text.slice(0,1200)) + (text.length>1200?'\n…':'');
+    document.getElementById('res-totxt').innerHTML = `${stats}
+      <div class="res-box">
+        <div class="res-hdr"><span>✅ ${fmt==='markdown'?'Markdown':'Text'} extracted — ${kb(blob.size)}</span><button class="clr-btn" onclick="clrRes('totxt')">Clear</button></div>
+        <div class="rf"><span style="font-size:20px">📝</span><div class="fc-info"><div class="rf-name">${esc(name)}</div><div class="rf-size">${kb(blob.size)}</div></div><button class="dl-btn" onclick="doDownload(${idx})">⬇ Download</button></div>
+      </div>
+      <div class="preview-wrap"><div class="preview-label">Preview</div><div class="preview-box">${preview}</div></div>`;
+    bumpOps();
+  } catch(e) { clrProg('totxt'); showErr('totxt','Extraction failed: '+e.message); console.error(e); }
+  finally { document.getElementById('btn-totxt').disabled = false; }
+}
+
+function htmlToMd(html) {
+  return html
+    .replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi,'# $1\n')
+    .replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi,'## $1\n')
+    .replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi,'### $1\n')
+    .replace(/<strong[^>]*>([\s\S]*?)<\/strong>/gi,'**$1**')
+    .replace(/<b[^>]*>([\s\S]*?)<\/b>/gi,'**$1**')
+    .replace(/<em[^>]*>([\s\S]*?)<\/em>/gi,'*$1*')
+    .replace(/<i[^>]*>([\s\S]*?)<\/i>/gi,'*$1*')
+    .replace(/<li[^>]*>([\s\S]*?)<\/li>/gi,'- $1\n')
+    .replace(/<p[^>]*>([\s\S]*?)<\/p>/gi,'$1\n\n')
+    .replace(/<br\s*\/?>/gi,'\n')
+    .replace(/<[^>]+>/g,'')
+    .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'")
+    .replace(/\n{3,}/g,'\n\n').trim();
+}
+
+/* ════════════════════════════════════════
+   TO HTML
+   ════════════════════════════════════════ */
+async function doHtml() {
+  const file = S.tohtml.file;
+  if (!file) return;
+  clrErr('tohtml'); clrRes('tohtml');
+  document.getElementById('btn-tohtml').disabled = true;
+  const theme = document.getElementById('html-theme').value;
+  const addStyles = document.getElementById('html-styles').value === '1';
+
+  try {
+    showProg('tohtml','Reading…',25);
+    const buf = await readBuf(file);
+    showProg('tohtml','Converting…',55);
+    const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+    let html = result.value;
+
+    const themes = {
+      light:`body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 24px;color:#1a1a1a;line-height:1.8}h1,h2,h3{font-family:system-ui,sans-serif}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}`,
+      dark:`body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 24px;color:#e0e0e0;background:#1a1a1a;line-height:1.8}h1,h2,h3{font-family:system-ui,sans-serif;color:#a0c4ff}table{border-collapse:collapse;width:100%}td,th{border:1px solid #444;padding:8px}`,
+      print:`body{font-family:Times New Roman,serif;max-width:none;margin:0;padding:15mm;color:#000;line-height:1.6;font-size:11pt}@media print{body{margin:0;padding:15mm}}`
+    };
+
+    const title = file.name.replace('.docx','');
+    const fullHtml = `<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<title>${esc(title)}</title>\n${addStyles?`<style>${themes[theme]}</style>`:''}\n</head>\n<body>\n${html}\n</body>\n</html>`;
+
+    showProg('tohtml','Saving…',88);
+    const blob = new Blob([fullHtml],{type:'text/html;charset=utf-8'});
+    const name = file.name.replace('.docx','.html');
+    const idx = regDl(blob, name);
+    clrProg('tohtml');
+
+    const preview = result.value.replace(/<img[^>]+>/g,'[image]').slice(0,2000);
+    document.getElementById('res-tohtml').innerHTML = `
+      <div class="res-box">
+        <div class="res-hdr"><span>✅ HTML ready — ${kb(blob.size)}</span><button class="clr-btn" onclick="clrRes('tohtml')">Clear</button></div>
+        <div class="rf"><span style="font-size:20px">🌐</span><div class="fc-info"><div class="rf-name">${esc(name)}</div><div class="rf-size">${kb(blob.size)}</div></div><button class="dl-btn" onclick="doDownload(${idx})">⬇ Download</button></div>
+      </div>
+      <div class="preview-wrap"><div class="preview-label">Rendered Preview</div><div class="preview-box">${preview}</div></div>`;
+    bumpOps();
+  } catch(e) { clrProg('tohtml'); showErr('tohtml','Conversion failed: '+e.message); console.error(e); }
+  finally { document.getElementById('btn-tohtml').disabled = false; }
+}
+
+/* ════════════════════════════════════════
+   FIND & REPLACE
+   ════════════════════════════════════════ */
+async function getFrText() {
+  if (!S.findreplace.file) return null;
+  if (S.findreplace.textCache) return S.findreplace.textCache;
+  const buf = await readBuf(S.findreplace.file);
+  S.findreplace.rawBuf = buf;
+  const r = await mammoth.extractRawText({arrayBuffer: buf});
+  S.findreplace.textCache = r.value;
+  return r.value;
+}
+
+async function frPreview() {
+  const findVal = document.getElementById('fr-find').value;
+  const countEl = document.getElementById('fr-match-count');
+  const previewBox = document.getElementById('fr-preview-box');
+  if (!findVal || !S.findreplace.file) { countEl.textContent=''; previewBox.style.display='none'; return; }
+  try {
+    const text = await getFrText();
+    const useRegex = document.getElementById('fr-regex').checked;
+    let rx;
+    if (useRegex) {
+      const m = findVal.match(/^\/(.*)\/([gimsuy]*)$/);
+      rx = m ? new RegExp(m[1], m[2]) : new RegExp(escRe(findVal), 'g');
+    } else {
+      const flags = document.getElementById('fr-case').checked ? 'g' : 'gi';
+      rx = new RegExp(escRe(findVal), flags);
+    }
+    const matches = [...text.matchAll(rx)];
+    countEl.textContent = matches.length ? `${matches.length} match${matches.length>1?'es':''}` : '0 matches';
+    // Highlight preview
+    const sample = text.slice(0,1000);
+    const highlighted = sample.replace(rx, m => `<mark>${esc(m)}</mark>`);
+    document.getElementById('fr-preview').innerHTML = highlighted.replace(/\n/g,'<br>');
+    previewBox.style.display = '';
+  } catch(e) { countEl.textContent = '⚠ regex error'; }
+}
+
+function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+
+async function doFindReplace() {
+  const file = S.findreplace.file;
+  if (!file) return;
+  const findVal = document.getElementById('fr-find').value.trim();
+  const replaceVal = document.getElementById('fr-replace').value;
+  if (!findVal) { showErr('findreplace','Enter a search term'); return; }
+  clrErr('findreplace'); clrRes('findreplace');
+  document.getElementById('btn-findreplace').disabled = true;
+
+  try {
+    showProg('findreplace','Reading document…',25);
+    const buf = S.findreplace.rawBuf || await readBuf(file);
+    const zip = await JSZip.loadAsync(buf);
+    let xml = await zip.file('word/document.xml').async('string');
+    showProg('findreplace','Applying replacements…',60);
+
+    const useRegex = document.getElementById('fr-regex').checked;
+    let rx;
+    if (useRegex) {
+      const m = findVal.match(/^\/(.*)\/([gimsuy]*)$/);
+      rx = m ? new RegExp(m[1], (m[2].includes('g')?m[2]:m[2]+'g')) : new RegExp(escRe(findVal),'g');
+    } else {
+      const flags = document.getElementById('fr-case').checked ? 'g' : 'gi';
+      rx = new RegExp(escRe(findVal), flags);
+    }
+
+    // Replace in XML text nodes (within w:t tags)
+    let count = 0;
+    xml = xml.replace(/(<w:t[^>]*>)([\s\S]*?)(<\/w:t>)/g, (full, open, content, close) => {
+      const newContent = content.replace(rx, () => { count++; return replaceVal; });
+      return open + newContent + close;
+    });
+
+    zip.file('word/document.xml', xml);
+    showProg('findreplace','Generating file…',88);
+    const outBuf = await zip.generateAsync({type:'arraybuffer',compression:'DEFLATE'});
+    const blob = new Blob([outBuf],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+    const name = file.name.replace('.docx','_replaced.docx');
+    const idx = regDl(blob, name);
+    clrProg('findreplace');
+    document.getElementById('res-findreplace').innerHTML = `
+      <div class="res-box">
+        <div class="res-hdr"><span>✅ ${count} replacement${count!==1?'s':''} made</span><button class="clr-btn" onclick="clrRes('findreplace')">Clear</button></div>
+        <div class="rf"><span style="font-size:20px">📄</span><div class="fc-info"><div class="rf-name">${esc(name)}</div><div class="rf-size">${kb(blob.size)}</div></div><button class="dl-btn" onclick="doDownload(${idx})">⬇ Download</button></div>
+      </div>`;
+    bumpOps();
+  } catch(e) { clrProg('findreplace'); showErr('findreplace','Operation failed: '+e.message); console.error(e); }
+  finally { document.getElementById('btn-findreplace').disabled = false; }
+}
+
+/* ════════════════════════════════════════
+   METADATA
+   ════════════════════════════════════════ */
+async function loadMeta(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  setSF('metadata', file);
+  document.getElementById('meta-editor').style.display='none';
+  clrErr('metadata'); clrRes('metadata');
+  e.target.value='';
+
+  try {
+    showProg('metadata','Reading metadata…',50);
+    const buf = await readBuf(file);
+    const zip = await JSZip.loadAsync(buf);
+    S.metadata.zip = zip;
+
+    function getTag(xml, tag) {
+      const m = xml.match(new RegExp(`<(?:dc|cp|dcterms):${tag}[^>]*>([^<]*)<`));
+      return m ? m[1] : '';
+    }
+
+    // Core properties
+    let core='', app='';
+    if (zip.files['docProps/core.xml']) core = await zip.file('docProps/core.xml').async('string');
+    if (zip.files['docProps/app.xml']) app = await zip.file('docProps/app.xml').async('string');
+
+    document.getElementById('m-title').value    = getTag(core,'title') || getTag(core,'Title');
+    document.getElementById('m-creator').value  = getTag(core,'creator') || getTag(core,'Creator');
+    document.getElementById('m-lastmod').value  = getTag(core,'lastModifiedBy') || '';
+    document.getElementById('m-desc').value     = getTag(core,'description') || getTag(core,'Description');
+    document.getElementById('m-subject').value  = getTag(core,'subject') || getTag(core,'Subject');
+    document.getElementById('m-keywords').value = getTag(core,'keywords') || getTag(core,'Keywords');
+    document.getElementById('m-company').value  = (app.match(/<Company>([^<]*)</) || [])[1] || '';
+    document.getElementById('m-category').value = getTag(core,'category') || '';
+
+    clrProg('metadata');
+    document.getElementById('meta-editor').style.display='';
+  } catch(e) { clrProg('metadata'); showErr('metadata','Failed to read metadata: '+e.message); }
+}
+
+async function saveMeta() {
+  const zip = S.metadata.zip;
+  if (!zip) return;
+  clrErr('metadata'); clrRes('metadata');
+  document.getElementById('btn-metadata').disabled = true;
+
+  try {
+    const stripAll = document.getElementById('m-strip-all').checked;
+    const now = new Date().toISOString();
+
+    if (stripAll) {
+      const blankCore = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n</cp:coreProperties>`;
+      zip.file('docProps/core.xml', blankCore);
+    } else {
+      let core = zip.files['docProps/core.xml'] ? await zip.file('docProps/core.xml').async('string') : `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"></cp:coreProperties>`;
+
+      function setTag(xml, ns, tag, val) {
+        const rx = new RegExp(`<${ns}:${tag}[^>]*>[^<]*<\/${ns}:${tag}>`, 'g');
+        if (rx.test(xml)) return xml.replace(rx, `<${ns}:${tag}>${esc(val)}</${ns}:${tag}>`);
+        return xml.replace(/<\/cp:coreProperties>/, `<${ns}:${tag}>${esc(val)}</${ns}:${tag}>\n</cp:coreProperties>`);
+      }
+
+      const fields = [
+        ['dc','title',document.getElementById('m-title').value],
+        ['dc','creator',document.getElementById('m-creator').value],
+        ['cp','lastModifiedBy',document.getElementById('m-lastmod').value],
+        ['dc','description',document.getElementById('m-desc').value],
+        ['dc','subject',document.getElementById('m-subject').value],
+        ['cp','keywords',document.getElementById('m-keywords').value],
+        ['cp','category',document.getElementById('m-category').value],
+      ];
+      for (const [ns,tag,val] of fields) { if (val) core = setTag(core, ns, tag, val); }
+      core = core.replace(/<dcterms:modified[^>]*>[^<]*<\/dcterms:modified>/,`<dcterms:modified xsi:type="dcterms:W3CDTF">${now}</dcterms:modified>`);
+      zip.file('docProps/core.xml', core);
+
+      // Company in app.xml
+      const company = document.getElementById('m-company').value;
+      if (company && zip.files['docProps/app.xml']) {
+        let app = await zip.file('docProps/app.xml').async('string');
+        app = app.replace(/<Company>[^<]*<\/Company>/, `<Company>${esc(company)}</Company>`);
+        if (!app.includes('<Company>')) app = app.replace(/<\/Properties>/, `<Company>${esc(company)}</Company>\n</Properties>`);
+        zip.file('docProps/app.xml', app);
+      }
+    }
+
+    const outBuf = await zip.generateAsync({type:'arraybuffer',compression:'DEFLATE'});
+    const blob = new Blob([outBuf],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+    const name = S.metadata.file.name.replace('.docx', stripAll?'_anonymised.docx':'_meta.docx');
+    const idx = regDl(blob, name);
+    showRes('metadata',[{name,size:blob.size,_idx:idx}]);
+  } catch(e) { showErr('metadata','Save failed: '+e.message); console.error(e); }
+  finally { document.getElementById('btn-metadata').disabled = false; }
+}
+
+/* ════════════════════════════════════════
+   WATERMARK
+   ════════════════════════════════════════ */
+function updateWmPreview() {
+  const text = document.getElementById('wm-text').value || 'WATERMARK';
+  const color = document.getElementById('wm-color').value;
+  const opacity = parseInt(document.getElementById('wm-opacity').value)/100;
+  const angle = parseInt(document.getElementById('wm-angle').value);
+  const colors = { red:'rgb(200,40,40)', grey:'rgb(120,120,120)', blue:'rgb(30,80,180)', orange:'rgb(200,100,0)' };
+  const el = document.getElementById('wm-preview-text');
+  el.textContent = text;
+  el.style.color = colors[color] || 'grey';
+  el.style.opacity = opacity;
+  el.style.transform = `rotate(${angle}deg)`;
+  el.style.fontSize = Math.min(40, Math.max(14, 160/text.length))+'px';
+  el.style.fontWeight = '700';
+  el.style.letterSpacing = '4px';
+  el.style.textTransform = 'uppercase';
+}
+
+async function doWatermark() {
+  const file = S.watermark.file;
+  if (!file) return;
+  clrErr('watermark'); clrRes('watermark');
+  document.getElementById('btn-watermark').disabled = true;
+
+  const wmText = document.getElementById('wm-text').value.trim() || 'CONFIDENTIAL';
+  const color = document.getElementById('wm-color').value;
+  const opacity = parseInt(document.getElementById('wm-opacity').value);
+  const angle = parseInt(document.getElementById('wm-angle').value);
+
+  const colorHex = { red:'FF0000', grey:'808080', blue:'1E50B4', orange:'C86400' };
+  const hexColor = colorHex[color] || '808080';
+  const alphaHex = Math.round(opacity * 2.55).toString(16).padStart(2,'0').toUpperCase();
+
+  try {
+    showProg('watermark','Reading document…',25);
+    const buf = await readBuf(file);
+    const zip = await JSZip.loadAsync(buf);
+
+    // Build header XML with watermark shape
+    const wmShape = `<w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<w:p>
+<w:pPr><w:jc w:val="center"/></w:pPr>
+<w:r>
+<w:rPr><w:vanish/></w:rPr>
+</w:r>
+<w:r>
+<w:pict>
+<v:shape id="wm1" type="#_x0000_t136" style="position:absolute;margin-left:0;margin-top:0;width:500pt;height:120pt;z-index:-251656192;mso-position-horizontal:center;mso-position-horizontal-relative:margin;mso-position-vertical:center;mso-position-vertical-relative:margin" fillcolor="#${hexColor}" stroked="f" coordsize="21600,21600">
+<v:fill o:opacity="${opacity}%" color="#${hexColor}"/>
+<v:textpath style="font-family:&quot;Arial&quot;;font-size:72pt;font-weight:bold;" string="${wmText}" trim="t" fitshape="t"/>
+<o:lock v:ext="edit" aspectratio="t"/>
+</v:shape>
+</w:pict>
+</w:r>
+</w:p>
+</w:hdr>`;
+
+    showProg('watermark','Injecting watermark…',60);
+
+    // Add header file
+    const hdrPath = 'word/header_wm.xml';
+    zip.file(hdrPath, wmShape);
+
+    // Update document.xml.rels to reference the header
+    let rels = '';
+    const relsPath = 'word/_rels/document.xml.rels';
+    if (zip.files[relsPath]) rels = await zip.file(relsPath).async('string');
+    const relId = 'rIdWM1';
+    if (!rels.includes(relId)) {
+      rels = rels.replace('</Relationships>', `<Relationship Id="${relId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header_wm.xml"/>\n</Relationships>`);
+      zip.file(relsPath, rels);
+    }
+
+    // Inject header ref into sectPr of document.xml
+    let docXml = await zip.file('word/document.xml').async('string');
+    const hdrRef = `<w:headerReference w:type="default" r:id="${relId}"/>`;
+    if (!docXml.includes(relId)) {
+      docXml = docXml.replace(/<w:sectPr/, hdrRef + '<w:sectPr');
+    }
+    zip.file('word/document.xml', docXml);
+
+    showProg('watermark','Generating file…',88);
+    const outBuf = await zip.generateAsync({type:'arraybuffer',compression:'DEFLATE'});
+    const blob = new Blob([outBuf],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+    const name = file.name.replace('.docx','_watermarked.docx');
+    const idx = regDl(blob, name);
+    clrProg('watermark');
+    showRes('watermark',[{name,size:blob.size,_idx:idx}]);
+  } catch(e) { clrProg('watermark'); showErr('watermark','Watermark failed: '+e.message); console.error(e); }
+  finally { document.getElementById('btn-watermark').disabled = false; }
+}
+
+/* ════════════════════════════════════════
+   REDACT
+   ════════════════════════════════════════ */
+const PII_PATTERNS = [
+  /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,              // email
+  /\b(\+91[\-\s]?)?[6-9]\d{9}\b/g,                                       // Indian mobile
+  /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g,                                    // Aadhaar-like
+  /\b(?:\d{1,3}\.){3}\d{1,3}\b/g,                                        // IPv4
+  /\+?[\d\s\-().]{7,15}\b/g,                                             // generic phone
+];
+
+function toggleAutoPii() {
+  const on = document.getElementById('rd-auto-pii').checked;
+  const ta = document.getElementById('redact-terms');
+  if (on) ta.placeholder = 'Auto-PII mode active — also add custom terms here';
+  else ta.placeholder = 'John Smith\n+91 98765 43210\nconfidential@email.com\n/\\b[A-Z]{2}\\d{6}\\b/  ← regex mode';
+}
+
+async function doRedact() {
+  const file = S.redact.file;
+  if (!file) return;
+  clrErr('redact'); clrRes('redact');
+  document.getElementById('btn-redact').disabled = true;
+
+  const lines = document.getElementById('redact-terms').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const caseSens = document.getElementById('rd-case').checked;
+  const autoPii = document.getElementById('rd-auto-pii').checked;
+
+  try {
+    showProg('redact','Reading document…',20);
+    const buf = await readBuf(file);
+    const zip = await JSZip.loadAsync(buf);
+    let xml = await zip.file('word/document.xml').async('string');
+
+    showProg('redact','Applying redactions…',55);
+    let totalRedacted = 0;
+    const redactWith = '█████';
+
+    function applyPattern(xmlStr, rx) {
+      let count=0;
+      const result = xmlStr.replace(/(<w:t[^>]*>)([\s\S]*?)(<\/w:t>)/g, (full,open,content,close) => {
+        const newC = content.replace(rx, () => { count++; return redactWith; });
+        return open+newC+close;
+      });
+      totalRedacted += count;
+      return result;
+    }
+
+    // User-defined terms
+    for (const term of lines) {
+      const reMatch = term.match(/^\/(.*)\/([gimsuy]*)$/);
+      let rx;
+      if (reMatch) {
+        rx = new RegExp(reMatch[1], reMatch[2].includes('g') ? reMatch[2] : reMatch[2]+'g');
+      } else {
+        rx = new RegExp(escRe(term), caseSens ? 'g' : 'gi');
+      }
+      xml = applyPattern(xml, rx);
+    }
+
+    // Auto PII
+    if (autoPii) {
+      for (const rx of PII_PATTERNS) {
+        const grx = new RegExp(rx.source, rx.flags.includes('g') ? rx.flags : rx.flags+'g');
+        xml = applyPattern(xml, grx);
+      }
+    }
+
+    zip.file('word/document.xml', xml);
+    showProg('redact','Generating file…',85);
+    const outBuf = await zip.generateAsync({type:'arraybuffer',compression:'DEFLATE'});
+    const blob = new Blob([outBuf],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+    const name = file.name.replace('.docx','_redacted.docx');
+    const idx = regDl(blob, name);
+    clrProg('redact');
+    document.getElementById('res-redact').innerHTML = `
+      <div class="res-box">
+        <div class="res-hdr"><span>✅ ${totalRedacted} item${totalRedacted!==1?'s':''} redacted</span><button class="clr-btn" onclick="clrRes('redact')">Clear</button></div>
+        <div class="rf"><span style="font-size:20px">⬛</span><div class="fc-info"><div class="rf-name">${esc(name)}</div><div class="rf-size">${kb(blob.size)}</div></div><button class="dl-btn" onclick="doDownload(${idx})">⬇ Download</button></div>
+      </div>`;
+    bumpOps();
+  } catch(e) { clrProg('redact'); showErr('redact','Redaction failed: '+e.message); console.error(e); }
+  finally { document.getElementById('btn-redact').disabled = false; }
+}
+
+/* ════════════════════════════════════════
+   INSPECT
+   ════════════════════════════════════════ */
+async function doInspect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  setSF('inspect', file);
+  clrErr('inspect'); clrRes('inspect');
+  e.target.value='';
+
+  try {
+    showProg('inspect','Analysing document…',30);
+    const buf = await readBuf(file);
+    const zip = await JSZip.loadAsync(buf);
+
+    const docXml = await zip.file('word/document.xml').async('string');
+    const allFiles = Object.keys(zip.files).filter(p=>!zip.files[p].dir);
+
+    // Stats
+    const paraCount = (docXml.match(/<w:p[ >]/g)||[]).length;
+    const tableCount = (docXml.match(/<w:tbl[ >]/g)||[]).length;
+    const imgCount = (docXml.match(/<a:blip /g)||[]).length;
+    const hyperlinkCount = (docXml.match(/<w:hyperlink /g)||[]).length;
+    const listCount = (docXml.match(/<w:numId /g)||[]).length;
+
+    // Styles
+    const styleMatches = [...docXml.matchAll(/<w:pStyle w:val="([^"]+)"/g)].map(m=>m[1]);
+    const styleCounts = {};
+    styleMatches.forEach(s => styleCounts[s]=(styleCounts[s]||0)+1);
+    const topStyles = Object.entries(styleCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+    // Fonts
+    const fontMatches = [...docXml.matchAll(/<w:rFonts[^>]+w:ascii="([^"]+)"/g)].map(m=>m[1]);
+    const fonts = [...new Set(fontMatches)].slice(0,10);
+
+    // Metadata
+    let metaHtml = '';
+    if (zip.files['docProps/core.xml']) {
+      const core = await zip.file('docProps/core.xml').async('string');
+      const getTg = (xml,tag) => { const m=xml.match(new RegExp(`<[\\w:]*${tag}[^>]*>([^<]*)<`)); return m?m[1]:'-'; };
+      const fields = [['Title',getTg(core,'title')],['Author',getTg(core,'creator')],['Modified By',getTg(core,'lastModifiedBy')],['Description',getTg(core,'description')],['Keywords',getTg(core,'keywords')]];
+      metaHtml = `<div style="margin-top:16px"><div class="preview-label">Metadata</div><table class="meta-table">${fields.map(([k,v])=>`<tr><td>${k}</td><td style="color:var(--text)">${esc(v)}</td></tr>`).join('')}</table></div>`;
+    }
+
+    // All embedded files
+    const media = allFiles.filter(p=>p.startsWith('word/media/')).map(p=>({ name:p.split('/').pop(), size: zip.files[p]._data?.uncompressedSize || 0 }));
+
+    // Raw text sample
+    const rawR = await mammoth.extractRawText({arrayBuffer: buf});
+    const wc = rawR.value.trim().split(/\s+/).filter(Boolean).length;
+
+    clrProg('inspect');
+
+    document.getElementById('res-inspect').innerHTML = `
+      <div class="info-grid" style="grid-template-columns:repeat(3,1fr);margin-top:0">
+        <div class="info-card"><div class="info-val">${wc.toLocaleString()}</div><div class="info-lbl">Words</div></div>
+        <div class="info-card"><div class="info-val">${paraCount}</div><div class="info-lbl">Paragraphs</div></div>
+        <div class="info-card"><div class="info-val">${tableCount}</div><div class="info-lbl">Tables</div></div>
+        <div class="info-card"><div class="info-val">${imgCount}</div><div class="info-lbl">Images</div></div>
+        <div class="info-card"><div class="info-val">${hyperlinkCount}</div><div class="info-lbl">Hyperlinks</div></div>
+        <div class="info-card"><div class="info-val">${listCount}</div><div class="info-lbl">List Items</div></div>
+      </div>
+      ${metaHtml}
+      <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div class="preview-label">Paragraph Styles Used</div>
+          <div class="preview-box" style="max-height:200px;font-family:var(--mono);font-size:12px">
+            ${topStyles.map(([s,c])=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--bdr)"><span>${esc(s)}</span><span class="chip chip-purple">${c}</span></div>`).join('')}
+          </div>
+        </div>
+        <div>
+          <div class="preview-label">Fonts Referenced</div>
+          <div class="preview-box" style="max-height:200px;font-family:var(--mono);font-size:12px">
+            ${fonts.length ? fonts.map(f=>`<div style="padding:4px 0;border-bottom:1px solid var(--bdr)">${esc(f)}</div>`).join('') : '<div style="color:var(--text3)">No custom fonts</div>'}
+          </div>
+        </div>
+      </div>
+      ${media.length ? `<div style="margin-top:16px"><div class="preview-label">Embedded Media (${media.length} files)</div><div class="preview-box" style="max-height:160px;font-family:var(--mono);font-size:12px">${media.map(m=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--bdr)"><span>${esc(m.name)}</span><span style="color:var(--text3)">${m.size?kb(m.size):''}</span></div>`).join('')}</div></div>` : ''}
+      <div style="margin-top:16px"><div class="preview-label">Package Files (${allFiles.length})</div><div class="preview-box" style="max-height:120px;font-family:var(--mono);font-size:11px;color:var(--text3)">${allFiles.map(p=>`<div>${esc(p)}</div>`).join('')}</div></div>`;
+    bumpOps();
+  } catch(e) { clrProg('inspect'); showErr('inspect','Inspection failed: '+e.message); console.error(e); }
+}
+
+/* ════════════════════════════════════════
+   COMPARE
+   ════════════════════════════════════════ */
+async function loadCmp(n, e) {
+  const f = e.target.files[0];
+  if (f) loadCmpFile(n, f);
+  e.target.value='';
+}
+async function loadCmpFile(n, f) {
+  S.compare['file'+n] = f;
+  renderSingle('cmp'+n, f);
+  clrErr('compare');
+  if (S.compare.file1 && S.compare.file2)
+    document.getElementById('btn-compare').disabled = false;
+  updateFileCounter();
+}
+
+async function doCompare() {
+  clrErr('compare'); clrRes('compare');
+  document.getElementById('btn-compare').disabled = true;
+
+  try {
+    showProg('compare','Reading documents…',25);
+    const [buf1, buf2] = await Promise.all([readBuf(S.compare.file1), readBuf(S.compare.file2)]);
+    const [r1, r2] = await Promise.all([
+      mammoth.extractRawText({arrayBuffer: buf1}),
+      mammoth.extractRawText({arrayBuffer: buf2})
+    ]);
+
+    showProg('compare','Diffing…',60);
+    const paras1 = r1.value.split('\n').filter(l=>l.trim());
+    const paras2 = r2.value.split('\n').filter(l=>l.trim());
+
+    // LCS-based paragraph diff
+    const added = [], removed = [], same = [];
+    const set1 = new Set(paras1);
+    const set2 = new Set(paras2);
+    paras1.forEach(p => { if (!set2.has(p)) removed.push(p); else same.push(p); });
+    paras2.forEach(p => { if (!set1.has(p)) added.push(p); });
+
+    const totalChanges = added.length + removed.length;
+    const similarityPct = same.length ? Math.round(same.length/(Math.max(paras1.length,paras2.length))*100) : 0;
+
+    clrProg('compare');
+
+    // Render interleaved diff
+    const maxShow = 60;
+    const diffRows1 = paras1.slice(0,maxShow).map(p =>
+      set2.has(p)
+        ? `<div style="padding:3px 0;border-bottom:1px solid var(--bdr)">${esc(p.slice(0,120))}</div>`
+        : `<div class="diff-del" style="padding:3px 0;border-bottom:1px solid var(--bdr)">${esc(p.slice(0,120))}</div>`
+    ).join('');
+    const diffRows2 = paras2.slice(0,maxShow).map(p =>
+      set1.has(p)
+        ? `<div style="padding:3px 0;border-bottom:1px solid var(--bdr)">${esc(p.slice(0,120))}</div>`
+        : `<div class="diff-add" style="padding:3px 0;border-bottom:1px solid var(--bdr)">${esc(p.slice(0,120))}</div>`
+    ).join('');
+
+    document.getElementById('res-compare').innerHTML = `
+      <div class="info-grid" style="grid-template-columns:repeat(4,1fr);margin-top:16px">
+        <div class="info-card"><div class="info-val">${similarityPct}%</div><div class="info-lbl">Similarity</div></div>
+        <div class="info-card"><div class="info-val" style="color:var(--green)">${added.length}</div><div class="info-lbl">Added</div></div>
+        <div class="info-card"><div class="info-val" style="color:var(--red)">${removed.length}</div><div class="info-lbl">Removed</div></div>
+        <div class="info-card"><div class="info-val">${same.length}</div><div class="info-lbl">Unchanged</div></div>
+      </div>
+      <div class="diff-container" style="margin-top:14px">
+        <div>
+          <div class="diff-hdr">📄 Original — ${S.compare.file1.name}</div>
+          <div class="diff-box">${diffRows1}</div>
+        </div>
+        <div>
+          <div class="diff-hdr">📄 Modified — ${S.compare.file2.name}</div>
+          <div class="diff-box">${diffRows2}</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--text3);font-family:var(--mono)">
+        <span class="chip chip-green">+ added</span> &nbsp;
+        <span class="chip chip-red">- removed</span> &nbsp;
+        showing first ${maxShow} paragraphs per file
+      </div>`;
+    bumpOps();
+  } catch(e) { clrProg('compare'); showErr('compare','Compare failed: '+e.message); console.error(e); }
+  finally { document.getElementById('btn-compare').disabled = false; }
+}
+
+/* ════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════ */
+updateWmPreview();
+renderSplitMode();
+</script>
+</body>
+</html>
