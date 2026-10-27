@@ -1,95 +1,143 @@
-# sudoninja — personal security portfolio
+# sudoninja. — Offensive Security & Research Portfolio
 
-A responsive, static portfolio for Sanjay Singh, using content from https://sudoninja-noob.github.io/ and the public profile at https://github.com/sudoninja-noob. No framework, installation, API keys, or build step required.
+Source for **[sudoninja-noob.github.io](https://sudoninja-noob.github.io/)**, the personal portfolio of **Sanjay Singh** (*sudoninja*): penetration tester, Synack Red Team member, and security researcher based in Bengaluru, India.
 
-## Host on GitHub Pages
+[![Live site](https://img.shields.io/badge/live-sudoninja--noob.github.io-101312?style=flat-square)](https://sudoninja-noob.github.io/)
+[![GitHub Pages](https://img.shields.io/badge/hosted%20on-GitHub%20Pages-222?style=flat-square&logo=github)](https://pages.github.com/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-sanjaysingh06-0A66C2?style=flat-square&logo=linkedin)](https://linkedin.com/in/sanjaysingh06/)
+[![X](https://img.shields.io/badge/X-@sudoninja__-000?style=flat-square&logo=x)](https://twitter.com/sudoninja_)
 
-1. Create or open your `sudoninja-noob.github.io` repository on GitHub. Back up any existing site before replacing files. Preserve existing files such as `cve-findings.html` and project directories; this package updates the homepage and does not include those existing pages.
-2. Upload `index.html`, `styles.css`, `script.js`, `favicon.svg`, and `.nojekyll`, plus the `assets` folder, to the root of the repository.
-3. In **Settings → Pages**, choose **Deploy from a branch**, select your branch (usually `main`) and **/ (root)**, then save.
-4. Once GitHub finishes publishing, visit https://sudoninja-noob.github.io/.
+> *"Strong security comes from understanding how systems fail."*
 
-The same files also work in a project repository; all local asset paths are relative.
+---
 
-## Preview locally
+## About
 
-Run `python3 -m http.server 8000` in this folder and open http://localhost:8000.
+Senior Manager, Cyber Security Services, with **10+ years** in offensive security and **100+ responsibly disclosed CVEs**. Work spans application, infrastructure, IoT, and telecom product security, with a focus on vulnerability discovery, protocol fuzzing, and proof-of-concept development.
 
-## Customize
+**Certifications:** OSCP · CRTP · CPTE · CAPT · CEH · CNSP · CCEP · CAPC · CCNA · Practical API Hacking
 
-- Edit biography, certifications, research links, and projects in `index.html`.
-- Change colors and layout in `styles.css`.
-- `script.js` automatically updates the copyright year.
-- Google Fonts provides DM Sans and Space Grotesk; system fallback fonts work when offline.
+**Focus areas**
 
-Biography, CVE highlights, Exploit-DB entries, six books, the original six tools, services, indicative pricing, articles, and public contact details were imported from your existing website. Experience uses the live site’s 10+ years figure. The full CVE index and tools remain linked to their existing hosted URLs. Review these details before publishing. There are no invented contact details, forms, tracking scripts, or live GitHub API dependencies.
+| Area | Scope |
+|---|---|
+| Application security | Web, API, and mobile penetration testing |
+| Infrastructure & devices | Networks, IoT, routers, Wi-Fi |
+| Adversarial research | Red team operations, exploit chaining, protocol fuzzing |
+| Security compliance | ITSAR, BIS ER-01, EN 303 645, EN 18031 |
 
-## Motion
+---
 
-Staggered hero entrances, one-time scroll reveals, card hover effects, and a brief terminal cursor animation respect the system reduced-motion preference. Content remains available without JavaScript.
+## What's on the site
 
-The Matrix code rain background uses lightweight Canvas rendering with a pause/play control. It starts paused for reduced-motion users and stops rendering while the tab is hidden.
+- **Interactive terminal**: try `whoami`, `projects`, `books`, `contact`
+- **"Find the vulnerability" lab**: a short IDOR code puzzle with explanation and fix
+- **Research timeline**: milestones from 2020 disclosures to current tooling
+- **Published CVEs and Exploit-DB entries**
+- **Tools, books, services, pricing, and a sample report excerpt** (fictional data)
+- **Story mode** and a short illustrated Ramayana retelling
 
-## Cursor mask
+---
 
-`assets/mask-cursor.png` was generated with the built-in image tool. Brief: a front-facing V for Vendetta / Guy Fawkes mask, ivory face, black features, pale lime rim light, transparent background, legible as a small cursor decoration. The mask follows a desktop mouse, does not intercept clicks, and is hidden on touch devices and with reduced motion enabled.
+## Tools
 
-Desktop cursors use a lime crosshair and a lime pointer for links and buttons. SVG cursor assets are bundled in `assets`; native fallbacks remain available.
+Featured:
 
-Click non-interactive page content to emit “राम”; hold the left mouse button to emit more. Moving over text or scrolling does not interrupt a hold. Release, press Escape, or switch away from the window to stop. Links, buttons, and form controls never start the effect. Words fade away and never intercept clicks.
+| Tool | Description | Link |
+|---|---|---|
+| **Cybersecurity Resource Matrix** | Searchable knowledge base across 46 security domains (tools, standards, labs, learning paths) | [Live](https://sudoninja-noob.github.io/Cybersecurity-Resource-Matrix/) |
+| **SudoShark** | Browser-based PCAP analyzer: protocol decoding, credential detection, TLS auditing, exportable reports. Local processing. | [Live](https://sudoninja-noob.github.io/sudoshark/) · [Demo](https://www.youtube.com/watch?v=pSG-5ELB8uE) |
+| **APK Auditor Threat Console** | In-browser Android analysis: DEX bytecode, manifests, signing certificates, secrets | [Live](https://sudoninja-noob.github.io/apk-auditor-threat-console/) |
 
-The राम effect plays `assets/ram-chant.mp3`, a 30-second, 128 kbps excerpt of the supplied MP3. Hold empty space to play and loop; release pauses immediately, and the next hold resumes. Sound on/off mutes the chant. No YouTube player or network dependency is used, and no audio plays on page load. The original audio file is unchanged.
+More:
 
-The supplied Hanuman images are bundled in `assets`. On desktop, mouse movement sends Hanuman flying across the viewport; after the pointer rests, he returns to sit above the mask. The effect pauses when hidden and respects reduced motion.
+| Tool | Description | Link |
+|---|---|---|
+| **BountyRadar** | Chrome extension that detects bug bounty / VDP programs while you browse | [Project](https://sudoninja-noob.github.io/BountyRadar/) |
+| **sbomx** | Software/hardware BOM scanner with CycloneDX/SPDX output and CVE reports via NVD and OSV | [Project](https://sudoninja-noob.github.io/sbomx/) |
+| **Kakashi Recon** | Modular web recon: 20 modules, Python CLI, Electron desktop UI, exportable reports | [GitHub](https://github.com/sudoninja-noob/kakashi-recon) |
+| **Region Capture** | Browser extension for region screenshots and recording, with redaction and evidence watermarks | [GitHub](https://github.com/sudoninja-noob/region-capture) |
+| **SecureScan Suite** *(beta)* | Web security assessment dashboard: recon, headers, TLS | [Launch](https://sudoninja-noob.github.io/securescan-suite/) |
+| **DOCX Pro** | Document generation for security reports, findings, and compliance write-ups | [Launch](https://sudoninja-noob.github.io/docx-pro/) |
+| **IPA Auditor Threat Console** | Static analysis of iOS application bundles | [Launch](https://sudoninja-noob.github.io/ipa-auditor-threat-console/) |
+| **TouchGrass** | Site time limits and timed breaks (browser extension) | [Project](https://sudoninja-noob.github.io/touchgrass/) |
+| **Breathe** | Guided breathing breaks for browsing limits (browser extension) | [Project](https://sudoninja-noob.github.io/breathe/) |
+| **Bonsai** | Break reminder that grows a virtual bonsai (browser extension) | [Project](https://sudoninja-noob.github.io/bonsai/) |
+| **Auto Clicker** | Python desktop utility with adjustable intervals and emergency stop | [GitHub](https://github.com/sudoninja-noob/auto-clicker) |
+| **Keep-TeamsOnline** | PowerShell utility to prevent Teams switching to Away | [GitHub](https://github.com/sudoninja-noob/Keep-TeamsOnline) |
 
-A golden chakra rotates behind Hanuman’s head in both poses and follows his facing direction. Reduced-motion settings disable the rotation.
+---
 
-While the राम effect is held, the Matrix background changes to saffron राम rain. Releasing or cancelling the effect restores green code rain. The background pause setting remains respected.
+## Research
 
-## Simple mode and featured work
+**100+ CVEs** across web, IoT, and telecom. Selected records:
 
-Simple mode switches off the rain, cursor companions, text particles, sound, and decorative motion together. The preference is saved locally. Switching it off restores the individual sound/background settings; audio still requires a new hold. The hero includes a desktop chanting hint and direct Email/LinkedIn links.
+- **2025:** [CVE-2025-26208](https://www.cve.org/CVERecord?id=CVE-2025-26208), [CVE-2025-26209](https://www.cve.org/CVERecord?id=CVE-2025-26209), [CVE-2025-28349](https://www.cve.org/CVERecord?id=CVE-2025-28349), [CVE-2025-28350](https://www.cve.org/CVERecord?id=CVE-2025-28350), [CVE-2025-28351](https://www.cve.org/CVERecord?id=CVE-2025-28351)
+- **2024:** [CVE-2024-31531](https://www.cve.org/CVERecord?id=CVE-2024-31531), [CVE-2024-31532](https://www.cve.org/CVERecord?id=CVE-2024-31532), [CVE-2024-31540](https://www.cve.org/CVERecord?id=CVE-2024-31540), [CVE-2024-33280](https://www.cve.org/CVERecord?id=CVE-2024-33280), [CVE-2024-29355](https://www.cve.org/CVERecord?id=CVE-2024-29355)
+- **Earlier:** [CVE-2020-15035](https://www.cve.org/CVERecord?id=CVE-2020-15035), [CVE-2020-15036](https://www.cve.org/CVERecord?id=CVE-2020-15036), [CVE-2022-29004](https://www.cve.org/CVERecord?id=CVE-2022-29004), [CVE-2023-30101](https://www.cve.org/CVERecord?id=CVE-2023-30101), [CVE-2023-33396](https://www.cve.org/CVERecord?id=CVE-2023-33396)
 
-Three featured projects include screenshots captured from their public live sites. All six publications include their original Amazon cover images, bundled locally. See `assets/SOURCES.md` for source links.
+Full list: [cve-findings](https://sudoninja-noob.github.io/cve-findings.html)
 
-On phones and tablets, touch and hold non-interactive content to chant. Release or swipe to stop; native page scrolling stays available. Reduced-motion users can explicitly tap Play background to animate the rain. Simple mode disables touch effects too.
+**Exploit-DB**
 
-## Story mode
+| Date | Target | Vulnerability |
+|---|---|---|
+| 2025-06-05 | [CloudClassroom PHP Project 1.0](https://www.exploit-db.com/exploits/52314) | SQL injection |
+| 2024-05-13 | [Prison Management System](https://www.exploit-db.com/exploits/52017) | SQL injection / auth bypass |
+| 2023-04-08 | [Medicine Tracker System v1.0](https://www.exploit-db.com/exploits/51338) | SQL injection |
+| 2023-04-08 | [Online Appointment System v1.0](https://www.exploit-db.com/exploits/51337) | Cross-site scripting |
+| 2022-06-10 | [WordPress MotoPress Hotel Booking Lite 4.2.4](https://www.exploit-db.com/exploits/50951) | Stored XSS |
 
-The hero's Story mode button opens a separate, replayable Ramayana scene titled “Jatayu’s courage.” The portfolio no longer has a continuously looping battle over its content. Detailed transparent artwork shows Jatayu confronting Ravana, with Sita seated in the chariot, a symbolic wing injury, and a saffron राम call.
+---
 
-Visitors choose Play to begin the 24-second scene, with five synchronized captions, Pause/Resume, Replay, and Previous/Next scene controls. It does not autoplay or add automatic sound. Close or Escape returns to the portfolio; hiding the tab pauses playback. Simple mode and reduced-motion preferences provide static illustrations and manual caption navigation instead of animation.
+## Books & Writing
 
-## Additional tools
+Six cybersecurity titles on Amazon:
 
-The Tools section also includes BountyRadar, sbomx, TouchGrass, Breathe, Bonsai, Kakashi Recon, Region Capture, Auto Clicker, and Keep-TeamsOnline. Descriptions were checked against their public GitHub READMEs on 2026-10-27. Project-site links and repository links use distinct labels. All three featured projects and the original three additional tools are preserved.
+1. [A Tale of 100 CVE's Hunting](https://amazon.in/dp/B0DJ3LP4H1)
+2. [How to Become a Penetration Tester: Zero to One](https://amazon.in/dp/B0D9J3B2ND)
+3. [How to Start a Career in Cybersecurity](https://amazon.com/dp/B0CPH312KH)
+4. [101 Broken Access Control Test Cases](https://amzn.in/d/2fgDv96)
+5. [Cyber-Security Journey: A Comprehensive Guide](https://a.co/d/4GrCkW0)
+6. [Privilege Escalation: Unlocking Security](https://amazon.in/dp/B0CPR29ZNJ)
 
-## Interactive terminal
+**Articles:** [Easy to Find 3 Bugs on Sign-in & Sign-up](https://sudoninja.medium.com/easy-to-check-and-find-3-different-bug-on-sign-in-and-sign-up-bb35da1e4ddd) · [Directory Listings Checker](https://sudoninja.medium.com/directory-listings-checker-0abcc983b532) · [ShinobiLabs: Hidden Leaf Exploit](https://sudoninja.medium.com/shinobilabs-hidden-leaf-exploit-c11b1e15064c) · [Knowledge base (GitBook)](https://sudoninja.gitbook.io/)
 
-The homepage terminal supports `whoami`, `projects`, `books`, `contact`, `help`, and `clear`. Enter submits commands; shortcut buttons support touch. Arrow keys recall up to 50 commands and Escape clears the input. Output is bounded to 20 entries. Project/book/contact links come from the page content, so additions stay in sync. Commands are an allowlist and user input is rendered as text, never executed as code. The terminal remains functional in Simple mode and excludes the chanting gesture.
+---
 
-## Find the vulnerability
+## Services
 
-The Challenge navigation link opens a fictional Express invoice-route puzzle. Visitors choose among three answers, receive tailored feedback, and reveal the IDOR explanation and ownership-scoped fix. Native details keep the explanation accessible without JavaScript. Try again resets the selection, feedback, and reveal state. The code is displayed only; it is never executed. The puzzle is excluded from the hold-to-chant gesture.
+Indicative pricing; final cost depends on scope, complexity, and depth.
 
-## Research timeline and demos
+**Security assessments**
 
-The timeline links selected publication milestones from July 2020 to June 2025 and an October 2026 portfolio snapshot. The 2020 dates were verified against CVEProject cvelistV5 records; later Exploit-DB dates use the existing portfolio entries. It does not claim these are the researcher’s first-ever disclosures or invent release dates for books.
+| Package | Price | Includes |
+|---|---|---|
+| Starter: Vulnerability assessment | $199 | Asset/subdomain discovery, port and service mapping, fingerprinting, report in 3 days |
+| Professional: Network penetration test | $299 | Attack surface mapping, automated and manual scanning, manual validation, report in 5 days |
+| Enterprise: Web application penetration test | $499 | Manual and automated testing, business logic review, retest window, report in 15 days |
 
-SudoShark has a user-opened YouTube privacy-enhanced embed limited to the first 45 seconds, with a full-video fallback link. It does not autoplay; collapsing the preview removes the player. Resource Matrix and APK Auditor use live-tool links, as requested, until video clips are supplied.
+**Custom tool development**
 
-## Custom tool development
+| Package | Price | Includes |
+|---|---|---|
+| Essential build | From $200 | Single-purpose script or CLI, one core workflow, basic documentation |
+| Professional build | From $300 | Multiple connected modules, web interface/dashboard, tailored logic, setup support |
+| Enterprise / Custom | Custom quote | Integrations, API connectivity, optional ongoing maintenance |
 
-The engagement section offers Essential builds from $200 USD, Professional builds from $300 USD, and custom quotes for larger work. Each card opens an email enquiry with its own subject. Final pricing and delivery depend on agreed scope. Existing security assessment pricing remains separate.
+**How we work:** share requirements → agree scope and quote → build and review → handover. Scope, acceptance criteria, payment milestones, and source-code rights are agreed in writing before work begins.
 
-## Sample deliverable
+---
 
-An expandable fictional security report excerpt sits between Services and Pricing. It illustrates scope, impact, evidence, remediation, and retest acceptance checks using invented data. It is explicitly labeled as an example, not client work. The native details controls work without JavaScript.
+## Contact
 
-## Engagement FAQ
+Use the **[Let's connect](https://sudoninja-noob.github.io/#connect)** section on the site, or reach out via [LinkedIn](https://linkedin.com/in/sanjaysingh06/) or [X](https://twitter.com/sudoninja_).
 
-Four expandable questions below tool development pricing cover source-code ownership, revisions, payment milestones, and maintenance. Specific terms are agreed in the proposal before work starts.
+---
 
-## Project process
+## Notes
 
-A four-step custom development process appears above the FAQ: share requirements, agree scope and quote, build and review, and handover. An email link invites visitors to share their requirements.
+- The sample report and invoice puzzle on the site use **fictional data** and do not represent a client engagement.
+- All security research is conducted and disclosed responsibly, within authorized scope.
+
+© 2026 Sanjay Singh
