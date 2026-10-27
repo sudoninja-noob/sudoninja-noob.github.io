@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Challenge — Sanjay Singh / sudoninja</title>
+<meta name="description" content="Sanjay Singh / sudoninja. Penetration tester, Synack Red Team member, and security researcher. Explore research, CVEs, and open-source resources.">
+<meta name="theme-color" content="#101312"><link rel="icon" href="favicon.svg"><link rel="stylesheet" href="styles.css?v=pages-20261027">
+</head>
+<body>
+<img id="mask-follower" src="assets/mask-cursor.png" alt="" aria-hidden="true" width="54" height="54" draggable="false">
+<audio id="ram-audio" src="assets/ram-chant.mp3" preload="metadata" loop></audio>
+<div id="hanuman-companion" aria-hidden="true" data-state="seated"><span class="hanuman-chakra"></span><img class="hanuman-reading" src="assets/hanuman-reading.png" alt="" draggable="false"><img class="hanuman-flying" src="assets/hanuman-flying.png" alt="" draggable="false"></div>
+<canvas id="matrix-background" aria-hidden="true"></canvas>
+<button id="simple-toggle" class="simple-toggle" type="button" aria-pressed="false">Simple mode</button>
+<button id="sound-toggle" class="sound-toggle" type="button" aria-pressed="true" hidden>Sound on</button>
+<button id="motion-toggle" class="motion-toggle" type="button" aria-pressed="false" hidden>Pause background</button>
+<a class="skip" href="#main">Skip to content</a>
+<header class="header wrap"><a class="brand" href="index.html" aria-label="sudoninja home"><span class="brand-symbol">s<span>_</span></span> sudo<span class="brand-light">ninja</span><span class="brand-dot">.</span></a><nav aria-label="Main navigation"><a href="about.html">About</a><a href="research.html">Research</a><a href="timeline.html">Timeline</a><a href="challenge.html" class="nav-active" aria-current="page">Challenge</a><a href="tools.html">Tools</a><a href="books.html">Books</a><a href="hire-me.html">Hire me</a></nav><a class="header-contact" href="about.html#connect">Let’s connect <span>↗</span></a></header>
+<main id="main"><div class="page-heading wrap"><a href="index.html">Home</a><span aria-hidden="true"> / </span><h1>Challenge</h1></div><section id="challenge" class="section wrap security-challenge" aria-labelledby="challenge-title"><div class="section-heading"><div><div class="eyebrow">INTERACTIVE LAB / 01</div><h2 id="challenge-title">Find the vulnerability.</h2></div><p>A fictional code puzzle. One missing check. Can you spot it?</p></div><div class="challenge-grid"><div class="challenge-code-panel"><div class="challenge-code-heading"><span>invoice-route.js</span><span>NODE.JS / EXPRESS</span></div><p class="challenge-context">This fictional app lets signed-in users view <strong>only their own invoices</strong>. Assume <code>requireLogin</code> validates the session and sets <code>req.user.id</code>. The database uses parameterized queries, and no other authorization checks exist.</p><pre tabindex="0" aria-label="Vulnerable invoice route"><code>app.get(&#x27;/api/invoices/:id&#x27;, requireLogin, async (req, res) =&gt; {
+  const invoice = await db.oneOrNone(
+    &#x27;SELECT id, total, owner_id FROM invoices WHERE id = $1&#x27;,
+    [req.params.id]
+  );
+  if (!invoice) return res.sendStatus(404);
+  res.json(invoice);
+});</code></pre></div><div class="challenge-answer-panel"><form id="challenge-form"><fieldset><legend>What is the main vulnerability?</legend><label><input type="radio" name="vulnerability" value="sqli" required> <span>SQL injection through the invoice ID</span></label><label><input type="radio" name="vulnerability" value="idor" required> <span>Broken object-level authorization (IDOR)</span></label><label><input type="radio" name="vulnerability" value="login" required> <span>Missing login protection</span></label></fieldset><button class="button primary" type="submit">Check my answer <span aria-hidden="true">→</span></button></form><p id="challenge-feedback" class="challenge-feedback" role="status" aria-live="polite"></p><details id="challenge-explanation"><summary>Reveal explanation &amp; fix</summary><div class="challenge-explanation-body"><h3>Login is not an ownership check.</h3><p>The query accepts an invoice ID without checking who owns that invoice. A signed-in user could request another user’s invoice ID and receive its data. This is an insecure direct object reference (IDOR), also called broken object-level authorization.</p><p><strong>Why the other answers don’t fit:</strong> <code>requireLogin</code> already checks authentication, and <code>$1</code> with a separate values array parameterizes the query. Neither enforces access to a particular invoice.</p><h4>Scope the lookup to the signed-in user</h4><pre tabindex="0" aria-label="Corrected invoice route"><code>app.get(&#x27;/api/invoices/:id&#x27;, requireLogin, async (req, res) =&gt; {
+  const invoice = await db.oneOrNone(
+    `SELECT id, total FROM invoices
+     WHERE id = $1 AND owner_id = $2`,
+    [req.params.id, req.user.id]
+  );
+  if (!invoice) return res.sendStatus(404);
+  res.json(invoice);
+});</code></pre><p>The owner ID comes from the verified session, not a request parameter. With this ownership-only policy, both missing and inaccessible invoices return 404.</p><p><strong>Verify the fix:</strong> Alice can read her invoice; Bob cannot read Alice’s invoice; an unauthenticated request is rejected. Unpredictable IDs alone do not replace authorization.</p></div></details><button id="challenge-reset" class="challenge-reset" type="button">Try again</button></div></div></section></main><footer class="wrap"><a class="brand" href="index.html">sudo<span class="brand-light">ninja</span><span class="brand-dot">.</span></a><span>© <span id="year">2026</span> Sanjay Singh</span><a href="#">Back to top ↑</a></footer><dialog id="story-dialog" aria-labelledby="story-title" aria-describedby="story-description"><div class="story-header"><div><div class="eyebrow">RAMAYANA / A SHORT RETELLING</div><h2 id="story-title">Jatayu’s courage.</h2></div><form method="dialog"><button class="story-close" aria-label="Close Story mode" autofocus>×</button></form></div><p id="story-description">A symbolic scene of Jatayu confronting Ravana as Sita is carried away. Play the scene or step through its captions.</p><div class="story-stage"><div id="epic-scene" aria-hidden="true">
+ <div class="epic-jatayu"><img class="jatayu-body" src="assets/jatayu-detailed.png" alt="" draggable="false" width="84" height="84"><img class="jatayu-detail-wing" src="assets/jatayu-detailed.png" alt="" draggable="false" width="84" height="84"><span class="epic-cry">राम</span></div>
+ <div class="epic-ravana"><img src="assets/ravana-sita-detailed.png" alt="" draggable="false" width="84" height="84"></div><span class="epic-clash">✦</span>
+</div>
+<span class="story-ground" aria-hidden="true"></span></div><div class="story-caption" aria-live="polite" aria-atomic="true"><span id="story-chapter">01 / 05 · An approaching chariot</span><p id="story-caption-text">Ravana carries Sita away in his flying chariot. Jatayu approaches to help her.</p></div><progress id="story-progress" max="24" value="0" aria-label="Story progress"></progress><div class="story-controls"><button id="story-play" class="button primary" type="button">Play story</button><button id="story-replay" type="button">Replay</button><div class="story-steps"><button id="story-prev" type="button" aria-label="Previous scene">← Previous</button><button id="story-next" type="button" aria-label="Next scene">Next →</button></div></div><p id="story-motion-note" class="story-note">24 seconds · Captions included · No automatic sound</p></dialog><script src="script.js?v=pages-20261027"></script>
+</body></html>
